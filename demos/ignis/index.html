@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ignis — Single Malt, Slow Burn</title>
+<meta name="description" content="Ignis — independent single malt distilled under the Scottish highlands. Small batch, long casks, uncompromising." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<svg class="grain" aria-hidden="true">
+  <filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.82" numOctaves="3" stitchTiles="stitch"/></filter>
+  <rect width="100%" height="100%" filter="url(#n)"/>
+</svg>
+
+<div class="cursor-dot"></div>
+<div class="cursor-ring"></div>
+
+<!-- ============ NAV ============ -->
+<header class="nav">
+  <a href="#top" class="nav-brand">
+    <span class="nav-flame"></span>
+    <span class="nav-mark">Ignis</span>
+    <span class="nav-est">est. 1887</span>
+  </a>
+  <nav class="nav-links">
+    <a href="#craft" data-magnetic><span>I</span>The Craft</a>
+    <a href="#expressions" data-magnetic><span>II</span>Expressions</a>
+    <a href="#heritage" data-magnetic><span>III</span>Heritage</a>
+    <a href="#find" data-magnetic><span>IV</span>Find a Bottle</a>
+  </nav>
+  <a href="#find" class="nav-cta" data-magnetic>Stockists ↗</a>
+</header>
+
+<!-- ============ HERO ============ -->
+<section id="top" class="hero">
+  <video class="hero-video" autoplay muted loop playsinline>
+    <source src="hero.mp4" type="video/mp4" />
+  </video>
+  <canvas class="hero-canvas" aria-hidden="true"></canvas>
+  <div class="hero-veil"></div>
+
+  <div class="hero-inner">
+    <p class="hero-kicker">Independent Highland Distillery · Scotland</p>
+    <h1 class="hero-title">
+      <span class="line"><span class="word">Slow</span></span>
+      <span class="line"><em class="word">Burn.</em></span>
+    </h1>
+    <p class="hero-sub">
+      Fifteen-year single malt, copper-pot distilled under the Cairngorms.<br/>
+      Nothing hurried. Nothing added.
+    </p>
+    <div class="hero-meta">
+      <span>◆ 46% ABV</span><span>◆ Non chill-filtered</span><span>◆ Natural colour</span>
+    </div>
+  </div>
+
+  <div class="hero-scroll">scroll <span>↓</span></div>
+</section>
+
+<!-- ============ MARQUEE ============ -->
+<div class="marquee-wrap" aria-hidden="true">
+  <div class="marquee">
+    <span>Distilled under the Cairngorms</span><i>✦</i>
+    <span>Fifteen winters in sherry cask</span><i>✦</i>
+    <span>Uncompromising since 1887</span><i>✦</i>
+    <span>A slower fire</span><i>✦</i>
+    <span>Distilled under the Cairngorms</span><i>✦</i>
+    <span>Fifteen winters in sherry cask</span><i>✦</i>
+    <span>Uncompromising since 1887</span><i>✦</i>
+    <span>A slower fire</span><i>✦</i>
+  </div>
+</div>
+
+<!-- ============ CRAFT ============ -->
+<section id="craft" class="craft">
+  <div class="craft-grid">
+    <div class="reveal">
+      <p class="section-num">I · The Craft</p>
+      <h2 class="section-title">A slower<br/><em>fire.</em></h2>
+    </div>
+    <div class="craft-prose reveal">
+      <p>Our distillery has stood, unchanged in essentials, for <em>one hundred and thirty-eight years</em>. The same spring, the same two copper stills, the same unreasonable patience.</p>
+      <p>We run every batch three times slower than most modern distilleries. Our wash still holds a gentle simmer for six hours where others push through in two. It is inefficient by any commercial measure.</p>
+      <p>It is the only way to make a single malt we are willing to put our name on.</p>
+    </div>
+  </div>
+
+  <div class="pillars">
+    <div class="pillar reveal">
+      <span class="p-num">01</span>
+      <h3>Water</h3>
+      <p>Sourced from the Avon burn, filtered through <em>four hundred feet</em> of Cairngorm granite. Soft. Mineral. Cold year-round.</p>
+    </div>
+    <div class="pillar reveal">
+      <span class="p-num">02</span>
+      <h3>Barley</h3>
+      <p>Floor-malted at Balmuirfield since 1924. Every grain walked by hand across the malting floor <em>twice a day</em> for seven days.</p>
+    </div>
+    <div class="pillar reveal">
+      <span class="p-num">03</span>
+      <h3>Casks</h3>
+      <p>First-fill Oloroso sherry butts, sourced from a single <em>family bodega</em> outside Jerez. We have never bought on the open market.</p>
+    </div>
+    <div class="pillar reveal">
+      <span class="p-num">04</span>
+      <h3>Time</h3>
+      <p>Minimum fifteen winters under slate roofs. Our cellar master's only instruction since 1994: <em>"Do not rush the cask."</em></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ EXPRESSIONS ============ -->
+<section id="expressions" class="expressions">
+  <div class="section-head reveal">
+    <p class="section-num">II · Expressions</p>
+    <h2 class="section-title">Four quiet<br/><em>convictions.</em></h2>
+  </div>
+
+  <div class="bottles">
+    <article class="bottle reveal" data-hue="34">
+      <div class="bottle-vis">
+        <div class="bottle-silhouette"></div>
+        <span class="bottle-age">15</span>
+      </div>
+      <div class="bottle-body">
+        <p class="bottle-cat">Core Expression</p>
+        <h3>Ignis <em>Fifteen</em></h3>
+        <p class="bottle-notes">Honeyed oak. Dried apricot. Bitter orange peel. A long, warming finish carried by old leather and clove.</p>
+        <dl class="bottle-specs">
+          <div><dt>Cask</dt><dd>Oloroso sherry, first-fill</dd></div>
+          <div><dt>Strength</dt><dd>46% ABV</dd></div>
+          <div><dt>Bottles/year</dt><dd>~ 12,000</dd></div>
+        </dl>
+      </div>
+    </article>
+
+    <article class="bottle reveal" data-hue="18">
+      <div class="bottle-vis">
+        <div class="bottle-silhouette dark"></div>
+        <span class="bottle-age">21</span>
+      </div>
+      <div class="bottle-body">
+        <p class="bottle-cat">Reserve</p>
+        <h3>Ignis <em>Twenty-one</em></h3>
+        <p class="bottle-notes">Dark honey, stewed fig, toasted almond. Cigar-leaf and a whisper of sea salt. Finish that stays for minutes.</p>
+        <dl class="bottle-specs">
+          <div><dt>Cask</dt><dd>PX sherry &amp; refill bourbon</dd></div>
+          <div><dt>Strength</dt><dd>48.2% ABV</dd></div>
+          <div><dt>Bottles/year</dt><dd>~ 3,400</dd></div>
+        </dl>
+      </div>
+    </article>
+
+    <article class="bottle reveal" data-hue="52">
+      <div class="bottle-vis">
+        <div class="bottle-silhouette pale"></div>
+        <span class="bottle-age">12</span>
+      </div>
+      <div class="bottle-body">
+        <p class="bottle-cat">Unpeated</p>
+        <h3>Ignis <em>Caladh</em></h3>
+        <p class="bottle-notes">Orchard fruit. Shortbread. A delicate floral lift. Intended for those who prefer their malts bright and unhurried.</p>
+        <dl class="bottle-specs">
+          <div><dt>Cask</dt><dd>Ex-bourbon hogsheads</dd></div>
+          <div><dt>Strength</dt><dd>43% ABV</dd></div>
+          <div><dt>Bottles/year</dt><dd>~ 8,600</dd></div>
+        </dl>
+      </div>
+    </article>
+
+    <article class="bottle reveal" data-hue="10">
+      <div class="bottle-vis">
+        <div class="bottle-silhouette deep"></div>
+        <span class="bottle-age">30</span>
+      </div>
+      <div class="bottle-body">
+        <p class="bottle-cat">Library Release · 420 bottles</p>
+        <h3>Ignis <em>Thirty</em></h3>
+        <p class="bottle-notes">Sandalwood. Black cherry. Antique leather. Rancio. The distillery's deepest expression — cask-strength, unrepeatable.</p>
+        <dl class="bottle-specs">
+          <div><dt>Cask</dt><dd>Single Oloroso butt, #4417</dd></div>
+          <div><dt>Strength</dt><dd>51.7% cask strength</dd></div>
+          <div><dt>Bottles released</dt><dd>420</dd></div>
+        </dl>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ============ HERITAGE ============ -->
+<section id="heritage" class="heritage">
+  <div class="section-head reveal">
+    <p class="section-num">III · Heritage</p>
+    <h2 class="section-title">One hundred and<br/><em>thirty-eight winters.</em></h2>
+  </div>
+
+  <ol class="timeline">
+    <li class="reveal">
+      <span class="t-year">1887</span>
+      <h4>The first cut</h4>
+      <p>Alasdair Hume signs the lease on a disused corn mill on the banks of the Avon and begins distilling under the name <em>Ignis</em>.</p>
+    </li>
+    <li class="reveal">
+      <span class="t-year">1924</span>
+      <h4>Balmuirfield Maltings</h4>
+      <p>The distillery begins floor-malting its own barley. The practice has never stopped.</p>
+    </li>
+    <li class="reveal">
+      <span class="t-year">1958</span>
+      <h4>The silent decade</h4>
+      <p>Production halts for eleven years during family disputes. The warehouses remain full. This is where our oldest expressions were born.</p>
+    </li>
+    <li class="reveal">
+      <span class="t-year">1994</span>
+      <h4>Cellar master's rule</h4>
+      <p>Morag Hume becomes cellar master and issues the standing instruction: <em>"Do not rush the cask."</em></p>
+    </li>
+    <li class="reveal">
+      <span class="t-year">2019</span>
+      <h4>Independent forever</h4>
+      <p>The family trust rejects the seventh acquisition offer and signs a charter binding the distillery to remain independently owned.</p>
+    </li>
+    <li class="reveal">
+      <span class="t-year">2026</span>
+      <h4>A slower fire, still</h4>
+      <p>Three generations in. The stills are the same. The rule is the same. The answer is the same.</p>
+    </li>
+  </ol>
+</section>
+
+<!-- ============ FIND ============ -->
+<section id="find" class="find">
+  <div class="reveal">
+    <p class="section-num">IV · Find a bottle</p>
+    <h2 class="find-title">
+      Ask your<br/><em>favourite merchant.</em>
+    </h2>
+    <p class="find-sub">
+      We ship through forty-one independent specialists across eighteen countries. Stock is small and moves quickly.
+    </p>
+    <div class="find-cta">
+      <a href="#" class="btn btn-primary" data-magnetic>View stockists <span class="arrow">↗</span></a>
+      <a href="#" class="btn btn-ghost" data-magnetic>Join the list</a>
+    </div>
+  </div>
+</section>
+
+<footer class="foot">
+  <div class="foot-top">
+    <div class="foot-brand">
+      <span class="nav-flame"></span>
+      <span class="nav-mark">Ignis</span>
+    </div>
+    <div class="foot-col">
+      <p>Distillery</p>
+      <a href="#craft">The Craft</a>
+      <a href="#heritage">Heritage</a>
+      <a href="#">Visit us</a>
+    </div>
+    <div class="foot-col">
+      <p>Expressions</p>
+      <a href="#expressions">Fifteen</a>
+      <a href="#expressions">Twenty-one</a>
+      <a href="#expressions">Caladh</a>
+      <a href="#expressions">Thirty</a>
+    </div>
+    <div class="foot-col">
+      <p>The trade</p>
+      <a href="#">Stockists</a>
+      <a href="#">Press</a>
+      <a href="#">Trade enquiries</a>
+    </div>
+  </div>
+  <div class="foot-bot">
+    <span>© 2026 Ignis Distillery Ltd. · Tomintoul, Scotland</span>
+    <span>Please enjoy responsibly.</span>
+    <span>Demo site · designed by <a href="../../">Efe Biskin</a></span>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

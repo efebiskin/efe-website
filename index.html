@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Efe Biskin — AI/ML + Software Engineer</title>
+<meta name="description" content="Efe Biskin — CS senior at California Lutheran University. Rigorous validation. Honest failure analysis. Shipping real systems." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+<!-- noise / grain overlay -->
+<svg class="grain" aria-hidden="true">
+  <filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" stitchTiles="stitch"/></filter>
+  <rect width="100%" height="100%" filter="url(#n)"/>
+</svg>
+
+<!-- custom cursor -->
+<div class="cursor-dot" aria-hidden="true"></div>
+<div class="cursor-ring" aria-hidden="true"></div>
+
+<!-- intro curtain (plays once on load) -->
+<div class="curtain" aria-hidden="true">
+  <div class="curtain-inner">
+    <span>E</span><span>F</span><span>E</span>
+  </div>
+</div>
+
+<!-- top nav -->
+<header class="nav">
+  <a href="#top" class="nav-logo" data-magnetic>EB<span class="pulse"></span></a>
+  <nav class="nav-links">
+    <a href="#work" data-magnetic><span>01</span> Work</a>
+    <a href="#brand" data-magnetic><span>02</span> Brand</a>
+    <a href="#about" data-magnetic><span>03</span> About</a>
+    <a href="#contact" data-magnetic><span>04</span> Contact</a>
+  </nav>
+  <div class="nav-clock"><span id="clock">--:--:--</span> <small>Thousand Oaks, CA</small></div>
+</header>
+
+<!-- ========= HERO ========= -->
+<section id="top" class="hero">
+  <!--
+    Seedance 2.0 goes here. Drop an .mp4 into /assets/hero.mp4
+    The <video> auto-plays. If missing, the <canvas> shader below fills the frame.
+  -->
+  <video class="hero-video" autoplay muted loop playsinline poster="">
+    <source src="assets/hero.mp4" type="video/mp4" />
+  </video>
+  <canvas class="hero-canvas" aria-hidden="true"></canvas>
+  <div class="hero-veil"></div>
+
+  <div class="hero-inner">
+    <div class="hero-label">
+      <span class="dot"></span> Available · New-grad AI/ML + SWE · 2026
+    </div>
+
+    <h1 class="hero-title">
+      <span class="line"><span class="word">Efe</span></span>
+      <span class="line"><em class="word italic">Biskin</em></span>
+    </h1>
+
+    <p class="hero-sub">
+      I build <em>systems that learn from their own mistakes</em>.<br/>
+      Ensemble ML. Production infra. Rigorous validation.<br/>
+      Three flagship platforms shipping in <strong>2026</strong>.
+    </p>
+
+    <div class="hero-cta">
+      <a href="#work" class="btn btn-primary" data-magnetic>See the work <span class="arrow">↗</span></a>
+      <a href="mailto:efebskn@gmail.com" class="btn btn-ghost" data-magnetic>Email me</a>
+    </div>
+  </div>
+
+  <div class="hero-scroll">scroll <span>↓</span></div>
+</section>
+
+<!-- ========= MARQUEE ========= -->
+<section class="marquee-wrap" aria-hidden="true">
+  <div class="marquee">
+    <span>AI / ML Engineering</span><i>✦</i>
+    <span>Ensemble Models</span><i>✦</i>
+    <span>Real-estate Intelligence</span><i>✦</i>
+    <span>Algorithmic Trading</span><i>✦</i>
+    <span>Fitness AI</span><i>✦</i>
+    <span>Jarvis-Style Agents</span><i>✦</i>
+    <span>Steam-shipped Games</span><i>✦</i>
+    <span>AI / ML Engineering</span><i>✦</i>
+    <span>Ensemble Models</span><i>✦</i>
+    <span>Real-estate Intelligence</span><i>✦</i>
+    <span>Algorithmic Trading</span><i>✦</i>
+    <span>Fitness AI</span><i>✦</i>
+    <span>Jarvis-Style Agents</span><i>✦</i>
+    <span>Steam-shipped Games</span><i>✦</i>
+  </div>
+</section>
+
+<!-- ========= WORK ========= -->
+<section id="work" class="work">
+  <div class="section-head reveal">
+    <span class="section-num">01 · Selected Work</span>
+    <h2 class="section-title">Five systems. <em>Each one</em> shipped.</h2>
+  </div>
+
+  <article class="project reveal" data-accent="#8B5CF6">
+    <div class="project-num">01</div>
+    <div class="project-body">
+      <div class="project-meta">
+        <span class="tag">ML · Python · XGBoost · LightGBM</span>
+        <span class="year">2026</span>
+      </div>
+      <h3 class="project-title">Autonomous ML <em>Trading</em> Platform</h3>
+      <p class="project-desc">
+        Ensemble XGBoost + LightGBM + RF, stacked with logistic meta-learner, isotonic-calibrated. Walk-forward CV with 10-day embargo.
+        After rigorous OOS testing revealed a 48.5% win rate (worse than a coin flip), I <em>caught my own overfit</em>, killed it, and rebuilt around two academic-validated strategies.
+      </p>
+      <div class="project-stats">
+        <div><strong>64.6%</strong><span>insider-buy win rate</span></div>
+        <div><strong>+3.31%</strong><span>alpha vs S&amp;P 500</span></div>
+        <div><strong>1.21</strong><span>Sharpe</span></div>
+        <div><strong>164</strong><span>trades / 3y backtest</span></div>
+      </div>
+    </div>
+  </article>
+
+  <article class="project reveal" data-accent="#10B981">
+    <div class="project-num">02</div>
+    <div class="project-body">
+      <div class="project-meta">
+        <span class="tag">Python · Dash · 7 gov APIs</span>
+        <span class="year">2025–26</span>
+      </div>
+      <h3 class="project-title">LFVI — Land <em>Future Value</em> Index</h3>
+      <p class="project-desc">
+        End-to-end ML pipeline ingesting 7+ U.S. government APIs (Census ACS, IRS, BLS, FRED, FEMA, Zillow).
+        Engineers 50+ features per county, trains 5 ensemble models, scores all 3,100+ U.S. counties.
+        Extends to parcel level via APN lookups with a Deal Analyzer estimating max rational price.
+      </p>
+      <div class="project-stats">
+        <div><strong>3,100+</strong><span>counties scored</span></div>
+        <div><strong>50+</strong><span>features/county</span></div>
+        <div><strong>5</strong><span>stacked models</span></div>
+        <div><strong>~10k</strong><span>lines Python</span></div>
+      </div>
+    </div>
+  </article>
+
+  <article class="project reveal" data-accent="#F59E0B">
+    <div class="project-num">03</div>
+    <div class="project-body">
+      <div class="project-meta">
+        <span class="tag">JavaScript · Supabase · JSX</span>
+        <span class="year">Senior capstone, 2026</span>
+      </div>
+      <h3 class="project-title">Olympiq — <em>Fitness</em> web app</h3>
+      <p class="project-desc">
+        Single-file web app (~214 KB) with a hand-rolled 208-line React-like runtime — virtual DOM, hook system, event delegation — compiled from JSX via esbuild. <em>No framework dependencies.</em>
+        Supabase auth + Postgres backend. Offline-capable. My CSC499 senior capstone at California Lutheran University.
+      </p>
+      <div class="project-stats">
+        <div><strong>208</strong><span>LOC runtime</span></div>
+        <div><strong>~214 KB</strong><span>total HTML payload</span></div>
+        <div><strong>0</strong><span>framework deps</span></div>
+        <div><strong>A</strong><span>CSC499 grade</span></div>
+      </div>
+    </div>
+  </article>
+
+  <article class="project reveal" data-accent="#EF4444">
+    <div class="project-num">04</div>
+    <div class="project-body">
+      <div class="project-meta">
+        <span class="tag">Claude · Telegram · Obsidian · ElevenLabs</span>
+        <span class="year">2026</span>
+      </div>
+      <h3 class="project-title">HERA — Jarvis-style <em>personal AI</em></h3>
+      <p class="project-desc">
+        Orchestrates 42 registered tools across memory (Obsidian vault), reminders, PC control, browser, vision (Claude), media/home (Spotify / Hue), Google, and agentic coding.
+        Talks back through ElevenLabs TTS with faster-whisper STT and a custom "jarvis" wake word.
+      </p>
+      <div class="project-stats">
+        <div><strong>42</strong><span>registered tools</span></div>
+        <div><strong>2</strong><span>Claude models in prod</span></div>
+        <div><strong>24/7</strong><span>uptime on a laptop</span></div>
+        <div><strong>$2</strong><span>per agentic turn cap</span></div>
+      </div>
+    </div>
+  </article>
+
+  <article class="project reveal" data-accent="#06B6D4">
+    <div class="project-num">05</div>
+    <div class="project-body">
+      <div class="project-meta">
+        <span class="tag">Unity · EN/TR/ES localization</span>
+        <span class="year">2025–26</span>
+      </div>
+      <h3 class="project-title">BEF Games — <em>shipped on Steam</em></h3>
+      <p class="project-desc">
+        Contributor to <em>The Boss Gangsters: Nightlife</em> on Steam. Ship features, patches, and trilingual localization (EN/TR/ES).
+        Brokered the studio's publishing partnership with <strong>Tripwire Interactive</strong> (<em>Killing Floor</em>, <em>Rising Storm</em>).
+      </p>
+      <div class="project-stats">
+        <div><strong>1</strong><span>Steam title shipped</span></div>
+        <div><strong>3</strong><span>languages localized</span></div>
+        <div><strong>1</strong><span>major publishing deal</span></div>
+        <div><strong>Remote</strong><span>contract, ongoing</span></div>
+      </div>
+    </div>
+  </article>
+</section>
+
+<!-- ========= BRAND WORK / SPEC ========= -->
+<section id="brand" class="brand-work">
+  <div class="section-head reveal">
+    <span class="section-num">02 · Brand Work</span>
+    <h2 class="section-title">Motion <em>brand sites.</em><br/>One engineer, one invoice.</h2>
+  </div>
+
+  <div class="brand-grid">
+    <a href="demos/ignis/" target="_blank" rel="noopener" class="brand-card reveal live" data-magnetic>
+      <div class="brand-thumb brand-thumb-ignis">
+        <span class="brand-flame"></span>
+        <em>Ignis</em>
+      </div>
+      <div class="brand-meta">
+        <div>
+          <span class="brand-cat">Spec · Luxury Spirits</span>
+          <h3>Ignis — Single Malt</h3>
+        </div>
+        <span class="brand-view">Visit site ↗</span>
+      </div>
+    </a>
+
+    <div class="brand-card reveal soon">
+      <div class="brand-thumb brand-thumb-saas"></div>
+      <div class="brand-meta">
+        <div>
+          <span class="brand-cat">Coming Soon</span>
+          <h3>SaaS — AI Startup</h3>
+        </div>
+        <span class="brand-view">In progress</span>
+      </div>
+    </div>
+
+    <div class="brand-card reveal soon">
+      <div class="brand-thumb brand-thumb-editorial"></div>
+      <div class="brand-meta">
+        <div>
+          <span class="brand-cat">Coming Soon</span>
+          <h3>Editorial — Fashion</h3>
+        </div>
+        <span class="brand-view">In progress</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="brand-cta reveal">
+    Need a site like these? <a href="mailto:efebskn@gmail.com?subject=Motion%20Site%20Enquiry" data-magnetic>Start a project ↗</a>
+  </p>
+</section>
+
+<!-- ========= OPEN SOURCE STRIP ========= -->
+<section class="oss">
+  <div class="section-head reveal">
+    <span class="section-num">02 · Open source</span>
+    <h2 class="section-title">Read the code. <em>Run the tests.</em></h2>
+  </div>
+  <div class="oss-grid">
+    <a href="https://github.com/efebiskin/mini-react" target="_blank" rel="noopener" class="oss-card reveal" data-magnetic>
+      <div class="oss-card-top">
+        <span class="oss-name">mini-react</span>
+        <span class="oss-stat">10/10 tests</span>
+      </div>
+      <p>A ~220-line React clone. Virtual DOM, hooks, reconciling diff. Zero deps, zero build.</p>
+      <div class="oss-lang"><i style="background:#F7DF1E"></i>JavaScript</div>
+    </a>
+    <a href="https://github.com/efebiskin/sec-form4-parser" target="_blank" rel="noopener" class="oss-card reveal" data-magnetic>
+      <div class="oss-card-top">
+        <span class="oss-name">sec-form4-parser</span>
+        <span class="oss-stat">13/13 tests</span>
+      </div>
+      <p>Typed Python parser for SEC Form 4 insider-trading XML. Rate-limited EDGAR fetcher + CLI.</p>
+      <div class="oss-lang"><i style="background:#3776AB"></i>Python</div>
+    </a>
+    <a href="https://github.com/efebiskin/python-dsa" target="_blank" rel="noopener" class="oss-card reveal" data-magnetic>
+      <div class="oss-card-top">
+        <span class="oss-name">python-dsa</span>
+        <span class="oss-stat">80/80 tests</span>
+      </div>
+      <p>20 classic algorithm problems in 8 patterns. Complexity-annotated. Self-contained curriculum.</p>
+      <div class="oss-lang"><i style="background:#3776AB"></i>Python</div>
+    </a>
+    <a href="https://github.com/efebiskin/java-algorithms" target="_blank" rel="noopener" class="oss-card reveal" data-magnetic>
+      <div class="oss-card-top">
+        <span class="oss-name">java-algorithms</span>
+        <span class="oss-stat">JUnit 5</span>
+      </div>
+      <p>Companion to <code>python-dsa</code>. Same problems, idiomatic Java 17, Maven, GH Actions CI.</p>
+      <div class="oss-lang"><i style="background:#ED8B00"></i>Java</div>
+    </a>
+  </div>
+</section>
+
+<!-- ========= ABOUT ========= -->
+<section id="about" class="about">
+  <div class="section-head reveal">
+    <span class="section-num">03 · About</span>
+    <h2 class="section-title">Engineering is a <em>trust contract.</em></h2>
+  </div>
+
+  <div class="about-grid">
+    <div class="about-prose reveal">
+      <p>I'm a Computer Science senior at California Lutheran University <em>(3.9 GPA, graduating May 2026)</em>. Minor in Psychology.</p>
+      <p>I ship real systems with real users. When my ML ensemble collapsed out-of-sample, I didn't hide the numbers — I wrote them down, killed the model, and rebuilt around strategies with 30 years of peer review behind them.</p>
+      <p>That's the kind of engineer I try to be: one you can trust with a pager.</p>
+      <p>Fluent in English, native Turkish, conversational Spanish. Certified in AI Engineering &amp; Applied AI and Computer Hardware &amp; Systems.</p>
+    </div>
+
+    <dl class="about-stats reveal">
+      <div><dt>GPA</dt><dd>3.9 / 4.0</dd></div>
+      <div><dt>Languages</dt><dd>EN · TR · ES</dd></div>
+      <div><dt>Flagship projects</dt><dd>5 shipped</dd></div>
+      <div><dt>Public repos</dt><dd>5 · 100+ tests</dd></div>
+      <div><dt>Roles targeting</dt><dd>AI/ML · SWE · 2026</dd></div>
+      <div><dt>Location</dt><dd>Thousand Oaks, CA</dd></div>
+    </dl>
+  </div>
+</section>
+
+<!-- ========= CONTACT ========= -->
+<section id="contact" class="contact">
+  <div class="reveal">
+    <span class="section-num">04 · Contact</span>
+    <h2 class="contact-title">
+      Let's <em>build</em><br/>something worth<br/><em>shipping.</em>
+    </h2>
+    <div class="contact-links">
+      <a href="mailto:efebskn@gmail.com" data-magnetic>efebskn@gmail.com <span class="arrow">↗</span></a>
+      <a href="https://www.linkedin.com/in/efe-biskin-923397400" target="_blank" rel="noopener" data-magnetic>LinkedIn <span class="arrow">↗</span></a>
+      <a href="https://github.com/efebiskin" target="_blank" rel="noopener" data-magnetic>GitHub <span class="arrow">↗</span></a>
+    </div>
+  </div>
+</section>
+
+<footer class="foot">
+  <span>© 2026 Efe Biskin</span>
+  <span>Built with Claude Opus 4.7 + <em>Seedance 2.0</em> · No framework</span>
+  <span><a href="#top" data-magnetic>Back to top ↑</a></span>
+</footer>
+
+<script src="assets/script.js"></script>
+</body>
+</html>
