@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Xeneon Edge widgets — Efe Biskin</title>
+<meta name="description" content="Eight widgets for the Corsair Xeneon Edge iCUE iFrame panel. Clock, Pomodoro, Hacker News, Crypto, Stocks, Weather, Spotify, Discord." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: rgb(0, 225, 255);           /* xeneon cyan — bright gas-tube tone */
+    --bg-fade: rgba(255,255,255,.54);
+    --ink: rgb(20, 20, 22);           /* warm near-black */
+    --ink-soft: rgba(20, 20, 22, .64);
+    --ink-dim: rgba(20, 20, 22, .36);
+    --white: #fff;
+    --card: rgba(255, 255, 255, .14);
+    --card-border: rgba(255, 255, 255, .42);
+    --hairline: rgba(20, 20, 22, .16);
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--ink);font-family:"Archivo",system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+  body{
+    min-height:100dvh;
+    background:
+      linear-gradient(180deg, transparent 46%, var(--bg-fade) 100%),
+      var(--bg);
+    position:relative;
+    overflow-x:hidden;
+  }
+  a{color:inherit;text-decoration:none}
+  .mono{font-family:"JetBrains Mono",ui-monospace,monospace;letter-spacing:.04em}
+
+  /* nav */
+  .nav{
+    position:fixed;top:0;left:0;right:0;z-index:20;
+    display:flex;justify-content:space-between;align-items:center;
+    padding:22px 36px;
+  }
+  .brand-mini{font-weight:800;font-size:17px;letter-spacing:-.01em;color:#fff}
+  .brand-mini span{opacity:.6;margin:0 8px}
+  .back{
+    display:inline-flex;align-items:center;gap:6px;
+    font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#fff;
+    padding:8px 14px;border:1px solid rgba(255,255,255,.45);border-radius:999px;
+    transition:all .2s;backdrop-filter:blur(6px);
+  }
+  .back:hover{background:rgba(255,255,255,.12);border-color:#fff}
+
+  /* progress dots top-right */
+  .steps{position:fixed;top:28px;right:36px;z-index:20;display:flex;gap:6px}
+  .steps .d{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.4)}
+  .steps .d.active{background:#fff}
+
+  /* HERO */
+  .hero{
+    min-height:100dvh;
+    display:grid;grid-template-rows:1fr auto;
+    padding:140px 36px 0;
+    position:relative;
+  }
+  .hero-center{display:flex;flex-direction:column;align-items:center;text-align:center;justify-content:center;gap:32px}
+  .eyebrow{
+    font-size:12px;letter-spacing:.26em;text-transform:uppercase;font-weight:600;
+    color:rgba(255,255,255,.9);display:inline-flex;align-items:center;gap:10px;
+    padding:8px 16px;border:1px solid rgba(255,255,255,.55);border-radius:999px;
+    backdrop-filter:blur(6px);background:rgba(255,255,255,.08);
+  }
+  .eyebrow .dot{width:7px;height:7px;background:#fff;border-radius:50%;animation:pulse 1.8s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:1;transform:scale(1.3)}}
+
+  h1.display{
+    font-weight:500;                /* medium, not black — borrowed from Jitter */
+    font-size:clamp(52px, 11vw, 152px);
+    letter-spacing:-.035em;
+    line-height:.92;
+    color:#fff;
+    max-width:14ch;
+  }
+  h1.display em{
+    font-family:"Instrument Serif",serif;font-style:italic;font-weight:400;
+    color:rgba(255,255,255,.85);
+  }
+
+  .lede{
+    max-width:580px;font-size:clamp(16px,1.45vw,19px);line-height:1.55;
+    color:rgba(20,20,22,.78);font-weight:500;
+  }
+
+  .hero-cta{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+  .pill{
+    display:inline-flex;align-items:center;gap:10px;
+    padding:16px 28px;border-radius:999px;font-weight:700;font-size:14px;letter-spacing:.01em;
+    transition:transform .15s, background .15s;
+  }
+  .pill-dark{background:var(--ink);color:#fff}
+  .pill-dark:hover{transform:translateY(-1px);background:#000}
+  .pill-ghost{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.5);backdrop-filter:blur(6px)}
+  .pill-ghost:hover{background:rgba(255,255,255,.22)}
+  .pill .arrow{transition:transform .2s}
+  .pill:hover .arrow{transform:translateX(3px)}
+
+  /* sine-wave horizon with widget icon nodes */
+  .horizon{
+    position:relative;width:100%;height:clamp(180px, 28vh, 300px);
+    margin-top:32px;overflow:hidden;
+  }
+  .horizon svg{position:absolute;inset:0;width:100%;height:100%}
+  .horizon .path{fill:none;stroke:rgba(255,255,255,.55);stroke-width:1.5;stroke-dasharray:0}
+  .nodes{position:absolute;inset:0}
+  .node{
+    position:absolute;transform:translate(-50%,-50%);
+    width:clamp(52px, 6.5vw, 78px);height:clamp(52px, 6.5vw, 78px);
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(255,255,255,.26);border:1px solid rgba(255,255,255,.65);
+    backdrop-filter:blur(8px);
+    font-size:clamp(22px, 2.4vw, 30px);
+    cursor:pointer;text-decoration:none;
+    transition:transform .25s cubic-bezier(.34,1.56,.64,1), background .2s, box-shadow .2s;
+    animation:bob 5s ease-in-out infinite;
+  }
+  .node:hover{
+    transform:translate(-50%,-50%) scale(1.18);
+    background:#fff;box-shadow:0 18px 42px -8px rgba(0,0,0,.25);
+    z-index:10;
+  }
+  .node::after{
+    content:attr(data-label);position:absolute;top:calc(100% + 10px);left:50%;transform:translateX(-50%);
+    font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:rgba(20,20,22,.85);
+    opacity:0;transition:opacity .2s;white-space:nowrap;font-weight:600;
+  }
+  .node:hover::after{opacity:1}
+
+  @keyframes bob {
+    0%, 100% { margin-top: 0 }
+    50%      { margin-top: -6px }
+  }
+  .node:nth-child(1){animation-delay:0s}
+  .node:nth-child(2){animation-delay:-.8s}
+  .node:nth-child(3){animation-delay:-1.6s}
+  .node:nth-child(4){animation-delay:-2.4s}
+  .node:nth-child(5){animation-delay:-3.2s}
+  .node:nth-child(6){animation-delay:-4s}
+  .node:nth-child(7){animation-delay:-.4s}
+  .node:nth-child(8){animation-delay:-1.2s}
+
+  /* CONTEXT STRIP — hardware spec */
+  .strip{
+    background:var(--ink);color:#fff;
+    padding:36px 36px;
+    display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:22px;
+  }
+  .strip dl{display:flex;gap:36px;flex-wrap:wrap}
+  .strip dt{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:4px}
+  .strip dd{font-size:16px;font-weight:700;letter-spacing:-.005em}
+  .strip .right{display:flex;gap:10px;flex-wrap:wrap}
+  .chip{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;padding:6px 12px;border:1px solid rgba(255,255,255,.25);border-radius:999px;color:rgba(255,255,255,.85)}
+
+  /* WIDGETS GRID */
+  .widgets{
+    background:#fff;color:var(--ink);
+    padding:96px 36px 72px;
+  }
+  .widgets-head{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:baseline;max-width:1200px;margin:0 auto 48px}
+  .widgets-head .num{font-family:"JetBrains Mono",monospace;color:var(--ink-dim);font-size:13px;letter-spacing:.22em}
+  .widgets-head h2{font-size:clamp(36px, 5.5vw, 72px);font-weight:500;letter-spacing:-.03em;line-height:.95}
+  .widgets-head h2 em{font-family:"Instrument Serif",serif;font-style:italic;font-weight:400}
+  .widgets-head p{grid-column:2;color:var(--ink-soft);font-size:16px;max-width:54ch;line-height:1.55;margin-top:8px}
+
+  .w-category{max-width:1200px;margin:0 auto}
+  .cat-head{
+    display:flex;align-items:baseline;gap:16px;
+    margin:48px 0 16px;padding-bottom:10px;border-bottom:1px solid var(--hairline);
+  }
+  .cat-head h3{font-size:22px;font-weight:700;letter-spacing:-.01em}
+  .cat-head .label{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-dim)}
+
+  .wgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+  .wcard{
+    border:1px solid var(--hairline);border-radius:18px;padding:22px;
+    display:flex;flex-direction:column;gap:14px;
+    transition:transform .2s, border-color .2s, box-shadow .2s;
+    background:#fff;
+  }
+  .wcard:hover{transform:translateY(-2px);border-color:var(--ink);box-shadow:0 18px 38px -20px rgba(0,0,0,.25)}
+  .wcard-emoji{
+    width:48px;height:48px;border-radius:12px;
+    display:flex;align-items:center;justify-content:center;font-size:24px;
+    background:linear-gradient(135deg,#f5f5f7,#eaeaee);
+  }
+  .wcard-name{font-size:18px;font-weight:800;letter-spacing:-.01em}
+  .wcard-desc{font-size:13px;color:var(--ink-soft);line-height:1.5;flex:1}
+  .wcard-cta{
+    display:flex;justify-content:space-between;align-items:center;
+    padding-top:12px;border-top:1px solid var(--hairline);
+    font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-dim);
+  }
+  .wcard-cta .path{color:var(--ink)}
+
+  /* ARCHITECTURE CALLOUT */
+  .arch{
+    padding:96px 36px;background:#fafafa;color:var(--ink);
+  }
+  .arch-inner{max-width:1080px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:start}
+  .arch-head .num{font-family:"JetBrains Mono",monospace;color:var(--ink-dim);font-size:13px;letter-spacing:.22em;margin-bottom:10px;display:block}
+  .arch-head h2{font-size:clamp(32px, 4.5vw, 60px);font-weight:500;letter-spacing:-.03em;line-height:1}
+  .arch-head h2 em{font-family:"Instrument Serif",serif;font-style:italic;font-weight:400}
+  .arch-body{color:var(--ink-soft);font-size:15px;line-height:1.65}
+  .arch-body p{margin-bottom:16px}
+  .arch-body code{font-family:"JetBrains Mono",monospace;background:#000;color:#ffd166;padding:2px 6px;border-radius:4px;font-size:12px}
+  .arch-body strong{color:var(--ink);font-weight:700}
+  @media (max-width: 760px){
+    .arch-inner{grid-template-columns:1fr;gap:24px}
+  }
+
+  /* ASIDE — honest limits */
+  .limits{
+    padding:60px 36px;background:var(--ink);color:#fff;
+  }
+  .limits-inner{max-width:1080px;margin:0 auto}
+  .limits h3{font-size:20px;font-weight:700;margin-bottom:16px;letter-spacing:-.01em}
+  .limits h3::before{content:"⚠";margin-right:10px;color:#ffd166}
+  .limits p{color:rgba(255,255,255,.7);font-size:14px;line-height:1.6;max-width:72ch}
+  .limits p + p{margin-top:12px}
+
+  /* CTA */
+  .final-cta{
+    padding:120px 36px 120px;text-align:center;background:#fff;
+  }
+  .final-cta h2{font-size:clamp(36px, 6vw, 88px);font-weight:500;letter-spacing:-.035em;line-height:.95;margin-bottom:24px;max-width:16ch;margin-inline:auto}
+  .final-cta h2 em{font-family:"Instrument Serif",serif;font-style:italic;font-weight:400}
+  .final-cta p{color:var(--ink-soft);font-size:16px;max-width:50ch;margin:0 auto 32px;line-height:1.55}
+  .final-cta .cta-group{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .final-cta .pill-dark{background:var(--ink);color:#fff}
+  .final-cta .pill-link{background:transparent;color:var(--ink);border:1px solid var(--ink)}
+
+  /* footer */
+  footer{
+    padding:40px 36px;background:#fff;border-top:1px solid var(--hairline);
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;
+    font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink-dim);letter-spacing:.12em;
+  }
+
+  /* help button bottom-right */
+  .help{
+    position:fixed;bottom:24px;right:24px;z-index:30;
+    width:44px;height:44px;border-radius:50%;background:var(--ink);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;
+    cursor:pointer;transition:transform .15s;
+  }
+  .help:hover{transform:scale(1.08)}
+  .help-tip{
+    position:fixed;bottom:80px;right:24px;z-index:30;
+    background:var(--ink);color:#fff;padding:14px 18px;border-radius:12px;
+    font-size:13px;max-width:280px;line-height:1.4;
+    opacity:0;pointer-events:none;transform:translateY(6px);transition:all .2s;
+  }
+  .help:hover ~ .help-tip{opacity:1;transform:translateY(0)}
+
+  @media (max-width: 560px){
+    .nav{padding:18px 22px}
+    .hero{padding:120px 22px 0}
+    .widgets,.final-cta,.arch,.limits{padding-left:22px;padding-right:22px}
+    .strip{padding:24px 22px}
+    footer{padding:28px 22px}
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<header class="nav">
+  <a href="./index.html" class="brand-mini">EFE BISKIN <span>·</span> XENEON</a>
+  <a href="./index.html" class="back mono">← PORTFOLIO</a>
+</header>
+
+<div class="steps">
+  <span class="d active"></span>
+  <span class="d"></span>
+  <span class="d"></span>
+  <span class="d"></span>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-center">
+    <span class="eyebrow"><span class="dot"></span>OPEN SOURCE · MIT · v0.2.0</span>
+    <h1 class="display">Widgets for the <em>Xeneon Edge.</em></h1>
+    <p class="lede">Eight single-page apps I built for my Corsair Xeneon Edge's iCUE iFrame panel. Ambient data, markets, accounts — all zero-framework, zero-build, drop-in HTML.</p>
+    <div class="hero-cta">
+      <a href="https://github.com/efebiskin/xeneon-widgets" target="_blank" rel="noopener" class="pill pill-dark">
+        View on GitHub <span class="arrow">→</span>
+      </a>
+      <a href="#widgets" class="pill pill-ghost">
+        Browse all 8 <span class="arrow">↓</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- HORIZON: curved line with widget-emoji nodes -->
+  <div class="horizon">
+    <svg viewBox="0 0 1440 300" preserveAspectRatio="none" aria-hidden="true">
+      <path class="path" d="M -50 220 C 240 80, 480 300, 720 160 S 1200 40, 1490 200" />
+    </svg>
+    <div class="nodes">
+      <!-- coordinates along the curve, as percentages -->
+      <a class="node" href="./#xeneon-clock"      data-label="CLOCK"       style="left:6%;top:60%">🕐</a>
+      <a class="node" href="./#xeneon-pomodoro"   data-label="POMODORO"    style="left:18%;top:38%">🍅</a>
+      <a class="node" href="./#xeneon-hackernews" data-label="HACKER NEWS" style="left:30%;top:74%">📰</a>
+      <a class="node" href="./#xeneon-crypto"     data-label="CRYPTO"      style="left:42%;top:52%">🪙</a>
+      <a class="node" href="./#xeneon-stocks"     data-label="STOCKS"      style="left:55%;top:28%">📈</a>
+      <a class="node" href="./#xeneon-weather"    data-label="WEATHER"     style="left:68%;top:66%">🌦️</a>
+      <a class="node" href="./#xeneon-spotify"    data-label="SPOTIFY"     style="left:82%;top:44%">🎧</a>
+      <a class="node" href="./#xeneon-discord"    data-label="DISCORD"     style="left:94%;top:66%">🎮</a>
+    </div>
+  </div>
+</section>
+
+<!-- SPEC STRIP -->
+<div class="strip">
+  <dl>
+    <div><dt>Display</dt><dd>2560 × 720</dd></div>
+    <div><dt>Panel</dt><dd>14.5" iCUE iFrame</dd></div>
+    <div><dt>Widgets</dt><dd>8 shipped</dd></div>
+    <div><dt>Dependencies</dt><dd>Zero</dd></div>
+    <div><dt>Build step</dt><dd>None</dd></div>
+  </dl>
+  <div class="right">
+    <span class="chip">Vanilla JS</span>
+    <span class="chip">OAuth2</span>
+    <span class="chip">Stooq + Yahoo</span>
+    <span class="chip">CoinGecko</span>
+    <span class="chip">Lanyard</span>
+  </div>
+</div>
+
+<!-- WIDGETS -->
+<section class="widgets" id="widgets">
+  <div class="widgets-head">
+    <span class="num">01</span>
+    <h2>The <em>eight.</em></h2>
+    <p>Three tiers — <strong>Ambient</strong> widgets ship with zero setup, <strong>Markets</strong> need a free Meteora key or public API, <strong>Accounts</strong> require a one-time OAuth login stored client-side only.</p>
+  </div>
+
+  <div class="w-category">
+    <div class="cat-head">
+      <h3>Ambient</h3><span class="label">04 · ZERO-SETUP</span>
+    </div>
+    <div class="wgrid">
+
+      <a class="wcard" id="xeneon-clock" href="https://github.com/efebiskin/xeneon-widgets/tree/main/clock" target="_blank" rel="noopener">
+        <div class="wcard-emoji">🕐</div>
+        <div class="wcard-name">Clock</div>
+        <p class="wcard-desc">Giant local clock plus a world-clock grid with timezone offsets. Cities editable inline.</p>
+        <div class="wcard-cta"><span class="path">/clock</span><span>OPEN →</span></div>
+      </a>
+
+      <a class="wcard" id="xeneon-pomodoro" href="https://github.com/efebiskin/xeneon-widgets/tree/main/pomodoro" target="_blank" rel="noopener">
+        <div class="wcard-emoji">🍅</div>
+        <div class="wcard-name">Pomodoro</div>
+        <p class="wcard-desc">Focus timer with animated ring, auto-advance through focus/short/long rounds, beep + flash on completion.</p>
+        <div class="wcard-cta"><span class="path">/pomodoro</span><span>OPEN →</span></div>
+      </a>
+
+      <a class="wcard" id="xeneon-hackernews" href="https://github.com/efebiskin/xeneon-widgets/tree/main/hackernews" target="_blank" rel="noopener">
+        <div class="wcard-emoji">📰</div>
+        <div class="wcard-name">Hacker News</div>
+        <p class="wcard-desc">Top, New, Best, Ask, and Show feeds with live comment counts. Auto-refresh every 5 minutes.</p>
+        <div class="wcard-cta"><span class="path">/hackernews</span><span>OPEN →</span></div>
+      </a>
+
+      <a class="wcard" id="xeneon-weather" href="https://github.com/efebiskin/xeneon-widgets/tree/main/weather" target="_blank" rel="noopener">
+        <div class="wcard-emoji">🌦️</div>
+        <div class="wcard-name">Weather</div>
+        <p class="wcard-desc">Big-number current conditions + 4-day forecast strip. Driven by my Meteora API, optimized for 2560×720.</p>
+        <div class="wcard-cta"><span class="path">/weather</span><span>OPEN →</span></div>
+      </a>
+    </div>
+  </div>
+
+  <div class="w-category">
+    <div class="cat-head">
+      <h3>Markets</h3><span class="label">02 · LIVE DATA</span>
+    </div>
+    <div class="wgrid">
+
+      <a class="wcard" id="xeneon-crypto" href="https://github.com/efebiskin/xeneon-widgets/tree/main/crypto" target="_blank" rel="noopener">
+        <div class="wcard-emoji">🪙</div>
+        <div class="wcard-name">Crypto</div>
+        <p class="wcard-desc">Watchlist with 24-hour change and 7-day sparklines. Powered by the CoinGecko public API — no key required.</p>
+        <div class="wcard-cta"><span class="path">/crypto</span><span>OPEN →</span></div>
+      </a>
+
+      <a class="wcard" id="xeneon-stocks" href="https://github.com/efebiskin/xeneon-widgets/tree/main/stocks" target="_blank" rel="noopener">
+        <div class="wcard-emoji">📈</div>
+        <div class="wcard-name">Stocks</div>
+        <p class="wcard-desc">Ticker watchlist via my Meteora API's <code>/v1/quotes</code> endpoint — Yahoo Finance first, Stooq as fallback.</p>
+        <div class="wcard-cta"><span class="path">/stocks</span><span>OPEN →</span></div>
+      </a>
+    </div>
+  </div>
+
+  <div class="w-category">
+    <div class="cat-head">
+      <h3>Accounts</h3><span class="label">02 · OAUTH LOGIN</span>
+    </div>
+    <div class="wgrid">
+
+      <a class="wcard" id="xeneon-spotify" href="https://github.com/efebiskin/xeneon-widgets/tree/main/spotify" target="_blank" rel="noopener">
+        <div class="wcard-emoji">🎧</div>
+        <div class="wcard-name">Spotify</div>
+        <p class="wcard-desc">Now-playing plus full transport controls. Implicit grant OAuth, polls <code>/me/player</code> every 4 seconds with smooth progress.</p>
+        <div class="wcard-cta"><span class="path">/spotify</span><span>OPEN →</span></div>
+      </a>
+
+      <a class="wcard" id="xeneon-discord" href="https://github.com/efebiskin/xeneon-widgets/tree/main/discord" target="_blank" rel="noopener">
+        <div class="wcard-emoji">🎮</div>
+        <div class="wcard-name">Discord</div>
+        <p class="wcard-desc">Live presence via Lanyard — status, current activity, custom status, and Spotify now-playing surfaced from Discord itself.</p>
+        <div class="wcard-cta"><span class="path">/discord</span><span>OPEN →</span></div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section class="arch">
+  <div class="arch-inner">
+    <div class="arch-head">
+      <span class="num">02</span>
+      <h2>Built for <em>the panel.</em></h2>
+    </div>
+    <div class="arch-body">
+      <p>The Xeneon Edge is a <strong>2560×720 touchscreen</strong> that docks to your main display. iCUE — Corsair's control-panel software — lets you drop <strong>arbitrary iframes</strong> into the widget grid. That's the whole surface this project targets.</p>
+      <p>Every widget here is one HTML file. No bundler, no JSX, no <code>node_modules</code>. Styles are inline, state is <code>localStorage</code>, network calls are <code>fetch()</code>. That makes them trivially cacheable, portable to any static host, and inspectable without tooling.</p>
+      <p>Two widgets talk to <strong>Meteora</strong>, my FastAPI project that wraps Open-Meteo and Yahoo Finance behind a single authenticated gateway with rate limits, tiers, and an in-memory TTL cache.</p>
+    </div>
+  </div>
+</section>
+
+<!-- LIMITS -->
+<section class="limits">
+  <div class="limits-inner">
+    <h3>Honest notes on what doesn't fit</h3>
+    <p>Earlier prototypes included a Discord <em>control</em> widget (mute/deafen/screenshare toggle) and an Apple Music / HomePod widget. Both were removed in v0.2.0 — not because they weren't working, but because a browser tab fundamentally cannot reach the Discord desktop client, and Discord locks voice-control OAuth scopes to partner apps only.</p>
+    <p>HomePod has no web-callable control API. The only real path is Home Assistant on a LAN device with HomeKit Controller. That's a separate project.</p>
+    <p>What's here is what <em>fully</em> works from an iFrame — nothing half-built.</p>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final-cta">
+  <h2>Tap. <em>Read.</em> Use.</h2>
+  <p>Eight widgets, MIT-licensed, zero-framework. Clone the repo, run <code style="font-family:JetBrains Mono,monospace;background:#f2f2f2;padding:2px 6px;border-radius:4px;font-size:.9em">python -m http.server</code>, paste a URL into iCUE.</p>
+  <div class="cta-group">
+    <a href="https://github.com/efebiskin/xeneon-widgets" target="_blank" rel="noopener" class="pill pill-dark">
+      Clone on GitHub <span class="arrow">→</span>
+    </a>
+    <a href="./index.html" class="pill pill-link">
+      Back to portfolio
+    </a>
+  </div>
+</section>
+
+<footer>
+  <span>© 2026 · EFE BISKIN · THOUSAND OAKS</span>
+  <span>XENEON-WIDGETS · V0.2.0 · MIT</span>
+</footer>
+
+<!-- help button -->
+<a class="help" href="https://github.com/efebiskin/xeneon-widgets#readme" target="_blank" rel="noopener" title="Setup docs">?</a>
+<div class="help-tip">New to iCUE iFrame widgets? The README has a 3-step setup.</div>
+
+<script>
+  // gentle parallax on the horizon nodes when mouse moves
+  const nodes = document.querySelectorAll(".node");
+  if (window.matchMedia("(pointer:fine)").matches){
+    document.addEventListener("mousemove", e => {
+      const dx = (e.clientX / window.innerWidth - .5) * 14;
+      const dy = (e.clientY / window.innerHeight - .5) * 10;
+      nodes.forEach((n, i) => {
+        const depth = (i % 3) + 1;
+        n.style.translate = `${dx * depth * .5}px ${dy * depth * .5}px`;
+      });
+    });
+  }
+</script>
+
+</body>
+</html>
