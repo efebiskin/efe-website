@@ -726,63 +726,48 @@ function tick() {
 
   meshyHolder.rotation.y = Math.sin(t * 0.6) * 0.06 + t * 0.07;
 
-  // ─── THREE-PHASE NARRATIVE ───
+  // ─── PHOTOREAL TWO-MODE SWAP ───
+  // No procedural model. Just a clean USB-A → USB-C transition with
+  // a slight orbit + tilt that adds drama on scroll.
+  // 0.00 → 0.50  USB-A version
+  // 0.50 → 0.55  swap moment
+  // 0.55 → 1.00  USB-C version
   if (modelA && modelC) {
-    const aOut    = smooth(0.32, 0.40, progress);
-    const procIn  = smooth(0.32, 0.40, progress);
-    const procOut = smooth(0.68, 0.76, progress);
-    const cIn     = smooth(0.68, 0.76, progress);
+    const swap = smooth(0.45, 0.55, progress);
 
-    // USB-A — only update if visible state changed or in transition zone
-    const aVisible = aOut < 0.99;
+    // USB-A — slides up + fades out at the swap moment
+    const aVisible = swap < 0.99;
     if (modelA.visible !== aVisible) modelA.visible = aVisible;
     if (aVisible) {
-      modelA.position.y = aOut * 3.0;
-      modelA.rotation.z = aOut * -0.6;
-      // Only traverse for opacity during transition (not when fully visible/invisible)
-      if (aOut > 0.01 && aOut < 0.99) {
-        const op = 1 - aOut;
+      modelA.position.y = swap * 3.5;
+      modelA.rotation.z = swap * -0.6;
+      // material work only during the brief crossfade window
+      if (swap > 0.01 && swap < 0.99) {
+        const op = 1 - swap;
         modelA.traverse((n) => { if (n.isMesh) { n.material.transparent = true; n.material.opacity = op; } });
-      } else if (aOut <= 0.01) {
+      } else if (swap <= 0.01) {
         modelA.traverse((n) => { if (n.isMesh) { n.material.transparent = false; n.material.opacity = 1; } });
       }
     }
 
-    // USB-C — same pattern
-    const cVisible = cIn > 0.01;
+    // USB-C — rises from below + fades in
+    const cVisible = swap > 0.01;
     if (modelC.visible !== cVisible) modelC.visible = cVisible;
     if (cVisible) {
-      modelC.position.y = -3 + cIn * 3.0;
-      modelC.rotation.z = (1 - cIn) * 0.6;
-      if (cIn > 0.01 && cIn < 0.99) {
-        const op = cIn;
+      modelC.position.y = -3.5 + swap * 3.5;
+      modelC.rotation.z = (1 - swap) * 0.6;
+      if (swap > 0.01 && swap < 0.99) {
+        const op = swap;
         modelC.traverse((n) => { if (n.isMesh) { n.material.transparent = true; n.material.opacity = op; } });
-      } else if (cIn >= 0.99) {
+      } else if (swap >= 0.99) {
         modelC.traverse((n) => { if (n.isMesh) { n.material.transparent = false; n.material.opacity = 1; } });
       }
     }
 
-    // Procedural — only visible during X-RAY phase
-    const procVis = procIn * (1 - procOut);
-    const dVisible = procVis > 0.01;
-    if (drive.visible !== dVisible) drive.visible = dVisible;
-    if (dVisible) {
-      drive.scale.setScalar(procVis);
-      drive.rotation.y = Math.sin(t * 0.8) * 0.05 + t * 0.05;
-      // Disassembly transforms — only when actually visible
-      const disLocal = smooth(0.40, 0.68, progress);
-      for (let i = 0; i < groups.length; i++) {
-        const g = groups[i];
-        const delay = i * 0.05;
-        const localT = smooth(delay, 0.65 + delay, disLocal);
-        const ex = g.userData.explode;
-        const bp = g.userData.basePos;
-        g.position.set(bp.x + ex.x * localT, bp.y + ex.y * localT, bp.z + ex.z * localT);
-        g.rotation.y = localT * 0.18 * (i % 2 === 0 ? 1 : -1);
-      }
-    }
+    // Procedural — fully hidden when GLBs are present
+    if (drive.visible) drive.visible = false;
   } else {
-    // No GLBs loaded — procedural-only fallback
+    // No GLBs loaded — procedural-only fallback (rare; only if Meshy load fails)
     drive.visible = true;
     drive.rotation.y = Math.sin(t * 0.8) * 0.05 + t * 0.05;
     const disLocal = smooth(0.15, 0.92, progress);
