@@ -91,10 +91,11 @@ for obj in list(bpy.context.scene.objects):
 pieces = [o for o in bpy.context.scene.objects if o.type == "MESH"]
 print(f"[explode] {len(pieces)} pieces to animate")
 
-# ---------- Animate each piece flying outward ----------
-EXPLODE_FRAME = 60     # frame at peak explosion
-EXPLODE_POWER = 1.8    # how far pieces fly outward (multiplier on distance)
-random.seed(42)
+# ---------- Animate each piece into a CHOREOGRAPHED EXPLODED VIEW ----------
+# Apple-style disassembly: top layer lifts UP, bottom drops DOWN, ends slide
+# OUT sideways, middle stays put so internals are revealed. NO random rotation —
+# every piece keeps its original orientation, just slides along a clean axis.
+EXPLODE_FRAME = 60
 
 # First, snap origin of each piece to its own geometry centroid
 for p in pieces:
@@ -103,41 +104,30 @@ for p in pieces:
     bpy.context.view_layer.objects.active = p
     bpy.ops.object.origin_set(type="ORIGIN_GEOMETRY", center="MEDIAN")
 
-drive_center = mathutils.Vector((0, 0, 0))   # we recentered to origin already
+print("[explode] keyframing choreographed disassembly...")
+# Multipliers (tune these to taste — they're applied per axis, biased so Y is strongest)
+MULT_X = 1.6   # USB-A end → left, USB-C end → right
+MULT_Y = 4.0   # top shell + buttons → way up, bottom shell → way down
+MULT_Z = 0.4   # very mild depth spread
 
-print("[explode] keyframing fly-out...")
 for piece in pieces:
     orig_pos = piece.location.copy()
-    direction = orig_pos - drive_center
-    if direction.length < 0.05:
-        direction = mathutils.Vector((
-            random.uniform(-1, 1),
-            random.uniform(-1, 1),
-            random.uniform(-1, 1),
-        ))
-    direction.normalize()
-
-    distance_factor = (orig_pos - drive_center).length
-    # central pieces fly far, edge pieces fly proportionally
-    magnitude = EXPLODE_POWER * (0.7 + 0.6 * random.random()) * (1 + distance_factor * 0.6)
-    explode_pos = orig_pos + direction * magnitude
-
-    # Random tumble rotation (Euler XYZ each gets a random radian count)
-    rot_x = random.uniform(-1.6, 1.6)
-    rot_y = random.uniform(-1.6, 1.6)
-    rot_z = random.uniform(-1.6, 1.6)
+    # Pure axis-aligned displacement, scaled by the piece's offset from center.
+    # Pieces in the middle (orig_pos.y ≈ 0) barely move — internals revealed.
+    explode_pos = mathutils.Vector((
+        orig_pos.x * (1.0 + MULT_X * 0.5),
+        orig_pos.y * (1.0 + MULT_Y * 0.5),
+        orig_pos.z * (1.0 + MULT_Z * 0.5),
+    ))
 
     # Frame 0: rest
     piece.location = orig_pos
-    piece.rotation_euler = (0, 0, 0)
     piece.keyframe_insert(data_path="location", frame=0)
-    piece.keyframe_insert(data_path="rotation_euler", frame=0)
 
-    # Frame EXPLODE_FRAME: fully exploded
+    # Frame EXPLODE_FRAME: clean exploded layout
     piece.location = explode_pos
-    piece.rotation_euler = (rot_x, rot_y, rot_z)
     piece.keyframe_insert(data_path="location", frame=EXPLODE_FRAME)
-    piece.keyframe_insert(data_path="rotation_euler", frame=EXPLODE_FRAME)
+    # NO rotation keyframes — pieces stay aligned
 
 # (Blender 5 changed the Action API — keyframes default to BEZIER interp which is fine)
 

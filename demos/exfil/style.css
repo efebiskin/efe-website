@@ -35,6 +35,39 @@ html, body {
   overflow-x: clip;
 }
 
+/* ============================================================
+   HONEYCOMB BACKDROP — black hexagons with glowing gold edges
+   Fixed across the entire page. Layered gradient gives the
+   "lit from beneath" effect like the reference image.
+   ============================================================ */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background-color: #050402;
+  background-image:
+    /* warm gold underlight in lower-left quadrant */
+    radial-gradient(ellipse 60% 50% at 30% 80%, rgba(212, 160, 67, .22), transparent 65%),
+    /* secondary gold glow upper-right */
+    radial-gradient(ellipse 40% 40% at 75% 25%, rgba(245, 201, 99, .12), transparent 65%),
+    /* SVG honeycomb hex grid — gold strokes, transparent fill */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='90' height='156' viewBox='0 0 90 156'><g fill='none' stroke='%23D4A043' stroke-width='1.2' opacity='0.40'><polygon points='22.5,0 67.5,0 90,39 67.5,78 22.5,78 0,39'/><polygon points='67.5,78 112.5,78 135,117 112.5,156 67.5,156 45,117'/><polygon points='-22.5,78 22.5,78 45,117 22.5,156 -22.5,156 -45,117'/></g></svg>"),
+    linear-gradient(135deg, #060403 0%, #0F0B05 50%, #03020A 100%);
+  background-repeat: no-repeat, no-repeat, repeat, no-repeat;
+  background-size: cover, cover, 90px 156px, cover;
+  background-position: 0 0, 0 0, 0 0, 0 0;
+}
+body::after {
+  /* subtle vignette over the hex layer to focus center */
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(ellipse at center, transparent 30%, rgba(5, 4, 2, .85) 95%);
+  pointer-events: none;
+}
+
 a { color: inherit; text-decoration: none; }
 em { font-style: normal; color: var(--pink); }
 ::selection { background: var(--pink); color: #fff; }
