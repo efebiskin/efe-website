@@ -17,7 +17,7 @@ const hudCore     = document.getElementById("hud-core");
 const hudStatus   = document.getElementById("hud-status");
 
 // ---------- Frame sequence config ----------
-const FRAME_COUNT = 61;          // frame_0000 .. frame_0060
+const FRAME_COUNT = 91;          // frame_0000 .. frame_0090
 const FRAME_PATH  = (i) => `assets/frames/frame_${String(i).padStart(4, "0")}.png`;
 
 // ---------- Pre-load all frames ----------

@@ -1,23 +1,25 @@
 """
-explode.py — radial-explode animation render for a Meshy GLB.
+explode.py — Apple-style choreographed disassembly with NAMED COMPONENT CLUSTERS.
+
+Strategy:
+  1. Import Meshy GLB (one fused mesh)
+  2. Separate by loose parts (yields ~1,475 fragments)
+  3. CLUSTER fragments into 7 named groups by spatial position:
+       Slider_Left, Slider_Right, TopShell, BottomShell,
+       USB_A_Left, USB_C_Right, PCB
+  4. JOIN each cluster back into one named object
+  5. Set origin to geometry for each cluster
+  6. Animate each cluster with target position + STAGGERED timing
+     (sliders fire first, shells next, connectors slide out, bottom drops)
+  7. Render 90 frames as scroll-scrub PNG sequence
 
 Run with:
     blender.exe --background --python explode.py -- <glb-path> <output-dir>
-
-What it does:
-  1. Imports the GLB
-  2. Separates into loose parts (Meshy GLBs typically split into 100s-1000s of pieces)
-  3. For each piece: computes outward direction from drive center, keyframes
-     a fly-out animation with random rotation
-  4. Sets up camera + warm-gold lighting matching the website theme
-  5. Renders ~60 frames (2.5s @ 24fps) at 1280x720 as PNG sequence
 """
 import bpy
-import bmesh
 import sys
 import os
 import math
-import random
 import mathutils
 
 # ---------- Args ----------
@@ -27,7 +29,6 @@ try:
     args = argv[idx + 1:]
 except ValueError:
     args = []
-
 if len(args) < 2:
     print("ERROR: usage --python explode.py -- <glb-path> <output-dir>")
     sys.exit(1)
@@ -43,10 +44,8 @@ bpy.ops.wm.read_factory_settings(use_empty=True)
 # ---------- Import GLB ----------
 bpy.ops.import_scene.gltf(filepath=glb_path)
 all_meshes = [o for o in bpy.context.scene.objects if o.type == "MESH"]
-print(f"[explode] imported {len(all_meshes)} meshes from GLB")
 
-# ---------- Auto-fit: scale and center the imported model so it's ~4 units wide ----------
-# Compute combined bbox in world space
+# ---------- Auto-fit + recenter to origin ----------
 mins = mathutils.Vector(( 1e9,  1e9,  1e9))
 maxs = mathutils.Vector((-1e9, -1e9, -1e9))
 for obj in all_meshes:
@@ -58,10 +57,9 @@ for obj in all_meshes:
 size = maxs - mins
 center = (maxs + mins) * 0.5
 scale = 4.0 / max(size.x, size.y, size.z)
-print(f"[explode] model bbox: {size.x:.2f} x {size.y:.2f} x {size.z:.2f}")
-print(f"[explode] applying scale x{scale:.3f}, recentering to origin")
+print(f"[explode] bbox: {size.x:.2f} x {size.y:.2f} x {size.z:.2f} → scale x{scale:.3f}")
 
-# Group all meshes under an empty for easy transform
+# Group all under empty for transform
 empty = bpy.data.objects.new("DriveRoot", None)
 bpy.context.scene.collection.objects.link(empty)
 for obj in all_meshes:
@@ -69,7 +67,6 @@ for obj in all_meshes:
 empty.scale = (scale, scale, scale)
 empty.location = -center * scale
 
-# Apply transform so children inherit the scale
 bpy.ops.object.select_all(action="DESELECT")
 empty.select_set(True)
 for obj in all_meshes:
@@ -88,60 +85,126 @@ for obj in list(bpy.context.scene.objects):
     bpy.ops.mesh.separate(type="LOOSE")
     bpy.ops.object.mode_set(mode="OBJECT")
 
-pieces = [o for o in bpy.context.scene.objects if o.type == "MESH"]
-print(f"[explode] {len(pieces)} pieces to animate")
+fragments = [o for o in bpy.context.scene.objects if o.type == "MESH"]
+print(f"[explode] {len(fragments)} fragments to cluster")
 
-# ---------- Animate each piece into a CHOREOGRAPHED EXPLODED VIEW ----------
-# Apple-style disassembly: top layer lifts UP, bottom drops DOWN, ends slide
-# OUT sideways, middle stays put so internals are revealed. NO random rotation —
-# every piece keeps its original orientation, just slides along a clean axis.
-EXPLODE_FRAME = 60
-
-# First, snap origin of each piece to its own geometry centroid
-for p in pieces:
+# Snap each fragment's origin to its centroid (so .location is its world center)
+for p in fragments:
     bpy.ops.object.select_all(action="DESELECT")
     p.select_set(True)
     bpy.context.view_layer.objects.active = p
     bpy.ops.object.origin_set(type="ORIGIN_GEOMETRY", center="MEDIAN")
 
-print("[explode] keyframing choreographed disassembly...")
-# Multipliers (tune these to taste — they're applied per axis, biased so Y is strongest)
-MULT_X = 1.6   # USB-A end → left, USB-C end → right
-MULT_Y = 4.0   # top shell + buttons → way up, bottom shell → way down
-MULT_Z = 0.4   # very mild depth spread
+# ---------- CLUSTER fragments by spatial position ----------
+# After recentering, model is roughly:
+#   X: -2.0 .. +2.0  (long axis, USB-A end ↔ USB-C end)
+#   Y: -0.3 .. +0.3  (depth, front-back)
+#   Z: -0.55 .. +0.55 (height, bottom shell ↔ slider buttons on top)
+print("[explode] clustering into named components...")
+clusters = {
+    "Slider_Left":  [],
+    "Slider_Right": [],
+    "TopShell":     [],
+    "USB_A_Left":   [],
+    "USB_C_Right":  [],
+    "BottomShell":  [],
+    "PCB":          [],
+}
 
-for piece in pieces:
-    orig_pos = piece.location.copy()
-    # Pure axis-aligned displacement, scaled by the piece's offset from center.
-    # Pieces in the middle (orig_pos.y ≈ 0) barely move — internals revealed.
-    explode_pos = mathutils.Vector((
-        orig_pos.x * (1.0 + MULT_X * 0.5),
-        orig_pos.y * (1.0 + MULT_Y * 0.5),
-        orig_pos.z * (1.0 + MULT_Z * 0.5),
-    ))
+for f in fragments:
+    p = f.location  # geometry centroid in world space (after origin_set)
+    # Classify by position
+    if p.z > 0.30:
+        # high Z = sliders / buttons on top
+        if p.x < 0:
+            clusters["Slider_Left"].append(f)
+        else:
+            clusters["Slider_Right"].append(f)
+    elif p.z > 0.05:
+        # mid-high Z = top shell
+        clusters["TopShell"].append(f)
+    elif p.z < -0.15:
+        # low Z = bottom shell
+        clusters["BottomShell"].append(f)
+    elif p.x < -1.2:
+        # far -X = USB-A connector
+        clusters["USB_A_Left"].append(f)
+    elif p.x > 1.2:
+        # far +X = USB-C connector
+        clusters["USB_C_Right"].append(f)
+    else:
+        # everything in the middle = PCB / internals
+        clusters["PCB"].append(f)
 
-    # Frame 0: rest
-    piece.location = orig_pos
-    piece.keyframe_insert(data_path="location", frame=0)
+for name, items in clusters.items():
+    print(f"   {name:15s}  {len(items):4d} fragments")
 
-    # Frame EXPLODE_FRAME: clean exploded layout
-    piece.location = explode_pos
-    piece.keyframe_insert(data_path="location", frame=EXPLODE_FRAME)
-    # NO rotation keyframes — pieces stay aligned
+# ---------- JOIN each cluster's fragments into ONE named object ----------
+named_parts = {}
+for name, items in clusters.items():
+    if not items:
+        continue
+    bpy.ops.object.select_all(action="DESELECT")
+    for f in items:
+        f.select_set(True)
+    bpy.context.view_layer.objects.active = items[0]
+    bpy.ops.object.join()
+    joined = bpy.context.active_object
+    joined.name = name
+    # snap origin to centroid for clean rotation/position
+    bpy.ops.object.origin_set(type="ORIGIN_GEOMETRY", center="MEDIAN")
+    named_parts[name] = joined
 
-# (Blender 5 changed the Action API — keyframes default to BEZIER interp which is fine)
+print(f"[explode] joined into {len(named_parts)} named parts")
+
+# ---------- ANIMATION — staggered Apple-style choreography ----------
+# Each part gets: rest at frame N_start, fully exploded at frame N_end
+# Movement values are RELATIVE deltas applied to original position
+PARTS = {
+    # name           dx    dy    dz    start  end
+    "Slider_Left":  ( -0.3, 0,   1.5,  0,     35),    # buttons fire first
+    "Slider_Right": (  0.3, 0,   1.5,  3,     38),
+    "TopShell":     (  0,   0,   1.0,  10,    50),    # shell follows
+    "USB_A_Left":   ( -2.2, 0,   0,    18,    60),    # connectors slide
+    "USB_C_Right":  (  2.2, 0,   0,    18,    60),
+    "BottomShell":  (  0,   0,  -1.0,  25,    65),    # bottom drops last
+    "PCB":          (  0,   0,   0.1,  20,    50),    # PCB barely moves (just lifts slightly)
+}
+
+TOTAL_FRAMES = 90
+
+print("[explode] keyframing staggered disassembly...")
+for name, (dx, dy, dz, start, end) in PARTS.items():
+    if name not in named_parts:
+        continue
+    obj = named_parts[name]
+    orig = obj.location.copy()
+
+    # Frame 0: at original (rest) position — assembled
+    obj.location = orig
+    obj.keyframe_insert(data_path="location", frame=0)
+
+    # Frame `start`: still at original (this creates the "delay before motion")
+    obj.keyframe_insert(data_path="location", frame=start)
+
+    # Frame `end`: fully displaced
+    obj.location = (orig.x + dx, orig.y + dy, orig.z + dz)
+    obj.keyframe_insert(data_path="location", frame=end)
+
+    # Frame TOTAL_FRAMES: hold the exploded position
+    obj.keyframe_insert(data_path="location", frame=TOTAL_FRAMES)
 
 # ---------- Camera ----------
-print("[explode] setting up camera + lights")
+print("[explode] camera + lights")
 cam_data = bpy.data.cameras.new("Camera")
 cam_data.lens = 50
 cam_obj = bpy.data.objects.new("Camera", cam_data)
 bpy.context.scene.collection.objects.link(cam_obj)
-cam_obj.location = (0, -9, 3)
-cam_obj.rotation_euler = (math.radians(72), 0, 0)
+cam_obj.location = (0, -8, 2.5)
+cam_obj.rotation_euler = (math.radians(78), 0, 0)
 bpy.context.scene.camera = cam_obj
 
-# ---------- Lights (warm gold theme) ----------
+# ---------- Lights — black & gold ----------
 def add_light(name, kind, energy, color, location, rotation):
     lamp = bpy.data.lights.new(name, kind)
     lamp.energy = energy
@@ -153,15 +216,9 @@ def add_light(name, kind, energy, color, location, rotation):
     obj.rotation_euler = rotation
     bpy.context.scene.collection.objects.link(obj)
 
-# warm key
-add_light("Key", "AREA", 1200, (1.0, 0.86, 0.55),
-          (5, -5, 7), (math.radians(50), math.radians(30), 0))
-# bright gold rim
-add_light("Rim", "AREA", 900, (1.0, 0.92, 0.65),
-          (-5, 4, 4), (math.radians(-30), math.radians(-45), 0))
-# antique gold fill from below
-add_light("Fill", "AREA", 350, (0.9, 0.7, 0.35),
-          (0, 5, -2), (math.radians(120), 0, 0))
+add_light("Key",  "AREA", 1400, (1.0, 0.86, 0.55), (5, -5, 7),  (math.radians(50), math.radians(30), 0))
+add_light("Rim",  "AREA", 1000, (1.0, 0.92, 0.65), (-5, 4, 4),  (math.radians(-30), math.radians(-45), 0))
+add_light("Fill", "AREA", 350,  (0.9, 0.7,  0.35), (0, 5, -2),  (math.radians(120), 0, 0))
 
 # ---------- World ----------
 world = bpy.context.scene.world
@@ -176,7 +233,6 @@ if bg:
 
 # ---------- Render settings ----------
 scene = bpy.context.scene
-# EEVEE Next is fast (seconds/frame). Cycles is photoreal but minutes/frame.
 try:
     scene.render.engine = "BLENDER_EEVEE_NEXT"
 except Exception:
@@ -186,15 +242,14 @@ scene.render.resolution_y = 720
 scene.render.resolution_percentage = 100
 scene.render.image_settings.file_format = "PNG"
 scene.render.image_settings.color_mode = "RGBA"
-scene.render.image_settings.color_depth = "8"
 scene.render.film_transparent = True
 
 scene.frame_start = 0
-scene.frame_end = EXPLODE_FRAME
+scene.frame_end = TOTAL_FRAMES
 
 os.makedirs(output_dir, exist_ok=True)
 scene.render.filepath = os.path.join(output_dir, "frame_")
 
-print(f"[explode] rendering frames 0..{EXPLODE_FRAME} at 1280x720 EEVEE_NEXT")
+print(f"[explode] rendering frames 0..{TOTAL_FRAMES}")
 bpy.ops.render.render(animation=True)
-print(f"[explode] DONE — frames written to {output_dir}")
+print(f"[explode] DONE → {output_dir}")
