@@ -35,7 +35,7 @@ camera.lookAt(0, 0, 0);
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));   // cap DPR to keep fill rate sane
 renderer.setSize(innerWidth, innerHeight);
-renderer.setClearColor(0x05030B, 0);   // transparent so the hero.mp4 background shows through
+renderer.setClearColor(0x05030B, 1);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;     // cinematic tonemap
 renderer.toneMappingExposure = 1.1;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -48,50 +48,20 @@ scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 // Post-processing: bloom on the neon emissive parts (lid strip, LED, traces)
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
-composer.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.22, 0.25, 0.88));   // minimal bloom for performance
+composer.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.35, 0.30, 0.85));   // softer bloom = cheaper
 composer.addPass(new OutputPass());
 
 // =================================================================
-// MESHY GLB → splits into TOP HALF + BOTTOM HALF at load time so
-// scroll drives a literal mesh-level disassembly on the photoreal model.
+// MESHY GLB AUTO-SWAP — TWO MODES (USB-A out / USB-C out)
+// As you scroll, the USB-A version slides up & out, the USB-C version
+// slides in from below — turning the retractable mechanism into the
+// page's narrative.
 // =================================================================
 const meshyHolder = new THREE.Group();
 scene.add(meshyHolder);
 
-// HIDE procedural model from frame zero — no prismatic flash before GLB loads
-drive.visible = false;
-
-let topGroup = null;   // top half of the Meshy model
-let botGroup = null;   // bottom half
-
-// Split a buffer geometry by Y centroid into "above midY" and "below midY"
-function splitGeometryByY(geometry, midY = 0) {
-  const pos = geometry.attributes.position;
-  const idx = geometry.index;
-  const topIdx = [];
-  const botIdx = [];
-
-  if (idx) {
-    for (let i = 0; i < idx.count; i += 3) {
-      const a = idx.getX(i), b = idx.getX(i + 1), c = idx.getX(i + 2);
-      const cy = (pos.getY(a) + pos.getY(b) + pos.getY(c)) / 3;
-      if (cy > midY) topIdx.push(a, b, c);
-      else            botIdx.push(a, b, c);
-    }
-  } else {
-    for (let i = 0; i < pos.count; i += 3) {
-      const cy = (pos.getY(i) + pos.getY(i + 1) + pos.getY(i + 2)) / 3;
-      if (cy > midY) topIdx.push(i, i + 1, i + 2);
-      else            botIdx.push(i, i + 1, i + 2);
-    }
-  }
-
-  const topGeom = geometry.clone();
-  topGeom.setIndex(topIdx);
-  const botGeom = geometry.clone();
-  botGeom.setIndex(botIdx);
-  return { topGeom, botGeom };
-}
+let modelA = null, modelC = null;
+let glbLoaded = 0;
 
 function fitModel(m) {
   const box = new THREE.Box3().setFromObject(m);
@@ -102,50 +72,35 @@ function fitModel(m) {
   box.setFromObject(m);
   const center = box.getCenter(new THREE.Vector3());
   m.position.sub(center.multiplyScalar(scale));
+  m.userData.baseY = m.position.y;
+  m.traverse((n) => {
+    if (n.isMesh) {
+      n.material.envMapIntensity = 1.4;
+      n.castShadow = true;
+      n.receiveShadow = true;
+    }
+  });
 }
 
 const loader = new GLTFLoader();
+
 loader.load("assets/exfil-usba.glb", (gltf) => {
-  const m = gltf.scene;
-  fitModel(m);
+  modelA = gltf.scene;
+  fitModel(modelA);
+  meshyHolder.add(modelA);
+  glbLoaded++;
+  if (glbLoaded > 0) drive.visible = false;
+  console.log("✓ Loaded USB-A mode model");
+});
 
-  // Compute the world-space mid-Y of the assembled model (after fit)
-  const box = new THREE.Box3().setFromObject(m);
-  const midY = (box.min.y + box.max.y) / 2;
-
-  // Build top + bottom holders that inherit the model's transform
-  topGroup = new THREE.Group();
-  botGroup = new THREE.Group();
-  meshyHolder.add(topGroup);
-  meshyHolder.add(botGroup);
-
-  // Walk every mesh in the GLB and split each one
-  m.traverse((node) => {
-    if (node.isMesh) {
-      // Convert the mesh's local position into world coordinates so the split midY aligns
-      node.updateWorldMatrix(true, false);
-
-      // Bake the world transform into the cloned geometry so split-by-world-Y works
-      const localGeom = node.geometry.clone();
-      localGeom.applyMatrix4(node.matrixWorld);
-
-      const { topGeom, botGeom } = splitGeometryByY(localGeom, midY);
-
-      const topMesh = new THREE.Mesh(topGeom, node.material);
-      topMesh.castShadow = true;
-      topMesh.receiveShadow = true;
-      if (topMesh.material) topMesh.material.envMapIntensity = 1.4;
-      topGroup.add(topMesh);
-
-      const botMesh = new THREE.Mesh(botGeom, node.material);
-      botMesh.castShadow = true;
-      botMesh.receiveShadow = true;
-      if (botMesh.material) botMesh.material.envMapIntensity = 1.4;
-      botGroup.add(botMesh);
-    }
-  });
-
-  console.log(`✓ Loaded USB-A model · split into top + bottom halves at world Y=${midY.toFixed(3)}`);
+loader.load("assets/exfil-usbc.glb", (gltf) => {
+  modelC = gltf.scene;
+  fitModel(modelC);
+  modelC.position.y = -3;        // hidden below frame initially
+  meshyHolder.add(modelC);
+  glbLoaded++;
+  if (glbLoaded > 0) drive.visible = false;
+  console.log("✓ Loaded USB-C mode model");
 });
 
 // =================================================================
