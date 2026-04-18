@@ -33,7 +33,7 @@ camera.position.set(0, 0.3, 5.8);
 camera.lookAt(0, 0, 0);
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));   // cap DPR to keep fill rate sane
 renderer.setSize(innerWidth, innerHeight);
 renderer.setClearColor(0x05030B, 1);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;     // cinematic tonemap
@@ -48,7 +48,7 @@ scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 // Post-processing: bloom on the neon emissive parts (lid strip, LED, traces)
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
-composer.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.55, 0.42, 0.82));
+composer.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.35, 0.30, 0.85));   // softer bloom = cheaper
 composer.addPass(new OutputPass());
 
 // =================================================================
@@ -725,56 +725,76 @@ function tick() {
   });
 
   meshyHolder.rotation.y = Math.sin(t * 0.6) * 0.06 + t * 0.07;
-  drive.rotation.y = Math.sin(t * 0.8) * 0.05 + t * 0.05;
 
   // ─── THREE-PHASE NARRATIVE ───
-  //   0.00 → 0.32  USB-A Meshy showcase (photoreal)
-  //   0.32 → 0.40  cross-fade A → procedural
-  //   0.40 → 0.68  PROCEDURAL DISASSEMBLY (PCB, chips, components fly apart)
-  //   0.68 → 0.76  cross-fade procedural → USB-C
-  //   0.76 → 1.00  USB-C Meshy showcase (photoreal)
   if (modelA && modelC) {
-    const aOut = smooth(0.32, 0.40, progress);   // USB-A fade out
-    const procIn = smooth(0.32, 0.40, progress);  // procedural fade in
-    const procOut = smooth(0.68, 0.76, progress); // procedural fade out
-    const cIn = smooth(0.68, 0.76, progress);     // USB-C fade in
+    const aOut    = smooth(0.32, 0.40, progress);
+    const procIn  = smooth(0.32, 0.40, progress);
+    const procOut = smooth(0.68, 0.76, progress);
+    const cIn     = smooth(0.68, 0.76, progress);
 
-    // USB-A model
-    modelA.visible = aOut < 0.99;
-    modelA.position.y = aOut * 3.0;
-    modelA.rotation.z = aOut * -0.6;
-    modelA.traverse((n) => { if (n.isMesh) { n.material.transparent = true; n.material.opacity = 1 - aOut; } });
+    // USB-A — only update if visible state changed or in transition zone
+    const aVisible = aOut < 0.99;
+    if (modelA.visible !== aVisible) modelA.visible = aVisible;
+    if (aVisible) {
+      modelA.position.y = aOut * 3.0;
+      modelA.rotation.z = aOut * -0.6;
+      // Only traverse for opacity during transition (not when fully visible/invisible)
+      if (aOut > 0.01 && aOut < 0.99) {
+        const op = 1 - aOut;
+        modelA.traverse((n) => { if (n.isMesh) { n.material.transparent = true; n.material.opacity = op; } });
+      } else if (aOut <= 0.01) {
+        modelA.traverse((n) => { if (n.isMesh) { n.material.transparent = false; n.material.opacity = 1; } });
+      }
+    }
 
-    // USB-C model
-    modelC.visible = cIn > 0.01;
-    modelC.position.y = -3 + cIn * 3.0;
-    modelC.rotation.z = (1 - cIn) * 0.6;
-    modelC.traverse((n) => { if (n.isMesh) { n.material.transparent = true; n.material.opacity = cIn; } });
+    // USB-C — same pattern
+    const cVisible = cIn > 0.01;
+    if (modelC.visible !== cVisible) modelC.visible = cVisible;
+    if (cVisible) {
+      modelC.position.y = -3 + cIn * 3.0;
+      modelC.rotation.z = (1 - cIn) * 0.6;
+      if (cIn > 0.01 && cIn < 0.99) {
+        const op = cIn;
+        modelC.traverse((n) => { if (n.isMesh) { n.material.transparent = true; n.material.opacity = op; } });
+      } else if (cIn >= 0.99) {
+        modelC.traverse((n) => { if (n.isMesh) { n.material.transparent = false; n.material.opacity = 1; } });
+      }
+    }
 
-    // Procedural drive — visible only during the "X-RAY" disassembly phase
+    // Procedural — only visible during X-RAY phase
     const procVis = procIn * (1 - procOut);
-    drive.visible = procVis > 0.01;
-    drive.scale.setScalar(procVis * 1.0);   // grow into view
+    const dVisible = procVis > 0.01;
+    if (drive.visible !== dVisible) drive.visible = dVisible;
+    if (dVisible) {
+      drive.scale.setScalar(procVis);
+      drive.rotation.y = Math.sin(t * 0.8) * 0.05 + t * 0.05;
+      // Disassembly transforms — only when actually visible
+      const disLocal = smooth(0.40, 0.68, progress);
+      for (let i = 0; i < groups.length; i++) {
+        const g = groups[i];
+        const delay = i * 0.05;
+        const localT = smooth(delay, 0.65 + delay, disLocal);
+        const ex = g.userData.explode;
+        const bp = g.userData.basePos;
+        g.position.set(bp.x + ex.x * localT, bp.y + ex.y * localT, bp.z + ex.z * localT);
+        g.rotation.y = localT * 0.18 * (i % 2 === 0 ? 1 : -1);
+      }
+    }
   } else {
+    // No GLBs loaded — procedural-only fallback
     drive.visible = true;
-  }
-
-  // Procedural disassembly: apply between 0.40 and 0.68 (offset to local progress)
-  // Map progress 0.40-0.68 → 0.00-1.00 for the disassembly groups
-  const disLocal = smooth(0.40, 0.68, progress);
-  // re-do per-group transforms (the groups already exist from the procedural build)
-  for (let i = 0; i < groups.length; i++) {
-    const g = groups[i];
-    const delay = i * 0.05;
-    const localT = smooth(delay, 0.65 + delay, disLocal);
-    const ex = g.userData.explode;
-    const bp = g.userData.basePos;
-    g.position.set(
-      bp.x + ex.x * localT,
-      bp.y + ex.y * localT,
-      bp.z + ex.z * localT
-    );
-    g.rotation.y = localT * 0.18 * (i % 2 === 0 ? 1 : -1);
+    drive.rotation.y = Math.sin(t * 0.8) * 0.05 + t * 0.05;
+    const disLocal = smooth(0.15, 0.92, progress);
+    for (let i = 0; i < groups.length; i++) {
+      const g = groups[i];
+      const delay = i * 0.05;
+      const localT = smooth(delay, 0.65 + delay, disLocal);
+      const ex = g.userData.explode;
+      const bp = g.userData.basePos;
+      g.position.set(bp.x + ex.x * localT, bp.y + ex.y * localT, bp.z + ex.z * localT);
+      g.rotation.y = localT * 0.18 * (i % 2 === 0 ? 1 : -1);
+    }
   }
 
   composer.render();
