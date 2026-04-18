@@ -486,10 +486,13 @@
 
 <script>
   // Resolve every [data-widget] link to the running widget URL.
-  // Default base is localhost:5556 (the python -m http.server from xeneon-widgets/).
-  // Override with ?base=https://your-deployed-url on this page.
+  // - On localhost: assume `python -m http.server 5556` from xeneon-widgets/
+  // - Elsewhere: use the deployed widgets at xeneon-widgets.vercel.app
+  // Override either with ?base=https://your-url on this page.
   const qs = new URLSearchParams(location.search);
-  const BASE = (qs.get("base") || "http://localhost:5556").replace(/\/$/, "");
+  const isLocal = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+  const defaultBase = isLocal ? "http://localhost:5556" : "https://xeneon-widgets.vercel.app";
+  const BASE = (qs.get("base") || defaultBase).replace(/\/$/, "");
 
   document.querySelectorAll("[data-widget]").forEach(a => {
     a.href = `${BASE}/${a.dataset.widget}/`;
