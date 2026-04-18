@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>EXFIL™ — A drive for the grey zone</title>
+<meta name="description" content="EXFIL™ · A dual-port (USB-A + USB-C) drive for the grey zone. 256GB, AES-256, IP67. Ships Q3 2026." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- CRT scanlines overlay -->
+<div class="scanlines" aria-hidden="true"></div>
+<!-- vignette -->
+<div class="vignette" aria-hidden="true"></div>
+
+<!-- HUD -->
+<header class="hud-top">
+  <div class="hud-l">
+    <span class="brand-mark">◆</span>
+    <span class="brand-kanji">電脳</span>
+    <span class="brand-name">EXFIL™</span>
+    <span class="brand-rev">gen.04 · A0</span>
+  </div>
+  <div class="hud-c">
+    <span id="hud-section">// scroll // BREAK_PROTOCOL</span>
+  </div>
+  <div class="hud-r">
+    <span class="hud-stat">REM <em id="hud-rem">000GB</em></span>
+    <span class="hud-stat">CORE <em id="hud-core">00.0°C</em></span>
+    <span class="hud-stat">STATUS <em id="hud-status">OK</em></span>
+  </div>
+</header>
+
+<div class="bracket b-tl"></div>
+<div class="bracket b-tr"></div>
+<div class="bracket b-bl"></div>
+<div class="bracket b-br"></div>
+
+<!-- STAGE -->
+<section class="stage" id="stage">
+  <div class="stage-sticky">
+    <canvas id="three-canvas"></canvas>
+
+    <!-- decorative kanji corner labels -->
+    <div class="kanji-deco kanji-deco-tl">走者<br/>runner</div>
+    <div class="kanji-deco kanji-deco-br">データ<br/>data</div>
+
+    <div class="stage-overlays">
+      <div class="overlay" data-from="0" data-to="0.18">
+        <p class="kicker">// 01 · PROLOGUE</p>
+        <h2 class="overlay-h glitch" data-text="A drive for the grey zone.">A drive for the grey zone.</h2>
+        <p class="overlay-sub">scroll // initiate break_protocol</p>
+      </div>
+      <div class="overlay" data-from="0.22" data-to="0.42">
+        <p class="kicker">// 02 · USB-A · 5Gbps</p>
+        <h2 class="overlay-h"><em>One end</em> for legacy.</h2>
+        <p class="overlay-sub">Every terminal. Every kiosk. Every old rig you're not supposed to touch.</p>
+      </div>
+      <div class="overlay" data-from="0.46" data-to="0.68">
+        <p class="kicker">// 03 · THE CORE</p>
+        <h2 class="overlay-h"><em>256GB</em><br/>of deniable.</h2>
+        <p class="overlay-sub">AES-256 hardware encryption · self-wipe on 10 failed PINs · IP67 rated.</p>
+      </div>
+      <div class="overlay" data-from="0.72" data-to="0.92">
+        <p class="kicker">// 04 · USB-C · 10Gbps</p>
+        <h2 class="overlay-h">The other end <em>for now.</em></h2>
+        <p class="overlay-sub">10 Gbps. Orientation-agnostic. Every phone, every laptop made after 2020.</p>
+      </div>
+      <div class="overlay" data-from="0.94" data-to="1.0">
+        <p class="kicker">// 05 · EXFIL™</p>
+        <h2 class="overlay-h">Both ends.<br/><em>No questions asked.</em></h2>
+        <p class="overlay-sub">$89 · ships Q3 2026 · preorder below</p>
+      </div>
+    </div>
+
+    <div class="stage-progress">
+      <div class="progress-track"><i id="progress-bar"></i></div>
+      <span class="progress-pct"><em id="progress-pct">000</em>%</span>
+    </div>
+
+    <div class="stage-hint">scroll //<br/>↓</div>
+  </div>
+</section>
+
+<!-- SPECS -->
+<section class="specs">
+  <div class="specs-head">
+    <p class="kicker">// Specifications</p>
+    <h2>Hard <em>numbers.</em></h2>
+  </div>
+  <div class="spec-grid">
+    <div class="spec"><span class="spec-num">256</span><span class="spec-unit">GB · NAND 3D TLC</span><p>Independent flash, no cloud tethering. Your data stays on the stick. Sequential read 1,000 MB/s.</p></div>
+    <div class="spec"><span class="spec-num">10+5</span><span class="spec-unit">Gbps · USB-C / USB-A</span><p>USB-C at 10 Gbps (USB 3.2 Gen 2). USB-A at 5 Gbps. Both ends, one drive, zero dongles.</p></div>
+    <div class="spec"><span class="spec-num">AES-256</span><span class="spec-unit">HARDWARE · FIPS 197</span><p>On-controller encryption. Firmware sealed. Keys never leave the die. No software to install.</p></div>
+    <div class="spec"><span class="spec-num">IP67</span><span class="spec-unit">DUST / WATER RATED</span><p>Survives a dunk. Survives a drop. Survives a wash cycle. We tested.</p></div>
+    <div class="spec"><span class="spec-num">10</span><span class="spec-unit">FAILED PINS → WIPE</span><p>After ten incorrect PINs, the controller fires a TRIM across every block. Gone in 180ms.</p></div>
+    <div class="spec"><span class="spec-num">$89</span><span class="spec-unit">PRICE · SHIPS Q3</span><p>Half the price of a comparable crypto-USB. Preorder for $79 — first 500 units.</p></div>
+  </div>
+</section>
+
+<!-- PREORDER -->
+<section class="early" id="pre">
+  <p class="kicker">// preorder</p>
+  <h2 class="early-title">Reserve a <em>stick.</em></h2>
+  <p class="early-sub">Preorder price <strong>$79</strong> (normally $89). $20 deposit. First 500 units ship Q3 2026. No refund after build slot claimed.</p>
+  <form class="early-form" onsubmit="event.preventDefault(); this.classList.add('sent');">
+    <input type="email" placeholder="email · will self-destruct after shipping" required />
+    <input type="text" placeholder="handle · optional" />
+    <button type="submit">// reserve →</button>
+    <p class="form-thanks">✓ Reserved. Build slot assigned. Do not forward this confirmation.</p>
+  </form>
+</section>
+
+<footer class="foot">
+  <div class="foot-l">
+    <span class="brand-mark">◆</span>
+    <span>EXFIL™ is a product concept. Designed by <a href="../../">Efe Biskin</a>.</span>
+  </div>
+  <div class="foot-r">
+    <a href="../../">← back to portfolio</a>
+  </div>
+</footer>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js"
+  }
+}
+</script>
+<script type="module" src="script.js"></script>
+</body>
+</html>
