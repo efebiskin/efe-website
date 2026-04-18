@@ -107,10 +107,10 @@
 
   /* sine-wave horizon with widget icon nodes */
   .horizon{
-    position:relative;width:100%;height:clamp(180px, 28vh, 300px);
-    margin-top:32px;overflow:hidden;
+    position:relative;width:100%;height:clamp(220px, 32vh, 340px);
+    margin-top:32px;padding-bottom:40px;
   }
-  .horizon svg{position:absolute;inset:0;width:100%;height:100%}
+  .horizon svg{position:absolute;top:0;left:0;right:0;bottom:40px;width:100%;height:calc(100% - 40px)}
   .horizon .path{fill:none;stroke:rgba(0,225,255,.45);stroke-width:1.5;stroke-dasharray:0;filter:drop-shadow(0 0 8px rgba(0,225,255,.35))}
   .nodes{position:absolute;inset:0}
   .node{
@@ -134,10 +134,10 @@
   }
   .node::after{
     content:attr(data-label);position:absolute;top:calc(100% + 10px);left:50%;transform:translateX(-50%);
-    font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);
-    opacity:0;transition:opacity .2s;white-space:nowrap;font-weight:600;
+    font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.55);
+    transition:color .2s, transform .2s;white-space:nowrap;font-weight:600;
   }
-  .node:hover::after{opacity:1}
+  .node:hover::after{color:var(--accent);transform:translateX(-50%) translateY(2px)}
 
   @keyframes bob {
     0%, 100% { margin-top: 0 }
