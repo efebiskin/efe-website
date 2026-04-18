@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Motion OS — AI motion websites in 7 days</title>
+<meta name="description" content="A productized motion-website service. Claude Opus 4.7 (code) + Seedance 2.0 (video). One engineer, one invoice, one deadline." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,800&family=Geist+Mono:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="loading">
+
+<!-- ============ LOADER ============ -->
+<div class="boot">
+  <div class="boot-inner">
+    <div class="boot-row"><span class="boot-key">$</span> <span class="boot-cmd"></span><span class="caret">_</span></div>
+    <div class="boot-bar"><i></i></div>
+    <div class="boot-pct">0%</div>
+  </div>
+</div>
+
+<!-- ============ NAV ============ -->
+<header class="nav">
+  <div class="nav-brand">
+    <span class="brand-glyph"></span>
+    <span class="brand-name">MOTION OS</span>
+    <span class="brand-version">v0.1.0-alpha</span>
+  </div>
+  <nav class="nav-mid">
+    <a href="#scenes" data-snd>Scenes</a>
+    <a href="#how" data-snd>How</a>
+    <a href="#pricing" data-snd>Pricing</a>
+  </nav>
+  <a href="#book" class="nav-book" data-snd>
+    Book a build <span class="book-arrow">→</span>
+  </a>
+</header>
+
+<!-- ============ HERO BENTO ============ -->
+<section class="hero">
+  <canvas id="shader"></canvas>
+
+  <div class="bento">
+    <!-- title tile -->
+    <div class="tile tile-title">
+      <p class="tile-eyebrow">Productized service · 2026</p>
+      <h1>
+        <span class="kt">M</span><span class="kt">o</span><span class="kt">t</span><span class="kt">i</span><span class="kt">o</span><span class="kt">n</span>
+        <span class="title-second">
+          <span class="kt">w</span><span class="kt">e</span><span class="kt">b</span><span class="kt">s</span><span class="kt">i</span><span class="kt">t</span><span class="kt">e</span><span class="kt">s</span>
+        </span>
+        <span class="title-third">
+          in <span class="kt-word">seven</span> days.
+        </span>
+      </h1>
+      <p class="tile-sub">Claude Opus 4.7 writes the code. Seedance 2.0 makes the video. I assemble the pieces and ship to your domain.</p>
+    </div>
+
+    <!-- live stats -->
+    <div class="tile tile-stats">
+      <div class="stat">
+        <span class="stat-num" data-counter="3247">0</span>
+        <span class="stat-lbl">seconds of AI video generated</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num" data-counter="12">0</span>
+        <span class="stat-lbl">sites shipped this quarter</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num" data-counter="7">0</span>
+        <span class="stat-lbl">average days to launch</span>
+      </div>
+    </div>
+
+    <!-- sketch tile -->
+    <div class="tile tile-sketch">
+      <div class="sketch-grid">
+        <span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <div class="sketch-cursor"></div>
+      <p class="sketch-cap">Live on your domain.</p>
+    </div>
+
+    <!-- cta tile -->
+    <div class="tile tile-cta">
+      <a href="#book" data-snd class="cta-pill">
+        Start a project
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14m-7-7l7 7-7 7"/></svg>
+      </a>
+      <p>From <strong>$1,500</strong>. Fixed fee. Fixed deadline.</p>
+    </div>
+
+    <!-- runtime tile -->
+    <div class="tile tile-runtime">
+      <div class="rt-row"><i></i> opus-4.7 · code</div>
+      <div class="rt-row"><i></i> seedance-2.0 · video</div>
+      <div class="rt-row"><i></i> vercel · deploy</div>
+      <div class="rt-row"><i></i> stripe · invoice</div>
+    </div>
+  </div>
+
+  <div class="hero-foot">
+    <span>↓ scroll</span>
+    <span class="hero-time">PST · <em id="hero-clock">--:--</em></span>
+  </div>
+</section>
+
+<!-- ============ HOW (terminal) ============ -->
+<section id="how" class="how">
+  <div class="how-head reveal">
+    <p class="kicker">// 01 · How</p>
+    <h2>Four commands to a launched site.</h2>
+  </div>
+
+  <div class="terminal reveal">
+    <div class="term-bar">
+      <i></i><i></i><i></i>
+      <span>~/clients/your-brand</span>
+    </div>
+    <pre class="term-body" id="term"></pre>
+  </div>
+</section>
+
+<!-- ============ SCENES (horizontal scroll) ============ -->
+<section id="scenes" class="scenes">
+  <div class="scenes-head reveal">
+    <p class="kicker">// 02 · Scenes</p>
+    <h2>Eight aesthetics. <em>One pipeline.</em></h2>
+    <p class="scenes-sub">Drag, scroll, or use ← → keys. Every scene is a fragment shader, not a stock loop — proves the site's *generated*, not assembled.</p>
+  </div>
+
+  <div class="scenes-rail" id="rail">
+    <article class="scene s1"><div class="scene-art" data-shader="1"></div><h3>Nebula</h3><p>Editorial / luxury</p></article>
+    <article class="scene s2"><div class="scene-art" data-shader="2"></div><h3>Liquid Chrome</h3><p>Tech / SaaS</p></article>
+    <article class="scene s3"><div class="scene-art" data-shader="3"></div><h3>Flow Field</h3><p>Generative / agency</p></article>
+    <article class="scene s4"><div class="scene-art" data-shader="4"></div><h3>Amber Smoke</h3><p>Spirits / hospitality</p></article>
+    <article class="scene s5"><div class="scene-art" data-shader="5"></div><h3>Cyan Drift</h3><p>Wellness / spa</p></article>
+    <article class="scene s6"><div class="scene-art" data-shader="6"></div><h3>Magma</h3><p>Performance / sport</p></article>
+    <article class="scene s7"><div class="scene-art" data-shader="7"></div><h3>Static Field</h3><p>Music / artist</p></article>
+    <article class="scene s8"><div class="scene-art" data-shader="8"></div><h3>Soft Pearl</h3><p>Beauty / fashion</p></article>
+  </div>
+</section>
+
+<!-- ============ PRICING ============ -->
+<section id="pricing" class="pricing">
+  <div class="pricing-head reveal">
+    <p class="kicker">// 03 · Pricing</p>
+    <h2>Three tiers. <em>No retainer.</em></h2>
+  </div>
+
+  <div class="tiers">
+    <div class="tier reveal">
+      <div class="tier-top">
+        <span class="tier-name">Hero</span>
+        <span class="tier-time">3 days</span>
+      </div>
+      <div class="tier-price"><sup>$</sup>750</div>
+      <ul class="tier-list">
+        <li>Single-page hero + 3 sections</li>
+        <li>One Seedance hero loop (5s)</li>
+        <li>Mobile-tuned</li>
+        <li>Deployed to your domain</li>
+        <li>Two revision rounds</li>
+      </ul>
+      <a href="#book" data-snd class="tier-cta">Start →</a>
+    </div>
+
+    <div class="tier featured reveal">
+      <span class="tier-flag">most popular</span>
+      <div class="tier-top">
+        <span class="tier-name">Pro</span>
+        <span class="tier-time">7 days</span>
+      </div>
+      <div class="tier-price"><sup>$</sup>1,500</div>
+      <ul class="tier-list">
+        <li>Multi-section site (5–7 sections)</li>
+        <li>Three Seedance scenes (hero + 2)</li>
+        <li>Contact form + email piping</li>
+        <li>Stripe-ready (one product)</li>
+        <li>Mobile + tablet polish</li>
+        <li>Three revision rounds</li>
+      </ul>
+      <a href="#book" data-snd class="tier-cta">Start →</a>
+    </div>
+
+    <div class="tier reveal">
+      <div class="tier-top">
+        <span class="tier-name">Brand</span>
+        <span class="tier-time">14 days</span>
+      </div>
+      <div class="tier-price"><sup>$</sup>3,000</div>
+      <ul class="tier-list">
+        <li>Full multi-page site (up to 8 routes)</li>
+        <li>Six+ Seedance scenes, custom timing</li>
+        <li>CMS (Sanity / Notion / Markdown)</li>
+        <li>Auth + database (Supabase)</li>
+        <li>SEO + OG image automation</li>
+        <li>Unlimited revisions in build window</li>
+      </ul>
+      <a href="#book" data-snd class="tier-cta">Start →</a>
+    </div>
+  </div>
+
+  <p class="pricing-foot reveal">Add-ons: extra Seedance scene <strong>$120</strong> · custom domain setup <strong>$50</strong> · second language (TR/ES) <strong>$300</strong></p>
+</section>
+
+<!-- ============ BOOK CTA ============ -->
+<section id="book" class="book">
+  <div class="reveal">
+    <p class="kicker">// 04 · Book</p>
+    <h2 class="book-title">Tell me what you're <em>building.</em></h2>
+    <p class="book-sub">A 20-minute call. If we're a fit, you have a written quote within 24 hours.</p>
+    <div class="book-cta">
+      <a href="mailto:efebskn@gmail.com?subject=Motion%20OS%20enquiry" class="btn-big" data-snd>
+        efebskn@gmail.com
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 17L17 7M7 7h10v10"/></svg>
+      </a>
+    </div>
+    <ul class="book-trust">
+      <li>✦ Fixed fee, no scope creep</li>
+      <li>✦ Deposit 50% / on-launch 50%</li>
+      <li>✦ Full ownership of code + design</li>
+      <li>✦ Refund if I miss the deadline</li>
+    </ul>
+  </div>
+</section>
+
+<footer class="foot">
+  <div>MOTION OS · a service by <a href="../../" data-snd>Efe Biskin</a></div>
+  <div>Built with Opus 4.7 + Seedance 2.0</div>
+  <div><a href="../../" data-snd>← back to portfolio</a></div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
