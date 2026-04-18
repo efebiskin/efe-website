@@ -62,30 +62,37 @@ floor.position.y = -1.1;
 scene.add(floor);
 
 // =================================================================
-// Materials
+// Materials — built to look like real electronics
 // =================================================================
-const matChrome = new THREE.MeshStandardMaterial({ color: 0xc8ccd4, metalness: 0.95, roughness: 0.12 });
-const matChromeDark = new THREE.MeshStandardMaterial({ color: 0x707580, metalness: 0.95, roughness: 0.2 });
-const matShellTop = new THREE.MeshStandardMaterial({
-  color: 0x0a0a12,
-  metalness: 0.8,
-  roughness: 0.25,
+const matChrome     = new THREE.MeshStandardMaterial({ color: 0xd8dce3, metalness: 0.98, roughness: 0.10 });
+const matChromeWear = new THREE.MeshStandardMaterial({ color: 0xa8acb5, metalness: 0.95, roughness: 0.18 });
+const matBlackPlastic = new THREE.MeshStandardMaterial({ color: 0x07070a, metalness: 0.1, roughness: 0.85 });
+const matAnodizedTop = new THREE.MeshStandardMaterial({
+  color: 0x14141c,
+  metalness: 0.75,
+  roughness: 0.35,
   emissive: 0xFF0066,
-  emissiveIntensity: 0.08,
-});
-const matShellBot = new THREE.MeshStandardMaterial({
-  color: 0x08080f,
-  metalness: 0.8,
-  roughness: 0.3,
-  emissive: 0xB042FF,
   emissiveIntensity: 0.06,
 });
-const matPCB = new THREE.MeshStandardMaterial({ color: 0x0a2a1a, metalness: 0.2, roughness: 0.65, emissive: 0x001a0e, emissiveIntensity: 0.35 });
-const matNAND = new THREE.MeshStandardMaterial({ color: 0x1a1a22, metalness: 0.4, roughness: 0.55, emissive: 0x00F5FF, emissiveIntensity: 0.35 });
-const matController = new THREE.MeshStandardMaterial({ color: 0x0e0e14, metalness: 0.5, roughness: 0.5, emissive: 0xFF0066, emissiveIntensity: 0.55 });
-const matLED = new THREE.MeshStandardMaterial({ color: 0xFFE500, emissive: 0xFFE500, emissiveIntensity: 2.0, metalness: 0, roughness: 0.3 });
-const matUsbBlue = new THREE.MeshStandardMaterial({ color: 0x0a1a3a, metalness: 0.3, roughness: 0.45 }); // USB-A tab is classically blue
-const matUsbC = new THREE.MeshStandardMaterial({ color: 0x101015, metalness: 0.8, roughness: 0.3, emissive: 0xFFE500, emissiveIntensity: 0.1 });
+const matAnodizedBot = new THREE.MeshStandardMaterial({
+  color: 0x101018,
+  metalness: 0.7,
+  roughness: 0.40,
+  emissive: 0xB042FF,
+  emissiveIntensity: 0.05,
+});
+const matPCBgreen   = new THREE.MeshStandardMaterial({ color: 0x0d3a24, metalness: 0.15, roughness: 0.7 });
+const matPCBsolder  = new THREE.MeshStandardMaterial({ color: 0xc8a043, metalness: 0.85, roughness: 0.30, emissive: 0x4a3010, emissiveIntensity: 0.2 });   // gold mask
+const matNANDbody   = new THREE.MeshStandardMaterial({ color: 0x16161c, metalness: 0.3, roughness: 0.55 });
+const matCtrlBody   = new THREE.MeshStandardMaterial({ color: 0x0e0e14, metalness: 0.4, roughness: 0.50 });
+const matCapTan     = new THREE.MeshStandardMaterial({ color: 0xd4a043, metalness: 0.5, roughness: 0.45 });   // tantalum cap yellow
+const matCapBlack   = new THREE.MeshStandardMaterial({ color: 0x0a0a12, metalness: 0.4, roughness: 0.55 });   // ceramic cap
+const matResistor   = new THREE.MeshStandardMaterial({ color: 0x0a0a14, metalness: 0.3, roughness: 0.65 });
+const matCrystal    = new THREE.MeshStandardMaterial({ color: 0xb8bcc4, metalness: 0.85, roughness: 0.25 });
+const matLED        = new THREE.MeshStandardMaterial({ color: 0xFFE500, emissive: 0xFFE500, emissiveIntensity: 2.5, metalness: 0, roughness: 0.3 });
+const matGoldPin    = new THREE.MeshStandardMaterial({ color: 0xe8b04c, metalness: 0.92, roughness: 0.12, emissive: 0x6a4810, emissiveIntensity: 0.35 });
+const matUsbBlueIns = new THREE.MeshStandardMaterial({ color: 0x0a2050, metalness: 0.15, roughness: 0.7 });   // iconic USB-A blue insert
+const matUsbCInner  = new THREE.MeshStandardMaterial({ color: 0x040406, metalness: 0.2, roughness: 0.7 });
 
 // =================================================================
 // Build the USB drive
@@ -93,201 +100,347 @@ const matUsbC = new THREE.MeshStandardMaterial({ color: 0x101015, metalness: 0.8
 const drive = new THREE.Group();
 scene.add(drive);
 
-// ─── 1. Main body TOP shell ───
+// helper: cyan rim line for a mesh
+function rim(mesh, color = 0xFF0066, opacity = 0.6) {
+  const edges = new THREE.EdgesGeometry(mesh.geometry, 30);
+  const lines = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color, transparent: true, opacity }));
+  lines.position.copy(mesh.position);
+  lines.rotation.copy(mesh.rotation);
+  return lines;
+}
+
+// ─── 1. TOP SHELL — anodized box with vent slots + engraved logo cutout ───
 const shellTopGroup = new THREE.Group();
 shellTopGroup.userData = { explode: new THREE.Vector3(0, 1.2, 0) };
 {
-  const shell = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.25, 0.7), matShellTop);
-  shell.position.y = 0.125;
+  const shell = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.20, 0.65), matAnodizedTop);
+  shell.position.y = 0.10;
   shellTopGroup.add(shell);
+  shellTopGroup.add(rim(shell, 0xFF0066, 0.7));
 
-  // pink edge glow lines
-  const edges = new THREE.EdgesGeometry(shell.geometry);
-  const edgeMat = new THREE.LineBasicMaterial({ color: 0xFF0066, transparent: true, opacity: 0.85 });
-  const edgeLines = new THREE.LineSegments(edges, edgeMat);
-  edgeLines.position.y = 0.125;
-  shellTopGroup.add(edgeLines);
+  // 5 vent slots on top — small recessed bars (rendered as flat strips)
+  for (let i = 0; i < 5; i++) {
+    const slot = new THREE.Mesh(
+      new THREE.BoxGeometry(0.45, 0.005, 0.025),
+      new THREE.MeshStandardMaterial({ color: 0x000000, metalness: 0.1, roughness: 1 })
+    );
+    slot.position.set(0.1, 0.205, -0.2 + i * 0.10);
+    shellTopGroup.add(slot);
+  }
 
-  // engraved brand strip on top
-  const strip = new THREE.Mesh(
-    new THREE.BoxGeometry(1.4, 0.005, 0.08),
-    new THREE.MeshStandardMaterial({ color: 0xFF0066, emissive: 0xFF0066, emissiveIntensity: 1.4 })
+  // Engraved EXFIL brand strip — bright pink emissive line on top
+  const brandStrip = new THREE.Mesh(
+    new THREE.BoxGeometry(0.5, 0.004, 0.045),
+    new THREE.MeshStandardMaterial({ color: 0xFF0066, emissive: 0xFF0066, emissiveIntensity: 2.0 })
   );
-  strip.position.set(0, 0.252, 0);
-  shellTopGroup.add(strip);
+  brandStrip.position.set(-0.55, 0.205, 0);
+  shellTopGroup.add(brandStrip);
+
+  // Two screw recesses near the connector ends
+  const screwGeom = new THREE.CylinderGeometry(0.025, 0.025, 0.01, 12);
+  const screwMat = new THREE.MeshStandardMaterial({ color: 0x404048, metalness: 0.85, roughness: 0.3 });
+  const sLeft = new THREE.Mesh(screwGeom, screwMat);
+  sLeft.position.set(-0.85, 0.205, 0.25);
+  shellTopGroup.add(sLeft);
+  const sRight = new THREE.Mesh(screwGeom, screwMat);
+  sRight.position.set(0.85, 0.205, -0.25);
+  shellTopGroup.add(sRight);
+
+  // LED window cutout (small bright dot on top near USB-A end)
+  const ledWindow = new THREE.Mesh(
+    new THREE.CircleGeometry(0.018, 16),
+    new THREE.MeshStandardMaterial({ color: 0xFFE500, emissive: 0xFFE500, emissiveIntensity: 1.5 })
+  );
+  ledWindow.rotation.x = -Math.PI / 2;
+  ledWindow.position.set(-0.55, 0.206, -0.20);
+  shellTopGroup.add(ledWindow);
 }
 drive.add(shellTopGroup);
 
-// ─── 2. Main body BOTTOM shell ───
+// ─── 2. BOTTOM SHELL — paired anodized box with regulatory marks ───
 const shellBotGroup = new THREE.Group();
 shellBotGroup.userData = { explode: new THREE.Vector3(0, -1.2, 0) };
 {
-  const shell = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.25, 0.7), matShellBot);
-  shell.position.y = -0.125;
+  const shell = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.20, 0.65), matAnodizedBot);
+  shell.position.y = -0.10;
   shellBotGroup.add(shell);
+  shellBotGroup.add(rim(shell, 0xB042FF, 0.55));
 
-  const edges = new THREE.EdgesGeometry(shell.geometry);
-  const edgeLines = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xB042FF, transparent: true, opacity: 0.7 }));
-  edgeLines.position.y = -0.125;
-  shellBotGroup.add(edgeLines);
+  // mating ridge on the inside (visible thin lip when separated)
+  const ridge = new THREE.Mesh(
+    new THREE.BoxGeometry(1.92, 0.012, 0.62),
+    new THREE.MeshStandardMaterial({ color: 0x06060c, metalness: 0.5, roughness: 0.6 })
+  );
+  ridge.position.set(0, -0.005, 0);
+  shellBotGroup.add(ridge);
+
+  // serial number etch (thin emissive cyan strip on bottom)
+  const serial = new THREE.Mesh(
+    new THREE.BoxGeometry(0.6, 0.003, 0.02),
+    new THREE.MeshStandardMaterial({ color: 0x00F5FF, emissive: 0x00F5FF, emissiveIntensity: 0.8 })
+  );
+  serial.position.set(-0.5, -0.205, 0.22);
+  shellBotGroup.add(serial);
 }
 drive.add(shellBotGroup);
 
-// ─── 3. PCB (middle layer) ───
+// ─── 3. PCB — green FR4 with multiple distinct surface-mount components ───
 const pcbGroup = new THREE.Group();
 pcbGroup.userData = { explode: new THREE.Vector3(0, 0, 0.8) };
 {
-  const pcb = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.04, 0.62), matPCB);
+  // FR4 substrate
+  const pcb = new THREE.Mesh(new THREE.BoxGeometry(1.85, 0.035, 0.58), matPCBgreen);
   pcbGroup.add(pcb);
-  // trace lines (emissive pink)
-  for (let i = 0; i < 6; i++) {
-    const t = new THREE.Mesh(
-      new THREE.BoxGeometry(0.8 + Math.random() * 0.6, 0.003, 0.015),
-      new THREE.MeshBasicMaterial({ color: 0xFF0066, transparent: true, opacity: 0.8 })
+  pcbGroup.add(rim(pcb, 0xc8a043, 0.4));
+
+  // GOLD CONTACT FINGERS on the USB-A end of the PCB
+  for (let i = 0; i < 4; i++) {
+    const finger = new THREE.Mesh(
+      new THREE.BoxGeometry(0.16, 0.005, 0.045),
+      matPCBsolder
     );
-    t.position.set((Math.random() - 0.5) * 0.4, 0.025, -0.25 + i * 0.1);
+    finger.position.set(-0.85, 0.020, -0.08 + i * 0.053);
+    pcbGroup.add(finger);
+  }
+  // GOLD CONTACT FINGERS on the USB-C end (smaller, denser, two rows)
+  for (let i = 0; i < 12; i++) {
+    const finger = new THREE.Mesh(
+      new THREE.BoxGeometry(0.10, 0.003, 0.015),
+      matPCBsolder
+    );
+    finger.position.set(0.85, 0.020, -0.10 + i * 0.018);
+    pcbGroup.add(finger);
+  }
+
+  // PCB silkscreen traces (thin pink emissive lines)
+  function addTrace(x, z, w) {
+    const t = new THREE.Mesh(
+      new THREE.BoxGeometry(w, 0.002, 0.008),
+      new THREE.MeshBasicMaterial({ color: 0xFF0066, transparent: true, opacity: 0.7 })
+    );
+    t.position.set(x, 0.019, z);
     pcbGroup.add(t);
   }
-  // edge glow lines
-  const edges = new THREE.EdgesGeometry(pcb.geometry);
-  const edgeLines = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x00F5FF, transparent: true, opacity: 0.5 }));
-  pcbGroup.add(edgeLines);
+  addTrace(-0.30, -0.05, 0.5);
+  addTrace(-0.20, 0.05, 0.7);
+  addTrace( 0.10, -0.10, 0.55);
+  addTrace( 0.30, 0.12, 0.4);
+  addTrace( 0.40, -0.20, 0.45);
 }
 drive.add(pcbGroup);
 
-// ─── 4. NAND flash chip ───
+// ─── 4. NAND flash IC — large square TSOP-style chip with visible pin rows ───
 const nandGroup = new THREE.Group();
-nandGroup.userData = { explode: new THREE.Vector3(-0.4, 1.6, 0) };
+nandGroup.userData = { explode: new THREE.Vector3(-0.5, 1.6, 0) };
 {
-  const chip = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.06, 0.3), matNAND);
-  chip.position.set(-0.25, 0.055, 0);
+  // chip body
+  const chip = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.06, 0.30), matNANDbody);
+  chip.position.set(-0.30, 0.067, 0);
   nandGroup.add(chip);
-  // tiny pin rim
-  const edges = new THREE.EdgesGeometry(chip.geometry);
-  const edgeLines = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x00F5FF, transparent: true, opacity: 0.9 }));
-  edgeLines.position.copy(chip.position);
-  nandGroup.add(edgeLines);
+  nandGroup.add(rim(chip, 0x00F5FF, 0.85));
+
+  // dimple marker (round indent on one corner — chip orientation pin)
+  const dimple = new THREE.Mesh(
+    new THREE.CircleGeometry(0.012, 12),
+    new THREE.MeshStandardMaterial({ color: 0x040404, roughness: 0.9 })
+  );
+  dimple.rotation.x = -Math.PI / 2;
+  dimple.position.set(-0.30 - 0.17, 0.098, -0.11);
+  nandGroup.add(dimple);
+
+  // 8 pins on each long side
+  const pinGeom = new THREE.BoxGeometry(0.025, 0.012, 0.014);
+  for (let i = 0; i < 8; i++) {
+    const p1 = new THREE.Mesh(pinGeom, matGoldPin);
+    p1.position.set(-0.30, 0.043, -0.13 + i * 0.038);
+    p1.translateX(-0.215);
+    nandGroup.add(p1);
+    const p2 = new THREE.Mesh(pinGeom, matGoldPin);
+    p2.position.set(-0.30, 0.043, -0.13 + i * 0.038);
+    p2.translateX(0.215);
+    nandGroup.add(p2);
+  }
 }
 drive.add(nandGroup);
 
-// ─── 5. Controller chip ───
+// ─── 5. Controller IC — smaller square QFN package ───
 const ctrlGroup = new THREE.Group();
-ctrlGroup.userData = { explode: new THREE.Vector3(0.5, 1.4, 0) };
+ctrlGroup.userData = { explode: new THREE.Vector3(0.6, 1.4, 0) };
 {
-  const chip = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.05, 0.28), matController);
-  chip.position.set(0.35, 0.05, 0);
+  const chip = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.05, 0.28), matCtrlBody);
+  chip.position.set(0.30, 0.062, 0.05);
   ctrlGroup.add(chip);
-  // engraved hex pattern on top (line pattern)
+  ctrlGroup.add(rim(chip, 0xFF0066, 0.85));
+
+  // hex marking on top (laser-etched)
   const hex = new THREE.Mesh(
-    new THREE.RingGeometry(0.08, 0.11, 6),
-    new THREE.MeshBasicMaterial({ color: 0xFF0066, side: THREE.DoubleSide })
+    new THREE.RingGeometry(0.06, 0.075, 6),
+    new THREE.MeshBasicMaterial({ color: 0xFF0066, side: THREE.DoubleSide, transparent: true, opacity: 0.9 })
   );
   hex.rotation.x = -Math.PI / 2;
-  hex.position.set(0.35, 0.078, 0);
+  hex.position.set(0.30, 0.088, 0.05);
   ctrlGroup.add(hex);
+
+  // QFN pins around all 4 sides (small)
+  const qfnGeom = new THREE.BoxGeometry(0.018, 0.008, 0.012);
+  for (let i = 0; i < 6; i++) {
+    const off = -0.075 + i * 0.030;
+    const t = 0.142;
+    const m1 = new THREE.Mesh(qfnGeom, matGoldPin); m1.position.set(0.30 - t, 0.040, 0.05 + off); ctrlGroup.add(m1);
+    const m2 = new THREE.Mesh(qfnGeom, matGoldPin); m2.position.set(0.30 + t, 0.040, 0.05 + off); ctrlGroup.add(m2);
+    const m3 = new THREE.Mesh(qfnGeom, matGoldPin); m3.rotation.y = Math.PI/2; m3.position.set(0.30 + off, 0.040, 0.05 - t); ctrlGroup.add(m3);
+    const m4 = new THREE.Mesh(qfnGeom, matGoldPin); m4.rotation.y = Math.PI/2; m4.position.set(0.30 + off, 0.040, 0.05 + t); ctrlGroup.add(m4);
+  }
 }
 drive.add(ctrlGroup);
 
-// ─── 6. LED indicator ───
-const ledGroup = new THREE.Group();
-ledGroup.userData = { explode: new THREE.Vector3(0.8, 2.2, 0) };
+// ─── 6. Discrete components — caps, resistors, crystal ───
+const discreteGroup = new THREE.Group();
+discreteGroup.userData = { explode: new THREE.Vector3(0.2, 1.0, 0.5) };
 {
-  const led = new THREE.Mesh(new THREE.SphereGeometry(0.05, 16, 16), matLED);
-  led.position.set(0.75, 0.06, 0);
+  // 3 tantalum capacitors (yellow rectangular bricks with one chamfered end)
+  for (let i = 0; i < 3; i++) {
+    const cap = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.04, 0.035), matCapTan);
+    cap.position.set(-0.05 + i * 0.075, 0.057, -0.20);
+    discreteGroup.add(cap);
+    // black mark on positive lead end
+    const mark = new THREE.Mesh(
+      new THREE.BoxGeometry(0.012, 0.041, 0.036),
+      new THREE.MeshStandardMaterial({ color: 0x040404 })
+    );
+    mark.position.set(cap.position.x - 0.024, cap.position.y, cap.position.z);
+    discreteGroup.add(mark);
+  }
+
+  // 4 ceramic capacitors (small black 0805 SMD)
+  for (let i = 0; i < 4; i++) {
+    const cap = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.013, 0.015), matCapBlack);
+    cap.position.set(-0.40 + i * 0.080, 0.044, 0.20);
+    discreteGroup.add(cap);
+  }
+
+  // 3 SMD resistors (black with metal pads at each end)
+  for (let i = 0; i < 3; i++) {
+    const res = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.012, 0.018), matResistor);
+    res.position.set(0.50 + i * 0.06, 0.043, 0.18);
+    discreteGroup.add(res);
+    // silver pads at each end
+    const padMat = new THREE.MeshStandardMaterial({ color: 0xb8bcc4, metalness: 0.8, roughness: 0.3 });
+    const padL = new THREE.Mesh(new THREE.BoxGeometry(0.008, 0.013, 0.019), padMat);
+    padL.position.set(res.position.x - 0.014, res.position.y, res.position.z);
+    discreteGroup.add(padL);
+    const padR = new THREE.Mesh(new THREE.BoxGeometry(0.008, 0.013, 0.019), padMat);
+    padR.position.set(res.position.x + 0.014, res.position.y, res.position.z);
+    discreteGroup.add(padR);
+  }
+
+  // Quartz crystal oscillator — silver rounded rectangle, raised
+  const crystal = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.045, 0.08), matCrystal);
+  crystal.position.set(0.65, 0.058, -0.18);
+  discreteGroup.add(crystal);
+  discreteGroup.add(rim(crystal, 0x00F5FF, 0.6));
+}
+drive.add(discreteGroup);
+
+// ─── 7. LED indicator (separate so it can fly out independently) ───
+const ledGroup = new THREE.Group();
+ledGroup.userData = { explode: new THREE.Vector3(0.0, 2.4, 0) };
+{
+  const led = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.03, 0.030), matLED);
+  led.position.set(-0.55, 0.055, -0.20);
   ledGroup.add(led);
-  const glow = new THREE.PointLight(0xFFE500, 1.2, 1);
-  glow.position.set(0.75, 0.06, 0);
+  const glow = new THREE.PointLight(0xFFE500, 1.5, 1.2);
+  glow.position.copy(led.position);
   ledGroup.add(glow);
 }
 drive.add(ledGroup);
 
-// ─── 7. USB-A plug (left end) ───
+// ─── 8. USB-A plug (left end) — chrome shell, blue plastic tongue, 4 gold pins ───
 const usbAGroup = new THREE.Group();
 usbAGroup.userData = { explode: new THREE.Vector3(-2.4, 0, 0) };
 {
-  // metallic sleeve
-  const sleeve = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.18, 0.4), matChrome);
-  sleeve.position.set(-1.35, 0, 0);
+  // outer chrome shell (the iconic USB-A rectangle)
+  const sleeve = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.16, 0.42), matChrome);
+  sleeve.position.set(-1.40, 0, 0);
   usbAGroup.add(sleeve);
-  // blue plastic tongue inside
-  const tongue = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.05, 0.28), matUsbBlue);
-  tongue.position.set(-1.35, 0.00, 0);
+  usbAGroup.add(rim(sleeve, 0xFFE500, 0.5));
+
+  // 2 latching notches on the front edge (small cuts in the shell)
+  const notchMat = new THREE.MeshStandardMaterial({ color: 0x000000, roughness: 1 });
+  const n1 = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.05, 0.06), notchMat);
+  n1.position.set(-1.71, 0.06, -0.17); usbAGroup.add(n1);
+  const n2 = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.05, 0.06), notchMat);
+  n2.position.set(-1.71, 0.06,  0.17); usbAGroup.add(n2);
+
+  // INNER blue plastic tongue (the iconic USB-A blue insert)
+  const tongue = new THREE.Mesh(new THREE.BoxGeometry(0.50, 0.045, 0.32), matUsbBlueIns);
+  tongue.position.set(-1.36, -0.030, 0);
   usbAGroup.add(tongue);
-  // pins (4 gold lines on the tongue)
-  const pinGeom = new THREE.BoxGeometry(0.42, 0.006, 0.03);
-  const pinMat = new THREE.MeshStandardMaterial({ color: 0xd4a043, metalness: 0.9, roughness: 0.15, emissive: 0x8a6020, emissiveIntensity: 0.4 });
+
+  // 4 gold pin contacts on top of the tongue
+  const pinGeom = new THREE.BoxGeometry(0.36, 0.005, 0.04);
   for (let i = 0; i < 4; i++) {
-    const pin = new THREE.Mesh(pinGeom, pinMat);
-    pin.position.set(-1.35, 0.028, -0.09 + i * 0.06);
+    const pin = new THREE.Mesh(pinGeom, matGoldPin);
+    pin.position.set(-1.36, -0.005, -0.105 + i * 0.07);
     usbAGroup.add(pin);
   }
-  // rim highlight
-  const edges = new THREE.EdgesGeometry(sleeve.geometry);
-  const edgeLines = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xFF0066, transparent: true, opacity: 0.75 }));
-  edgeLines.position.copy(sleeve.position);
-  usbAGroup.add(edgeLines);
+
+  // USB trident logo etched on the top of the shell (small line shape)
+  const tridStem = new THREE.Mesh(
+    new THREE.BoxGeometry(0.20, 0.003, 0.012),
+    new THREE.MeshStandardMaterial({ color: 0x00F5FF, emissive: 0x00F5FF, emissiveIntensity: 0.8 })
+  );
+  tridStem.position.set(-1.35, 0.082, 0);
+  usbAGroup.add(tridStem);
+
+  // base plate of the connector (where it meets the body)
+  const base = new THREE.Mesh(
+    new THREE.BoxGeometry(0.08, 0.22, 0.50),
+    new THREE.MeshStandardMaterial({ color: 0x404048, metalness: 0.9, roughness: 0.4 })
+  );
+  base.position.set(-1.05, 0, 0);
+  usbAGroup.add(base);
 }
 drive.add(usbAGroup);
 
-// ─── 8. USB-A connector shell ring (collar between drive body and USB-A plug) ───
-const usbACollarGroup = new THREE.Group();
-usbACollarGroup.userData = { explode: new THREE.Vector3(-1.5, 0.8, 0) };
-{
-  const collar = new THREE.Mesh(
-    new THREE.BoxGeometry(0.08, 0.32, 0.82),
-    new THREE.MeshStandardMaterial({ color: 0x14141c, metalness: 0.9, roughness: 0.25, emissive: 0xFF0066, emissiveIntensity: 0.2 })
-  );
-  collar.position.set(-0.98, 0, 0);
-  usbACollarGroup.add(collar);
-  const edges = new THREE.EdgesGeometry(collar.geometry);
-  const edgeLines = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xFFE500, transparent: true, opacity: 0.8 }));
-  edgeLines.position.copy(collar.position);
-  usbACollarGroup.add(edgeLines);
-}
-drive.add(usbACollarGroup);
-
-// ─── 9. USB-C plug (right end) ───
+// ─── 9. USB-C plug (right end) — flat oval shell, internal paddle with two rows of contacts ───
 const usbCGroup = new THREE.Group();
 usbCGroup.userData = { explode: new THREE.Vector3(2.4, 0, 0) };
 {
-  // oval-ish connector (use a narrow box with slight z-bevel emulated via groups)
-  const cShell = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.13, 0.34), matUsbC);
-  cShell.position.set(1.3, 0, 0);
+  // outer thin shell — much smaller than USB-A
+  const cShell = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.10, 0.28), matChromeWear);
+  cShell.position.set(1.30, 0, 0);
   usbCGroup.add(cShell);
-  // inner tongue (paddle, thin)
-  const tongue = new THREE.Mesh(
-    new THREE.BoxGeometry(0.4, 0.02, 0.2),
-    new THREE.MeshStandardMaterial({ color: 0x060608, metalness: 0.2, roughness: 0.8 })
+  usbCGroup.add(rim(cShell, 0xFFE500, 0.85));
+
+  // internal paddle (PCB with 24 pins on both sides) — very thin
+  const paddle = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.018, 0.20), matUsbCInner);
+  paddle.position.set(1.30, 0, 0);
+  usbCGroup.add(paddle);
+
+  // 12 contacts on top, 12 on bottom (we'll do 8 visible per side for sanity)
+  const cPinGeom = new THREE.BoxGeometry(0.018, 0.002, 0.014);
+  for (let i = 0; i < 8; i++) {
+    const top = new THREE.Mesh(cPinGeom, matGoldPin);
+    top.position.set(1.30, 0.011, -0.07 + i * 0.020);
+    usbCGroup.add(top);
+    const bot = new THREE.Mesh(cPinGeom, matGoldPin);
+    bot.position.set(1.30, -0.011, -0.07 + i * 0.020);
+    usbCGroup.add(bot);
+  }
+
+  // base plate
+  const base = new THREE.Mesh(
+    new THREE.BoxGeometry(0.06, 0.18, 0.40),
+    new THREE.MeshStandardMaterial({ color: 0x404048, metalness: 0.9, roughness: 0.4 })
   );
-  tongue.position.set(1.3, 0, 0);
-  usbCGroup.add(tongue);
-  // yellow rim
-  const edges = new THREE.EdgesGeometry(cShell.geometry);
-  const edgeLines = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xFFE500, transparent: true, opacity: 0.9 }));
-  edgeLines.position.copy(cShell.position);
-  usbCGroup.add(edgeLines);
+  base.position.set(1.07, 0, 0);
+  usbCGroup.add(base);
 }
 drive.add(usbCGroup);
 
-// ─── 10. USB-C collar ───
-const usbCCollarGroup = new THREE.Group();
-usbCCollarGroup.userData = { explode: new THREE.Vector3(1.5, -0.8, 0) };
-{
-  const collar = new THREE.Mesh(
-    new THREE.BoxGeometry(0.08, 0.3, 0.68),
-    new THREE.MeshStandardMaterial({ color: 0x14141c, metalness: 0.9, roughness: 0.25, emissive: 0xFFE500, emissiveIntensity: 0.15 })
-  );
-  collar.position.set(0.98, 0, 0);
-  usbCCollarGroup.add(collar);
-  const edges = new THREE.EdgesGeometry(collar.geometry);
-  const edgeLines = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x00F5FF, transparent: true, opacity: 0.7 }));
-  edgeLines.position.copy(collar.position);
-  usbCCollarGroup.add(edgeLines);
-}
-drive.add(usbCCollarGroup);
-
 // cache base positions
-const groups = [shellTopGroup, shellBotGroup, pcbGroup, nandGroup, ctrlGroup, ledGroup, usbAGroup, usbACollarGroup, usbCGroup, usbCCollarGroup];
+const groups = [shellTopGroup, shellBotGroup, pcbGroup, nandGroup, ctrlGroup, discreteGroup, ledGroup, usbAGroup, usbCGroup];
 for (const g of groups) g.userData.basePos = g.position.clone();
 
 // =================================================================
