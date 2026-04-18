@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NOIR — Issue 01 — On Generated Beauty</title>
+<meta name="description" content="NOIR · Issue 01 — On Generated Beauty. A quarterly examining the new aesthetics of artificial couture." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,300;1,9..144,500&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ============ SCROLL PROGRESS ============ -->
+<div class="progress" id="progress"></div>
+
+<!-- ============ TOP STATUS BAR ============ -->
+<header class="status">
+  <div class="status-l">NOIR <span>·</span> A QUARTERLY</div>
+  <div class="status-c"><em>Issue 01</em></div>
+  <div class="status-r">
+    <span>EST. 2026</span>
+    <span>·</span>
+    <span>$24 <s>USD</s></span>
+    <span>·</span>
+    <a href="#sub">Subscribe</a>
+  </div>
+</header>
+
+<!-- ============ COVER ============ -->
+<section class="cover" id="cover">
+  <div class="cover-meta-l">
+    <p>Volume <em>I</em> · Spring/Summer 2026</p>
+    <p>Editor — <em>M. Lavigne</em></p>
+    <p>Direction — <em>Studio Kühl</em></p>
+  </div>
+
+  <div class="cover-meta-r">
+    <p>Featured</p>
+    <p>— Form &amp; Static</p>
+    <p>— On Generated Beauty</p>
+    <p>— The Soft Industrial</p>
+    <p>— Atelier Kazan, in conversation</p>
+    <p>— A Closing Letter</p>
+  </div>
+
+  <div class="cover-figure" id="cover-figure">
+    <canvas class="cover-canvas"></canvas>
+    <img class="cover-img" src="https://picsum.photos/seed/noir-cover-2/1400/1900" alt="" />
+    <div class="cover-frame"></div>
+  </div>
+
+  <div class="cover-headline">
+    <h1>
+      <span class="line line-a">On</span>
+      <span class="line line-b"><em>Generated</em></span>
+      <span class="line line-c">Beauty.</span>
+    </h1>
+    <p class="cover-tag">A quarterly examining the new aesthetics of artificial couture, machine-form, and the slow editorial of the algorithmic eye.</p>
+  </div>
+
+  <div class="cover-foot">
+    <span class="page-no">001</span>
+    <span class="cover-cite">NOIR · Vol. I · Issue 01 — On Generated Beauty</span>
+    <span class="page-no">·</span>
+  </div>
+</section>
+
+<!-- ============ MASTHEAD ============ -->
+<section class="masthead" id="masthead">
+  <div class="mast-rule"></div>
+  <div class="mast-grid">
+    <div class="mast-letter">
+      <p class="kicker">Editor's letter</p>
+      <p class="dropcap">
+        <span class="cap">N</span>oir began as a private question — what does <em>taste</em> look like when it is no longer scarce? We assembled this issue against the soft pressure of unlimited image, unlimited form, unlimited reference. Our editors agreed only on this: that beauty, generated or otherwise, deserves the same patience we have always offered the rare.
+      </p>
+      <p>This first issue is a study, not a verdict. We invite you to read slowly. <em>— M. Lavigne, Founding Editor.</em></p>
+    </div>
+    <aside class="mast-side">
+      <p class="kicker">Colophon</p>
+      <ul>
+        <li><span>Founding Editor</span><strong>M. Lavigne</strong></li>
+        <li><span>Creative Direction</span><strong>Studio Kühl</strong></li>
+        <li><span>Photographic Editor</span><strong>R. Vasari</strong></li>
+        <li><span>Type Direction</span><strong>Atelier Kazan</strong></li>
+        <li><span>Contributors</span><strong>21</strong></li>
+        <li><span>Print Run</span><strong>1,200</strong></li>
+        <li><span>Stock</span><strong>Munken Pure 130gsm</strong></li>
+      </ul>
+    </aside>
+  </div>
+</section>
+
+<!-- ============ TABLE OF CONTENTS ============ -->
+<section class="toc" id="toc">
+  <div class="toc-head">
+    <p class="kicker">Contents</p>
+    <h2>Six pieces, <em>read in any order.</em></h2>
+  </div>
+  <ol class="toc-list">
+    <li><a href="#feature1" data-cursor="READ">
+      <span class="t-num">01</span>
+      <span class="t-title">Form &amp; Static</span>
+      <span class="t-meta">Editorial · 14 plates</span>
+      <span class="t-page">p.012</span>
+    </a></li>
+    <li><a href="#feature2" data-cursor="READ">
+      <span class="t-num">02</span>
+      <span class="t-title">On Generated Beauty</span>
+      <span class="t-meta">Essay · M. Lavigne</span>
+      <span class="t-page">p.024</span>
+    </a></li>
+    <li><a href="#feature3" data-cursor="READ">
+      <span class="t-num">03</span>
+      <span class="t-title">The Soft Industrial</span>
+      <span class="t-meta">Lookbook · 22 looks</span>
+      <span class="t-page">p.040</span>
+    </a></li>
+    <li><a href="#" data-cursor="LATER">
+      <span class="t-num">04</span>
+      <span class="t-title">Atelier Kazan, in conversation</span>
+      <span class="t-meta">Interview · 6,400 words</span>
+      <span class="t-page">p.062</span>
+    </a></li>
+    <li><a href="#" data-cursor="LATER">
+      <span class="t-num">05</span>
+      <span class="t-title">Catalogue of Inferred Materials</span>
+      <span class="t-meta">Reference · A–Z</span>
+      <span class="t-page">p.078</span>
+    </a></li>
+    <li><a href="#sub" data-cursor="READ">
+      <span class="t-num">06</span>
+      <span class="t-title">A Closing Letter</span>
+      <span class="t-meta">From the editor</span>
+      <span class="t-page">p.092</span>
+    </a></li>
+  </ol>
+</section>
+
+<!-- ============ FEATURE 01 — FORM & STATIC ============ -->
+<section class="feature" id="feature1">
+  <div class="feat-marker">
+    <span>Editorial</span>
+    <span>01</span>
+  </div>
+  <h2 class="feat-title">Form<br/><em>&amp;</em><br/>Static.</h2>
+  <p class="feat-credits">Photography <em>R. Vasari</em> · Styling <em>Studio Kühl</em> · Direction <em>NOIR</em></p>
+
+  <div class="plates">
+    <figure class="plate p-tall">
+      <img src="https://picsum.photos/seed/noir-1/700/1000" alt="" />
+      <figcaption>Plate I — Drape, study no. 4</figcaption>
+    </figure>
+    <figure class="plate p-wide">
+      <img src="https://picsum.photos/seed/noir-2/1100/700" alt="" />
+      <figcaption>Plate II — Recovered fabric over latex</figcaption>
+    </figure>
+    <figure class="plate p-square">
+      <img src="https://picsum.photos/seed/noir-3/800/800" alt="" />
+      <figcaption>Plate III — Untitled (mask, charcoal)</figcaption>
+    </figure>
+    <figure class="plate p-portrait">
+      <img src="https://picsum.photos/seed/noir-4/700/950" alt="" />
+      <figcaption>Plate IV — Sittings, eight</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ============ PULL QUOTE — full bleed ============ -->
+<section class="pullquote">
+  <p class="pq-marker">— pull quote, p.029</p>
+  <blockquote>
+    <span class="pq-open">&ldquo;</span>
+    Beauty was never the rare thing.<br/>
+    The rare thing was <em>the patience</em><br/>
+    to look at it slowly.
+    <span class="pq-close">&rdquo;</span>
+  </blockquote>
+  <p class="pq-attr">— M. Lavigne · <em>On Generated Beauty</em></p>
+</section>
+
+<!-- ============ FEATURE 02 — ESSAY ============ -->
+<section class="feature essay" id="feature2">
+  <div class="feat-marker">
+    <span>Essay</span>
+    <span>02</span>
+  </div>
+
+  <article class="essay-body">
+    <header class="essay-header">
+      <h2>On <em>Generated</em><br/>Beauty.</h2>
+      <p class="byline">By <em>M. Lavigne</em>. Published Spring 2026. 4,200 words. Estimated read · 18 minutes.</p>
+    </header>
+
+    <p class="essay-lead dropcap">
+      <span class="cap">F</span>or a long time, a single image of a couture house's spring collection might travel the world for a season — passed between editors, copied onto contact sheets, faxed to retail teams who pinned it above their cash registers. The image was rare and so the image mattered.
+    </p>
+
+    <p>That economy is gone. Image is now infinite, instantaneous, and almost free. The question this issue tries to hold, with as little drama as possible, is whether <em>beauty</em> survives that change.</p>
+
+    <p>One school answers no. They argue that scarcity is the only honest substrate of taste — that a thing's value rests on its difficulty, and a generated image, by being effortless, is therefore weightless. We respect this position and we believe it is incomplete.</p>
+
+    <aside class="margin-note">
+      <p>The novelist Calvino, writing in <em>Six Memos for the Next Millennium</em>, named lightness as a virtue — not weightlessness, but lightness with content. We borrow the distinction.</p>
+    </aside>
+
+    <p>The other school answers, more interestingly, that beauty was never <em>about</em> rarity at all. That what rarity gave us — and what it now removes — was a kind of forced patience. When the image was rare, we had no choice but to dwell on it. We turned it over in our hands. We argued about it across decades. We forgot it and rediscovered it.</p>
+
+    <h3>A note on patience.</h3>
+
+    <p>What we lost, then, was not beauty. We lost the institutional architecture that <em>made</em> us look slowly. The editorial calendar. The print quarterly. The held breath of a runway show before the lights came up. The fact that, before the internet, you could not see a Margiela collection until the magazines arrived.</p>
+
+    <p>NOIR begins with a small wager: that the architecture of patience can be rebuilt, voluntarily, around any image — generated or otherwise. That a quarterly publication, slow and curated, is not a nostalgic gesture. It is the most modern editorial decision available to us.</p>
+
+    <h3>What this issue does.</h3>
+
+    <p>The remaining pages of <em>Issue 01</em> are arranged accordingly. We present three editorials, an interview, and a reference — each of them designed to be looked at twice. We have not labelled which images are generated and which are photographed. We invite you, instead, to notice <em>what changes</em> in your attention when you cannot tell.</p>
+
+    <p class="essay-end">Read carefully. — <em>M.L.</em></p>
+  </article>
+</section>
+
+<!-- ============ FEATURE 03 — LOOKBOOK GRID ============ -->
+<section class="feature lookbook" id="feature3">
+  <div class="feat-marker">
+    <span>Lookbook</span>
+    <span>03</span>
+  </div>
+  <h2 class="feat-title">The Soft<br/><em>Industrial.</em></h2>
+  <p class="feat-credits">Six looks from the Spring/Summer collection of <em>Atelier Kazan</em>. Hover any look.</p>
+
+  <div class="lookbook-grid">
+    <a href="#" class="look" data-cursor="LOOK 01"><img src="https://picsum.photos/seed/look-1/600/800" alt=""/><span class="look-no">01</span></a>
+    <a href="#" class="look" data-cursor="LOOK 02"><img src="https://picsum.photos/seed/look-2/600/800" alt=""/><span class="look-no">02</span></a>
+    <a href="#" class="look" data-cursor="LOOK 03"><img src="https://picsum.photos/seed/look-3/600/800" alt=""/><span class="look-no">03</span></a>
+    <a href="#" class="look" data-cursor="LOOK 04"><img src="https://picsum.photos/seed/look-4/600/800" alt=""/><span class="look-no">04</span></a>
+    <a href="#" class="look" data-cursor="LOOK 05"><img src="https://picsum.photos/seed/look-5/600/800" alt=""/><span class="look-no">05</span></a>
+    <a href="#" class="look" data-cursor="LOOK 06"><img src="https://picsum.photos/seed/look-6/600/800" alt=""/><span class="look-no">06</span></a>
+  </div>
+</section>
+
+<!-- ============ SUBSCRIBE / END ============ -->
+<section class="end" id="sub">
+  <p class="end-kicker">— Subscribe</p>
+  <h2 class="end-title">
+    Issue <em>02</em><br/>
+    arrives <em>August</em>.
+  </h2>
+  <p class="end-sub">Print. Quarterly. Limited to 1,200 copies. We do not produce a digital edition.</p>
+
+  <form class="end-form" onsubmit="event.preventDefault(); this.classList.add('sent');">
+    <input type="email" required placeholder="email address" aria-label="email" />
+    <button type="submit" data-cursor="JOIN">Subscribe →</button>
+    <p class="form-thanks">Thank you. You are on the list.</p>
+  </form>
+
+  <p class="end-fineprint">$96 USD per year, four issues, shipped flat. Cancel any time.</p>
+</section>
+
+<footer class="foot">
+  <div class="foot-grid">
+    <div>
+      <p class="kicker">NOIR</p>
+      <p>A quarterly publication.<br/>Founded 2026, Brussels.</p>
+    </div>
+    <div>
+      <p class="kicker">Index</p>
+      <a href="#cover">Cover</a>
+      <a href="#toc">Contents</a>
+      <a href="#feature1">Editorials</a>
+      <a href="#feature2">Essay</a>
+    </div>
+    <div>
+      <p class="kicker">Trade</p>
+      <a href="#">Stockists</a>
+      <a href="#">Press</a>
+      <a href="#">Submissions</a>
+    </div>
+    <div>
+      <p class="kicker">Colophon</p>
+      <p>This is a demonstration site<br/>designed by <a href="../../">Efe Biskin</a>.</p>
+    </div>
+  </div>
+  <p class="foot-no">END · NOIR · Vol. I · 001–096 · ©  MMXXVI</p>
+</footer>
+
+<!-- ============ CUSTOM EDITORIAL CURSOR ============ -->
+<div class="ed-cursor" id="ed-cursor"><span></span></div>
+
+<script src="script.js"></script>
+</body>
+</html>

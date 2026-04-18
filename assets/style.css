@@ -568,9 +568,20 @@ strong { font-weight: 500; }
 }
 .brand-thumb-editorial {
   background:
-    radial-gradient(circle at 60% 40%, rgba(244, 114, 182, .3), transparent 60%),
-    radial-gradient(circle at 20% 70%, rgba(236, 72, 153, .25), transparent 60%),
-    linear-gradient(135deg, #1a0a14 0%, #2b0e1f 50%, #0f0510 100%);
+    radial-gradient(circle at 30% 40%, rgba(230, 57, 70, .22), transparent 60%),
+    radial-gradient(circle at 70% 70%, rgba(21, 41, 74, .35), transparent 60%),
+    linear-gradient(135deg, #f4f1ec 0%, #eae5dc 50%, #d9d4ca 100%);
+  color: #111111;
+  font-family: "Cormorant Garamond", Georgia, serif;
+}
+.brand-issue {
+  position: absolute;
+  bottom: 1rem; left: 1rem;
+  font-family: "JetBrains Mono", monospace;
+  font-size: .7rem;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: #E63946;
 }
 .brand-meta {
   padding: 1.5rem;
