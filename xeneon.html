@@ -285,6 +285,141 @@
     .strip{padding:24px 22px}
     footer{padding:28px 22px}
   }
+
+  /* ══════════════════ MOTION SYSTEM ══════════════════ */
+  /* Easing curves — borrowed from Jitter-style motion design */
+  :root{
+    --ease-out-quart: cubic-bezier(.22, 1, .36, 1);       /* snappy stop */
+    --ease-spring:    cubic-bezier(.34, 1.56, .64, 1);    /* overshoot */
+    --ease-spring-soft: cubic-bezier(.5, 1.25, .6, 1);    /* gentle overshoot */
+    --ease-in-out:    cubic-bezier(.83, 0, .17, 1);       /* emphatic */
+  }
+
+  /* ─── entrance reveals ─────────────────────────────── */
+  /* Every element with .reveal starts hidden and animates in when
+     its ancestor section gets .in-view (via IntersectionObserver). */
+  .reveal{
+    opacity:0;
+    transform:translateY(24px);
+    transition:opacity .9s var(--ease-out-quart), transform .9s var(--ease-out-quart);
+    transition-delay:var(--reveal-delay, 0ms);
+  }
+  .in-view .reveal, .reveal.in-view{
+    opacity:1;transform:translateY(0);
+  }
+
+  /* ─── hero word-by-word wipe (pure CSS @keyframes) ─── */
+  @keyframes wordUp {
+    0%   { transform:translateY(110%); opacity:0 }
+    100% { transform:translateY(0);    opacity:1 }
+  }
+  @keyframes fadeUp {
+    0%   { transform:translateY(12px); opacity:0 }
+    100% { transform:translateY(0);    opacity:1 }
+  }
+  @keyframes drawPath {
+    0%   { stroke-dashoffset:2400 }
+    100% { stroke-dashoffset:0 }
+  }
+  @keyframes nodeIn {
+    0%   { transform:translate(-50%, calc(-50% + 30px)); opacity:0 }
+    100% { transform:translate(-50%, -50%);              opacity:1 }
+  }
+
+  .word{display:inline-block;overflow:hidden;vertical-align:top}
+  .word > span{
+    display:inline-block;
+    animation:wordUp 1s var(--ease-spring-soft) both;
+    animation-delay:var(--word-delay, 0ms);
+  }
+
+  .hero-fade{animation:fadeUp .8s var(--ease-out-quart) both;animation-delay:var(--fade-delay, 0ms)}
+
+  .horizon .path{
+    stroke-dasharray:2400;
+    animation:drawPath 1.8s var(--ease-out-quart) 600ms both;
+  }
+
+  .node{animation:nodeIn .8s var(--ease-spring) both;animation-delay:calc(1100ms + var(--i, 0) * 90ms)}
+
+  /* hover still uses transitions so it's responsive */
+  .node{transition:transform .35s var(--ease-spring), background .2s, box-shadow .25s, border-color .2s}
+  .node:hover{transform:translate(-50%,-50%) scale(1.22) rotate(-2deg) !important}
+  .node > *{transition:transform .4s var(--ease-spring)}
+
+  /* ─── widget cards: stagger reveal + spring hover ───── */
+  .wcard{
+    opacity:0;transform:translateY(28px) scale(.97);
+    transition:opacity .7s var(--ease-out-quart), transform .8s var(--ease-spring-soft), border-color .2s, box-shadow .2s, background .2s;
+    transition-delay:calc(var(--i, 0) * 80ms);
+  }
+  .w-category.in-view .wcard{opacity:1;transform:translateY(0) scale(1)}
+  .wcard:hover{transform:translateY(-6px) scale(1.01) !important}
+  .wcard-emoji{transition:transform .5s var(--ease-spring)}
+  .wcard:hover .wcard-emoji{transform:scale(1.12) rotate(-6deg)}
+
+  /* ─── section headings fade up when entering view ───── */
+  .widgets-head, .arch-inner, .limits-inner, .final-cta > * { opacity:0; transform:translateY(18px); transition:opacity .8s var(--ease-out-quart), transform .8s var(--ease-out-quart) }
+  .widgets.in-view .widgets-head,
+  .arch.in-view .arch-inner,
+  .limits.in-view .limits-inner,
+  .final-cta.in-view > * { opacity:1; transform:translateY(0) }
+  .final-cta.in-view > *:nth-child(1){ transition-delay:0ms }
+  .final-cta.in-view > *:nth-child(2){ transition-delay:120ms }
+  .final-cta.in-view > *:nth-child(3){ transition-delay:240ms }
+
+  /* ─── category heads fade in ───────────────────────── */
+  .cat-head{opacity:0;transform:translateX(-12px);transition:opacity .7s var(--ease-out-quart), transform .7s var(--ease-out-quart)}
+  .w-category.in-view .cat-head{opacity:1;transform:translateX(0)}
+
+  /* ─── strip + chips stagger ────────────────────────── */
+  .strip dl > div, .strip .chip{opacity:0;transform:translateY(10px);transition:opacity .6s var(--ease-out-quart), transform .6s var(--ease-out-quart);transition-delay:calc(var(--i, 0) * 50ms + 100ms)}
+  .strip.in-view dl > div, .strip.in-view .chip{opacity:1;transform:translateY(0)}
+
+  /* ─── pill CTAs breathe on hover ───────────────────── */
+  .pill{position:relative;overflow:hidden}
+  .pill::before{
+    content:"";position:absolute;inset:0;
+    background:radial-gradient(120px 80px at var(--mx,50%) var(--my,50%), rgba(0,225,255,.35), transparent 70%);
+    opacity:0;transition:opacity .3s var(--ease-out-quart);
+    pointer-events:none;
+  }
+  .pill:hover::before{opacity:1}
+  .pill-dark{transition:transform .25s var(--ease-spring-soft), background .25s, box-shadow .25s}
+  .pill-dark:hover{box-shadow:0 0 0 2px rgba(0,225,255,.5), 0 18px 38px -10px var(--accent-glow)}
+
+  /* ─── cursor glow (pointer:fine only) ──────────────── */
+  .cursor-glow{
+    position:fixed;pointer-events:none;z-index:3;
+    width:380px;height:380px;border-radius:50%;
+    background:radial-gradient(circle, rgba(0,225,255,.10), transparent 65%);
+    transform:translate(-50%, -50%);left:-999px;top:-999px;
+    transition:opacity .4s var(--ease-out-quart);opacity:0;
+    mix-blend-mode:screen;
+  }
+  body.pointer-fine .cursor-glow{opacity:1}
+
+  /* ─── number count-up placeholder (no jitter during rAF) ── */
+  .counter{font-variant-numeric:tabular-nums}
+
+  /* ─── help button pulse on load ────────────────────── */
+  @keyframes helpPulse {
+    0%   { box-shadow:0 0 0 0 rgba(0,225,255,.6), 0 10px 24px -6px var(--accent-glow) }
+    70%  { box-shadow:0 0 0 14px rgba(0,225,255,0),  0 10px 24px -6px var(--accent-glow) }
+    100% { box-shadow:0 0 0 0 rgba(0,225,255,0),     0 10px 24px -6px var(--accent-glow) }
+  }
+  .help{animation:helpPulse 2.4s var(--ease-out-quart) 2s infinite}
+
+  /* ─── honour reduced motion ────────────────────────── */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration:.001ms !important;
+      animation-delay:0ms !important;
+      transition-duration:.001ms !important;
+      transition-delay:0ms !important;
+    }
+    .horizon .path{stroke-dashoffset:0}
+  }
 </style>
 </head>
 <body>
@@ -305,10 +440,19 @@
 <!-- HERO -->
 <section class="hero">
   <div class="hero-center">
-    <span class="eyebrow"><span class="dot"></span>OPEN SOURCE · MIT · v0.2.0</span>
-    <h1 class="display">Widgets for the <em>Xeneon Edge.</em></h1>
-    <p class="lede">Seven single-page apps I built for my Corsair Xeneon Edge's iCUE iFrame panel. Ambient data, markets, accounts — all zero-framework, zero-build, drop-in HTML.</p>
-    <div class="hero-cta">
+    <span class="eyebrow hero-fade" style="--fade-delay:50ms"><span class="dot"></span>OPEN SOURCE · MIT · v0.2.0</span>
+    <h1 class="display">
+      <span class="word"><span style="--word-delay:150ms">Widgets</span></span>
+      <span class="word"><span style="--word-delay:220ms">for</span></span>
+      <span class="word"><span style="--word-delay:290ms">the</span></span>
+      <br/>
+      <em>
+        <span class="word"><span style="--word-delay:420ms">Xeneon</span></span>
+        <span class="word"><span style="--word-delay:490ms">Edge.</span></span>
+      </em>
+    </h1>
+    <p class="lede hero-fade" style="--fade-delay:780ms">Seven single-page apps I built for my Corsair Xeneon Edge's iCUE iFrame panel. Ambient data, markets, accounts — all zero-framework, zero-build, drop-in HTML.</p>
+    <div class="hero-cta hero-fade" style="--fade-delay:920ms">
       <a href="https://github.com/efebiskin/xeneon-widgets" target="_blank" rel="noopener" class="pill pill-dark">
         View on GitHub <span class="arrow">→</span>
       </a>
@@ -324,14 +468,14 @@
       <path class="path" d="M -50 220 C 240 80, 480 300, 720 160 S 1200 40, 1490 200" />
     </svg>
     <div class="nodes">
-      <!-- coordinates along the curve, as percentages -->
-      <a class="node" data-widget="clock"       data-label="CLOCK"       style="left:8%;top:60%">🕐</a>
-      <a class="node" data-widget="pomodoro"    data-label="POMODORO"    style="left:22%;top:34%">🍅</a>
-      <a class="node" data-widget="hackernews"  data-label="HACKER NEWS" style="left:36%;top:70%">📰</a>
-      <a class="node" data-widget="crypto"      data-label="CRYPTO"      style="left:50%;top:48%">🪙</a>
-      <a class="node" data-widget="stocks"      data-label="STOCKS"      style="left:64%;top:26%">📈</a>
-      <a class="node" data-widget="weather"     data-label="WEATHER"     style="left:78%;top:58%">🌦️</a>
-      <a class="node" data-widget="spotify"     data-label="SPOTIFY"     style="left:92%;top:38%">🎧</a>
+      <!-- coordinates along the curve, as percentages; --i controls cascade order -->
+      <a class="node" data-widget="clock"       data-label="CLOCK"       style="left:8%;top:60%;--i:0">🕐</a>
+      <a class="node" data-widget="pomodoro"    data-label="POMODORO"    style="left:22%;top:34%;--i:1">🍅</a>
+      <a class="node" data-widget="hackernews"  data-label="HACKER NEWS" style="left:36%;top:70%;--i:2">📰</a>
+      <a class="node" data-widget="crypto"      data-label="CRYPTO"      style="left:50%;top:48%;--i:3">🪙</a>
+      <a class="node" data-widget="stocks"      data-label="STOCKS"      style="left:64%;top:26%;--i:4">📈</a>
+      <a class="node" data-widget="weather"     data-label="WEATHER"     style="left:78%;top:58%;--i:5">🌦️</a>
+      <a class="node" data-widget="spotify"     data-label="SPOTIFY"     style="left:92%;top:38%;--i:6">🎧</a>
     </div>
   </div>
 </section>
@@ -480,30 +624,132 @@
   <span>XENEON-WIDGETS · V0.2.0 · MIT</span>
 </footer>
 
+<!-- cursor glow (pointer:fine only) -->
+<div class="cursor-glow" aria-hidden="true"></div>
+
 <!-- help button -->
 <a class="help" href="https://github.com/efebiskin/xeneon-widgets#readme" target="_blank" rel="noopener" title="Setup docs">?</a>
 <div class="help-tip">New to iCUE iFrame widgets? The README has a 3-step setup.</div>
 
 <script>
-  // Resolve every [data-widget] link to the running widget URL.
-  // - On localhost: assume `python -m http.server 5556` from xeneon-widgets/
-  // - Elsewhere: use the deployed widgets at xeneon-widgets.vercel.app
-  // Override either with ?base=https://your-url on this page.
+(() => {
+  // ─── 1. Resolve every [data-widget] link to the running widget URL ───
   const qs = new URLSearchParams(location.search);
   const isLocal = location.hostname === "localhost" || location.hostname === "127.0.0.1";
   const defaultBase = isLocal ? "http://localhost:5556" : "https://xeneon-widgets.vercel.app";
   const BASE = (qs.get("base") || defaultBase).replace(/\/$/, "");
-
   document.querySelectorAll("[data-widget]").forEach(a => {
     a.href = `${BASE}/${a.dataset.widget}/`;
     a.target = "_blank";
     a.rel = "noreferrer noopener";
   });
 
-  // gentle parallax on the horizon nodes when mouse moves
+  // ─── 2. Kick off hero reveal sequence ─────────────────────────────────
+  // rAF double for a clean paint before the transition runs
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    document.body.classList.add("is-loaded");
+  }));
+
+  // ─── 3. IntersectionObserver: section-level reveals ───────────────────
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("in-view");
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15, rootMargin: "0px 0px -80px 0px" });
+
+  document.querySelectorAll(".widgets, .arch, .limits, .final-cta, .w-category, .strip")
+    .forEach(el => io.observe(el));
+
+  // index widget cards for staggered entrance
+  document.querySelectorAll(".w-category").forEach(cat => {
+    cat.querySelectorAll(".wcard").forEach((c, i) => c.style.setProperty("--i", i));
+  });
+  // index strip items
+  document.querySelectorAll(".strip dl > div").forEach((d, i) => d.style.setProperty("--i", i));
+  document.querySelectorAll(".strip .chip").forEach((c, i) => c.style.setProperty("--i", i + 5));
+
+  // ─── 4. Number count-up on the spec strip ─────────────────────────────
+  const countUp = (el, target, suffix = "", duration = 1200) => {
+    const start = performance.now();
+    const from = 0;
+    const ease = t => 1 - Math.pow(1 - t, 3); // easeOutCubic
+    const tick = (now) => {
+      const t = Math.min(1, (now - start) / duration);
+      const v = Math.floor(from + (target - from) * ease(t));
+      el.textContent = v.toLocaleString() + suffix;
+      if (t < 1) requestAnimationFrame(tick);
+      else el.textContent = target.toLocaleString() + suffix;
+    };
+    requestAnimationFrame(tick);
+  };
+
+  const stripDD = document.querySelectorAll(".strip dd");
+  const stripIO = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        // Display value count-ups where they make sense (pure ints)
+        stripDD.forEach(dd => {
+          const text = dd.textContent.trim();
+          // "2560 × 720"
+          if (text.includes("×")) {
+            const [a, b] = text.split("×").map(s => parseInt(s, 10));
+            if (!isNaN(a) && !isNaN(b)) {
+              dd.classList.add("counter");
+              let done = 0;
+              const render = () => { dd.textContent = `${ca.toLocaleString()} × ${cb.toLocaleString()}`; };
+              let ca = 0, cb = 0;
+              const start = performance.now(), dur = 1200;
+              const ease = t => 1 - Math.pow(1 - t, 3);
+              const step = (now) => {
+                const t = Math.min(1, (now - start) / dur);
+                ca = Math.floor(a * ease(t)); cb = Math.floor(b * ease(t));
+                render();
+                if (t < 1) requestAnimationFrame(step);
+                else { ca = a; cb = b; render(); }
+              };
+              requestAnimationFrame(step);
+            }
+          }
+          // "7 shipped" / "14.5\" iCUE iFrame" — animate just the leading number
+          const m = text.match(/^(\d+(?:\.\d+)?)(.*)$/);
+          if (m && !text.includes("×")) {
+            const n = parseFloat(m[1]);
+            const rest = m[2];
+            if (!isNaN(n)) {
+              dd.classList.add("counter");
+              const start = performance.now(), dur = 1000;
+              const ease = t => 1 - Math.pow(1 - t, 3);
+              const step = (now) => {
+                const t = Math.min(1, (now - start) / dur);
+                const cur = n * ease(t);
+                dd.textContent = (Number.isInteger(n) ? Math.floor(cur) : cur.toFixed(1)) + rest;
+                if (t < 1) requestAnimationFrame(step);
+                else dd.textContent = m[1] + rest;
+              };
+              requestAnimationFrame(step);
+            }
+          }
+        });
+        stripIO.disconnect();
+      }
+    });
+  }, { threshold: .3 });
+  const strip = document.querySelector(".strip");
+  if (strip) stripIO.observe(strip);
+
+  // ─── 5. Cursor glow + pill magnetic hover (pointer:fine only) ────────
+  const hasFinePointer = window.matchMedia("(pointer:fine)").matches;
   const nodes = document.querySelectorAll(".node");
-  if (window.matchMedia("(pointer:fine)").matches){
+  if (hasFinePointer){
+    document.body.classList.add("pointer-fine");
+    const glow = document.querySelector(".cursor-glow");
+    let glowX = 0, glowY = 0, targetX = 0, targetY = 0;
     document.addEventListener("mousemove", e => {
+      targetX = e.clientX; targetY = e.clientY;
+      // horizon node parallax
       const dx = (e.clientX / window.innerWidth - .5) * 14;
       const dy = (e.clientY / window.innerHeight - .5) * 10;
       nodes.forEach((n, i) => {
@@ -511,7 +757,37 @@
         n.style.translate = `${dx * depth * .5}px ${dy * depth * .5}px`;
       });
     });
+    // damped cursor glow for smooth trailing
+    const animateGlow = () => {
+      glowX += (targetX - glowX) * 0.16;
+      glowY += (targetY - glowY) * 0.16;
+      if (glow) glow.style.transform = `translate(${glowX}px, ${glowY}px) translate(-50%, -50%)`;
+      requestAnimationFrame(animateGlow);
+    };
+    animateGlow();
+
+    // Radial light inside pills tracks cursor
+    document.querySelectorAll(".pill").forEach(pill => {
+      pill.addEventListener("mousemove", e => {
+        const r = pill.getBoundingClientRect();
+        pill.style.setProperty("--mx", `${e.clientX - r.left}px`);
+        pill.style.setProperty("--my", `${e.clientY - r.top}px`);
+      });
+    });
   }
+
+  // ─── 6. Smooth in-page scroll for "Browse all 7 ↓" ───────────────────
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener("click", e => {
+      const id = a.getAttribute("href").slice(1);
+      if (!id) return;
+      const target = document.getElementById(id);
+      if (!target) return;
+      e.preventDefault();
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+})();
 </script>
 
 </body>
