@@ -72,6 +72,7 @@ function fitModel(m) {
   box.setFromObject(m);
   const center = box.getCenter(new THREE.Vector3());
   m.position.sub(center.multiplyScalar(scale));
+  m.userData.baseY = m.position.y;
   m.traverse((n) => {
     if (n.isMesh) {
       n.material.envMapIntensity = 1.4;
@@ -723,36 +724,57 @@ function tick() {
     g.rotation.y = localT * 0.15 * (i % 2 === 0 ? 1 : -1);
   });
 
-  // Subtle idle rotation (procedural drive)
-  drive.rotation.y = Math.sin(t * 0.8) * 0.05 + t * 0.05;
   meshyHolder.rotation.y = Math.sin(t * 0.6) * 0.06 + t * 0.07;
+  drive.rotation.y = Math.sin(t * 0.8) * 0.05 + t * 0.05;
 
-  // ─── two-mode scroll-driven swap ───
-  // 0.00 → 0.45 : USB-A version centered, sitting still
-  // 0.45 → 0.65 : USB-A slides up + fades. USB-C rises from below.
-  // 0.65 → 1.00 : USB-C version centered
+  // ─── THREE-PHASE NARRATIVE ───
+  //   0.00 → 0.32  USB-A Meshy showcase (photoreal)
+  //   0.32 → 0.40  cross-fade A → procedural
+  //   0.40 → 0.68  PROCEDURAL DISASSEMBLY (PCB, chips, components fly apart)
+  //   0.68 → 0.76  cross-fade procedural → USB-C
+  //   0.76 → 1.00  USB-C Meshy showcase (photoreal)
   if (modelA && modelC) {
-    const swap = smooth(0.45, 0.65, progress);
-    // USB-A: lift up + tilt away
-    modelA.position.y = swap * 4.0;
-    modelA.rotation.z = swap * -0.8;
-    modelA.traverse((n) => {
-      if (n.isMesh) {
-        n.material.transparent = true;
-        n.material.opacity = 1 - swap;
-      }
-    });
-    // USB-C: rise from below into place
-    modelC.position.y = -3 + swap * 3.0;
-    modelC.rotation.z = (1 - swap) * 0.8;
-    modelC.traverse((n) => {
-      if (n.isMesh) {
-        n.material.transparent = true;
-        n.material.opacity = swap;
-      }
-    });
-  } else if (meshyHolder.children.length > 0) {
-    meshyHolder.rotation.x = -progress * 0.25;
+    const aOut = smooth(0.32, 0.40, progress);   // USB-A fade out
+    const procIn = smooth(0.32, 0.40, progress);  // procedural fade in
+    const procOut = smooth(0.68, 0.76, progress); // procedural fade out
+    const cIn = smooth(0.68, 0.76, progress);     // USB-C fade in
+
+    // USB-A model
+    modelA.visible = aOut < 0.99;
+    modelA.position.y = aOut * 3.0;
+    modelA.rotation.z = aOut * -0.6;
+    modelA.traverse((n) => { if (n.isMesh) { n.material.transparent = true; n.material.opacity = 1 - aOut; } });
+
+    // USB-C model
+    modelC.visible = cIn > 0.01;
+    modelC.position.y = -3 + cIn * 3.0;
+    modelC.rotation.z = (1 - cIn) * 0.6;
+    modelC.traverse((n) => { if (n.isMesh) { n.material.transparent = true; n.material.opacity = cIn; } });
+
+    // Procedural drive — visible only during the "X-RAY" disassembly phase
+    const procVis = procIn * (1 - procOut);
+    drive.visible = procVis > 0.01;
+    drive.scale.setScalar(procVis * 1.0);   // grow into view
+  } else {
+    drive.visible = true;
+  }
+
+  // Procedural disassembly: apply between 0.40 and 0.68 (offset to local progress)
+  // Map progress 0.40-0.68 → 0.00-1.00 for the disassembly groups
+  const disLocal = smooth(0.40, 0.68, progress);
+  // re-do per-group transforms (the groups already exist from the procedural build)
+  for (let i = 0; i < groups.length; i++) {
+    const g = groups[i];
+    const delay = i * 0.05;
+    const localT = smooth(delay, 0.65 + delay, disLocal);
+    const ex = g.userData.explode;
+    const bp = g.userData.basePos;
+    g.position.set(
+      bp.x + ex.x * localT,
+      bp.y + ex.y * localT,
+      bp.z + ex.z * localT
+    );
+    g.rotation.y = localT * 0.18 * (i % 2 === 0 ? 1 : -1);
   }
 
   composer.render();
