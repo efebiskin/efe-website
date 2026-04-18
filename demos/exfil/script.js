@@ -52,47 +52,55 @@ composer.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight),
 composer.addPass(new OutputPass());
 
 // =================================================================
-// GLB AUTO-SWAP — drop your Meshy.ai-generated file here:
-//   demos/exfil/assets/exfil-drive.glb
-// If found, the procedural model is hidden and the GLB takes its place.
+// MESHY GLB AUTO-SWAP — TWO MODES (USB-A out / USB-C out)
+// As you scroll, the USB-A version slides up & out, the USB-C version
+// slides in from below — turning the retractable mechanism into the
+// page's narrative.
 // =================================================================
 const meshyHolder = new THREE.Group();
 scene.add(meshyHolder);
+
+let modelA = null, modelC = null;
+let glbLoaded = 0;
+
+function fitModel(m) {
+  const box = new THREE.Box3().setFromObject(m);
+  const size = box.getSize(new THREE.Vector3());
+  const max = Math.max(size.x, size.y, size.z) || 1;
+  const scale = 2.6 / max;
+  m.scale.setScalar(scale);
+  box.setFromObject(m);
+  const center = box.getCenter(new THREE.Vector3());
+  m.position.sub(center.multiplyScalar(scale));
+  m.traverse((n) => {
+    if (n.isMesh) {
+      n.material.envMapIntensity = 1.4;
+      n.castShadow = true;
+      n.receiveShadow = true;
+    }
+  });
+}
+
 const loader = new GLTFLoader();
-loader.load(
-  "assets/exfil-drive.glb",
-  (gltf) => {
-    const m = gltf.scene;
-    // auto-fit to roughly 2.5 units wide
-    const box = new THREE.Box3().setFromObject(m);
-    const size = box.getSize(new THREE.Vector3());
-    const max = Math.max(size.x, size.y, size.z) || 1;
-    const scale = 2.5 / max;
-    m.scale.setScalar(scale);
-    box.setFromObject(m);
-    const center = box.getCenter(new THREE.Vector3());
-    m.position.sub(center.multiplyScalar(scale));
-    // lift environment lighting effect
-    m.traverse((node) => {
-      if (node.isMesh) {
-        node.material.envMapIntensity = 1.3;
-        // a touch of cyberpunk emissive on any material that has emissive
-        if (node.material.emissive && node.material.emissive.r === 0 && node.material.emissive.g === 0) {
-          // skip — leave authored materials alone
-        }
-      }
-    });
-    meshyHolder.add(m);
-    // hide the procedural drive
-    drive.visible = false;
-    console.log("✓ Loaded Meshy GLB — procedural model hidden");
-  },
-  undefined,
-  () => {
-    // No GLB present — keep procedural model
-    console.log("ℹ No assets/exfil-drive.glb found — using procedural model. Drop a Meshy.ai .glb at that path to swap.");
-  }
-);
+
+loader.load("assets/exfil-usba.glb", (gltf) => {
+  modelA = gltf.scene;
+  fitModel(modelA);
+  meshyHolder.add(modelA);
+  glbLoaded++;
+  if (glbLoaded > 0) drive.visible = false;
+  console.log("✓ Loaded USB-A mode model");
+});
+
+loader.load("assets/exfil-usbc.glb", (gltf) => {
+  modelC = gltf.scene;
+  fitModel(modelC);
+  modelC.position.y = -3;        // hidden below frame initially
+  meshyHolder.add(modelC);
+  glbLoaded++;
+  if (glbLoaded > 0) drive.visible = false;
+  console.log("✓ Loaded USB-C mode model");
+});
 
 // =================================================================
 // Lighting — cyberpunk vibe (pink key + cyan rim + yellow accent)
@@ -693,18 +701,13 @@ function tick() {
   updateUI();
 
   const t = performance.now() * 0.001;
-  // Camera arc:
-  //   0.00–0.45  orbit at medium distance, low angle
-  //   0.45–0.72  zoom IN + tilt DOWN — let the viewer read the chip text
-  //   0.72–1.00  pull back, orbit
-  const coreFocus = smooth(0.42, 0.65, progress) * (1 - smooth(0.72, 0.88, progress));
-
-  const orbit = progress * Math.PI * 0.4 + t * 0.10;
-  const camDist = (5.8 - progress * 0.9) - coreFocus * 2.2;          // pull in for core
-  const camHeight = 0.3 + progress * 0.4 + coreFocus * 1.6;          // rise up for top view
+  // Camera: gentle orbit, holds steady so the user can SEE the swap
+  // (no aggressive zoom-in like the procedural version had)
+  const orbit = progress * Math.PI * 0.35 + t * 0.10;
+  const camDist = 4.8 - progress * 0.4;
+  const camHeight = 0.2 + progress * 0.4;
   camera.position.set(Math.sin(orbit) * camDist, camHeight, Math.cos(orbit) * camDist);
-  // look down at the PCB during the core focus
-  camera.lookAt(0, progress * 0.2 - coreFocus * 0.3, 0);
+  camera.lookAt(0, 0, 0);
 
   // Disassembly: each group moves along its explode vector
   groups.forEach((g, i) => {
@@ -722,13 +725,34 @@ function tick() {
 
   // Subtle idle rotation (procedural drive)
   drive.rotation.y = Math.sin(t * 0.8) * 0.05 + t * 0.05;
-  // Same idle rotation for any loaded GLB
   meshyHolder.rotation.y = Math.sin(t * 0.6) * 0.06 + t * 0.07;
-  // GLB scrolls don't use the disassembly groups — instead the whole model
-  // tilts forward and zooms slightly as you scroll, like a product showcase.
-  if (meshyHolder.children.length > 0) {
-    meshyHolder.rotation.x = -progress * 0.35;
-    meshyHolder.scale.setScalar(1 + progress * 0.15);
+
+  // ─── two-mode scroll-driven swap ───
+  // 0.00 → 0.45 : USB-A version centered, sitting still
+  // 0.45 → 0.65 : USB-A slides up + fades. USB-C rises from below.
+  // 0.65 → 1.00 : USB-C version centered
+  if (modelA && modelC) {
+    const swap = smooth(0.45, 0.65, progress);
+    // USB-A: lift up + tilt away
+    modelA.position.y = swap * 4.0;
+    modelA.rotation.z = swap * -0.8;
+    modelA.traverse((n) => {
+      if (n.isMesh) {
+        n.material.transparent = true;
+        n.material.opacity = 1 - swap;
+      }
+    });
+    // USB-C: rise from below into place
+    modelC.position.y = -3 + swap * 3.0;
+    modelC.rotation.z = (1 - swap) * 0.8;
+    modelC.traverse((n) => {
+      if (n.isMesh) {
+        n.material.transparent = true;
+        n.material.opacity = swap;
+      }
+    });
+  } else if (meshyHolder.children.length > 0) {
+    meshyHolder.rotation.x = -progress * 0.25;
   }
 
   composer.render();
