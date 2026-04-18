@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Xeneon Edge widgets — Efe Biskin</title>
-<meta name="description" content="Eight widgets for the Corsair Xeneon Edge iCUE iFrame panel. Clock, Pomodoro, Hacker News, Crypto, Stocks, Weather, Spotify, Discord." />
+<meta name="description" content="Seven widgets for the Corsair Xeneon Edge iCUE iFrame panel. Clock, Pomodoro, Hacker News, Crypto, Stocks, Weather, Spotify." />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -307,13 +307,13 @@
   <div class="hero-center">
     <span class="eyebrow"><span class="dot"></span>OPEN SOURCE · MIT · v0.2.0</span>
     <h1 class="display">Widgets for the <em>Xeneon Edge.</em></h1>
-    <p class="lede">Eight single-page apps I built for my Corsair Xeneon Edge's iCUE iFrame panel. Ambient data, markets, accounts — all zero-framework, zero-build, drop-in HTML.</p>
+    <p class="lede">Seven single-page apps I built for my Corsair Xeneon Edge's iCUE iFrame panel. Ambient data, markets, accounts — all zero-framework, zero-build, drop-in HTML.</p>
     <div class="hero-cta">
       <a href="https://github.com/efebiskin/xeneon-widgets" target="_blank" rel="noopener" class="pill pill-dark">
         View on GitHub <span class="arrow">→</span>
       </a>
       <a href="#widgets" class="pill pill-ghost">
-        Browse all 8 <span class="arrow">↓</span>
+        Browse all 7 <span class="arrow">↓</span>
       </a>
     </div>
   </div>
@@ -325,14 +325,13 @@
     </svg>
     <div class="nodes">
       <!-- coordinates along the curve, as percentages -->
-      <a class="node" href="./#xeneon-clock"      data-label="CLOCK"       style="left:6%;top:60%">🕐</a>
-      <a class="node" href="./#xeneon-pomodoro"   data-label="POMODORO"    style="left:18%;top:38%">🍅</a>
-      <a class="node" href="./#xeneon-hackernews" data-label="HACKER NEWS" style="left:30%;top:74%">📰</a>
-      <a class="node" href="./#xeneon-crypto"     data-label="CRYPTO"      style="left:42%;top:52%">🪙</a>
-      <a class="node" href="./#xeneon-stocks"     data-label="STOCKS"      style="left:55%;top:28%">📈</a>
-      <a class="node" href="./#xeneon-weather"    data-label="WEATHER"     style="left:68%;top:66%">🌦️</a>
-      <a class="node" href="./#xeneon-spotify"    data-label="SPOTIFY"     style="left:82%;top:44%">🎧</a>
-      <a class="node" href="./#xeneon-discord"    data-label="DISCORD"     style="left:94%;top:66%">🎮</a>
+      <a class="node" data-widget="clock"       data-label="CLOCK"       style="left:8%;top:60%">🕐</a>
+      <a class="node" data-widget="pomodoro"    data-label="POMODORO"    style="left:22%;top:34%">🍅</a>
+      <a class="node" data-widget="hackernews"  data-label="HACKER NEWS" style="left:36%;top:70%">📰</a>
+      <a class="node" data-widget="crypto"      data-label="CRYPTO"      style="left:50%;top:48%">🪙</a>
+      <a class="node" data-widget="stocks"      data-label="STOCKS"      style="left:64%;top:26%">📈</a>
+      <a class="node" data-widget="weather"     data-label="WEATHER"     style="left:78%;top:58%">🌦️</a>
+      <a class="node" data-widget="spotify"     data-label="SPOTIFY"     style="left:92%;top:38%">🎧</a>
     </div>
   </div>
 </section>
@@ -342,7 +341,7 @@
   <dl>
     <div><dt>Display</dt><dd>2560 × 720</dd></div>
     <div><dt>Panel</dt><dd>14.5" iCUE iFrame</dd></div>
-    <div><dt>Widgets</dt><dd>8 shipped</dd></div>
+    <div><dt>Widgets</dt><dd>7 shipped</dd></div>
     <div><dt>Dependencies</dt><dd>Zero</dd></div>
     <div><dt>Build step</dt><dd>None</dd></div>
   </dl>
@@ -351,7 +350,7 @@
     <span class="chip">OAuth2</span>
     <span class="chip">Stooq + Yahoo</span>
     <span class="chip">CoinGecko</span>
-    <span class="chip">Lanyard</span>
+    <span class="chip">Hacker News</span>
   </div>
 </div>
 
@@ -359,7 +358,7 @@
 <section class="widgets" id="widgets">
   <div class="widgets-head">
     <span class="num">01</span>
-    <h2>The <em>eight.</em></h2>
+    <h2>The <em>seven.</em></h2>
     <p>Three tiers — <strong>Ambient</strong> widgets ship with zero setup, <strong>Markets</strong> need a free Meteora key or public API, <strong>Accounts</strong> require a one-time OAuth login stored client-side only.</p>
   </div>
 
@@ -369,28 +368,28 @@
     </div>
     <div class="wgrid">
 
-      <a class="wcard" id="xeneon-clock" href="https://github.com/efebiskin/xeneon-widgets/tree/main/clock" target="_blank" rel="noopener">
+      <a class="wcard" id="xeneon-clock" data-widget="clock">
         <div class="wcard-emoji">🕐</div>
         <div class="wcard-name">Clock</div>
         <p class="wcard-desc">Giant local clock plus a world-clock grid with timezone offsets. Cities editable inline.</p>
         <div class="wcard-cta"><span class="path">/clock</span><span>OPEN →</span></div>
       </a>
 
-      <a class="wcard" id="xeneon-pomodoro" href="https://github.com/efebiskin/xeneon-widgets/tree/main/pomodoro" target="_blank" rel="noopener">
+      <a class="wcard" id="xeneon-pomodoro" data-widget="pomodoro">
         <div class="wcard-emoji">🍅</div>
         <div class="wcard-name">Pomodoro</div>
         <p class="wcard-desc">Focus timer with animated ring, auto-advance through focus/short/long rounds, beep + flash on completion.</p>
         <div class="wcard-cta"><span class="path">/pomodoro</span><span>OPEN →</span></div>
       </a>
 
-      <a class="wcard" id="xeneon-hackernews" href="https://github.com/efebiskin/xeneon-widgets/tree/main/hackernews" target="_blank" rel="noopener">
+      <a class="wcard" id="xeneon-hackernews" data-widget="hackernews">
         <div class="wcard-emoji">📰</div>
         <div class="wcard-name">Hacker News</div>
         <p class="wcard-desc">Top, New, Best, Ask, and Show feeds with live comment counts. Auto-refresh every 5 minutes.</p>
         <div class="wcard-cta"><span class="path">/hackernews</span><span>OPEN →</span></div>
       </a>
 
-      <a class="wcard" id="xeneon-weather" href="https://github.com/efebiskin/xeneon-widgets/tree/main/weather" target="_blank" rel="noopener">
+      <a class="wcard" id="xeneon-weather" data-widget="weather">
         <div class="wcard-emoji">🌦️</div>
         <div class="wcard-name">Weather</div>
         <p class="wcard-desc">Big-number current conditions + 4-day forecast strip. Driven by my Meteora API, optimized for 2560×720.</p>
@@ -405,14 +404,14 @@
     </div>
     <div class="wgrid">
 
-      <a class="wcard" id="xeneon-crypto" href="https://github.com/efebiskin/xeneon-widgets/tree/main/crypto" target="_blank" rel="noopener">
+      <a class="wcard" id="xeneon-crypto" data-widget="crypto">
         <div class="wcard-emoji">🪙</div>
         <div class="wcard-name">Crypto</div>
         <p class="wcard-desc">Watchlist with 24-hour change and 7-day sparklines. Powered by the CoinGecko public API — no key required.</p>
         <div class="wcard-cta"><span class="path">/crypto</span><span>OPEN →</span></div>
       </a>
 
-      <a class="wcard" id="xeneon-stocks" href="https://github.com/efebiskin/xeneon-widgets/tree/main/stocks" target="_blank" rel="noopener">
+      <a class="wcard" id="xeneon-stocks" data-widget="stocks">
         <div class="wcard-emoji">📈</div>
         <div class="wcard-name">Stocks</div>
         <p class="wcard-desc">Ticker watchlist via my Meteora API's <code>/v1/quotes</code> endpoint — Yahoo Finance first, Stooq as fallback.</p>
@@ -423,22 +422,15 @@
 
   <div class="w-category">
     <div class="cat-head">
-      <h3>Accounts</h3><span class="label">02 · OAUTH LOGIN</span>
+      <h3>Accounts</h3><span class="label">01 · OAUTH LOGIN</span>
     </div>
     <div class="wgrid">
 
-      <a class="wcard" id="xeneon-spotify" href="https://github.com/efebiskin/xeneon-widgets/tree/main/spotify" target="_blank" rel="noopener">
+      <a class="wcard" id="xeneon-spotify" data-widget="spotify">
         <div class="wcard-emoji">🎧</div>
         <div class="wcard-name">Spotify</div>
         <p class="wcard-desc">Now-playing plus full transport controls. Implicit grant OAuth, polls <code>/me/player</code> every 4 seconds with smooth progress.</p>
         <div class="wcard-cta"><span class="path">/spotify</span><span>OPEN →</span></div>
-      </a>
-
-      <a class="wcard" id="xeneon-discord" href="https://github.com/efebiskin/xeneon-widgets/tree/main/discord" target="_blank" rel="noopener">
-        <div class="wcard-emoji">🎮</div>
-        <div class="wcard-name">Discord</div>
-        <p class="wcard-desc">Live presence via Lanyard — status, current activity, custom status, and Spotify now-playing surfaced from Discord itself.</p>
-        <div class="wcard-cta"><span class="path">/discord</span><span>OPEN →</span></div>
       </a>
     </div>
   </div>
@@ -493,6 +485,18 @@
 <div class="help-tip">New to iCUE iFrame widgets? The README has a 3-step setup.</div>
 
 <script>
+  // Resolve every [data-widget] link to the running widget URL.
+  // Default base is localhost:5556 (the python -m http.server from xeneon-widgets/).
+  // Override with ?base=https://your-deployed-url on this page.
+  const qs = new URLSearchParams(location.search);
+  const BASE = (qs.get("base") || "http://localhost:5556").replace(/\/$/, "");
+
+  document.querySelectorAll("[data-widget]").forEach(a => {
+    a.href = `${BASE}/${a.dataset.widget}/`;
+    a.target = "_blank";
+    a.rel = "noreferrer noopener";
+  });
+
   // gentle parallax on the horizon nodes when mouse moves
   const nodes = document.querySelectorAll(".node");
   if (window.matchMedia("(pointer:fine)").matches){
