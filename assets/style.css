@@ -587,30 +587,30 @@ strong { font-weight: 500; }
 }
 .brand-thumb-exfil {
   background:
-    repeating-linear-gradient(to bottom, transparent 0, transparent 2px, rgba(255,0,102,.06) 3px, rgba(255,0,102,.06) 3px),
-    radial-gradient(circle at 25% 35%, rgba(255, 0, 102, .35), transparent 55%),
-    radial-gradient(circle at 75% 75%, rgba(255, 229, 0, .22), transparent 55%),
-    linear-gradient(135deg, #05030B 0%, #0D0A18 50%, #03020A 100%);
-  color: #FF0066;
+    repeating-linear-gradient(to bottom, transparent 0, transparent 2px, rgba(212,160,67,.06) 3px, rgba(212,160,67,.06) 3px),
+    radial-gradient(circle at 25% 35%, rgba(212, 160, 67, .42), transparent 55%),
+    radial-gradient(circle at 75% 75%, rgba(245, 201, 99, .22), transparent 55%),
+    linear-gradient(135deg, #050402 0%, #0F0B05 50%, #03020A 100%);
+  color: #D4A043;
   font-family: "Inter", sans-serif;
   font-style: normal;
   font-weight: 800;
   letter-spacing: .14em;
-  text-shadow: 0 0 14px rgba(255, 0, 102, .55);
+  text-shadow: 0 0 14px rgba(212, 160, 67, .55);
   position: relative;
 }
 .exfil-glyph {
   position: absolute;
   top: 1rem; left: 1rem;
-  color: #FF0066;
-  text-shadow: 0 0 12px #FF0066;
+  color: #D4A043;
+  text-shadow: 0 0 12px #D4A043;
   font-size: 1rem;
 }
 .exfil-kanji {
   position: absolute;
   bottom: 1rem; right: 1rem;
-  color: #FFE500;
-  text-shadow: 0 0 8px rgba(255, 229, 0, .6);
+  color: #F5C963;
+  text-shadow: 0 0 8px rgba(245, 201, 99, .6);
   font-size: .9rem;
   letter-spacing: .15em;
   font-weight: 500;

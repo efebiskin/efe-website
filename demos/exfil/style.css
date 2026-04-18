@@ -1,22 +1,22 @@
 /* =========================================================
    EXFIL™ — cyberpunk USB drive product page
-   Black + hot pink + electric yellow + cyan
+   Black + gold (single warm metallic family)
    ========================================================= */
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:        #05030B;
-  --bg-2:      #0D0A18;
-  --ink:       #F5F0FF;
-  --ink-dim:   rgba(245, 240, 255, .55);
-  --ink-faint: rgba(245, 240, 255, .12);
+  --bg:        #050402;
+  --bg-2:      #0F0B05;
+  --ink:       #F5EDD8;
+  --ink-dim:   rgba(245, 237, 216, .55);
+  --ink-faint: rgba(245, 237, 216, .12);
 
-  --pink:      #FF0066;      /* primary neon */
-  --pink-2:    #FF3388;
-  --yellow:    #FFE500;      /* electric yellow */
-  --cyan:      #00F5FF;      /* cyber cyan */
-  --violet:    #B042FF;
+  --pink:      #D4A043;      /* (legacy var name kept) primary GOLD */
+  --pink-2:    #E5C76B;      /* champagne */
+  --yellow:    #F5C963;      /* bright gold accent */
+  --cyan:      #FFE9A8;      /* pale gold highlight (was cyan) */
+  --violet:    #8B6E1F;      /* deep gold (was violet) */
 
   --display: "Bricolage Grotesque", system-ui, sans-serif;
   --sans:    system-ui, sans-serif;
@@ -50,7 +50,7 @@ em { font-style: normal; color: var(--pink); }
     repeating-linear-gradient(
       to bottom,
       transparent 0, transparent 2px,
-      rgba(255, 0, 102, .04) 3px, rgba(255, 0, 102, .04) 3px
+      rgba(212, 160, 67, .04) 3px, rgba(212, 160, 67, .04) 3px
     );
   mix-blend-mode: overlay;
   opacity: .8;
@@ -59,7 +59,7 @@ em { font-style: normal; color: var(--pink); }
   position: fixed; inset: 0;
   pointer-events: none;
   z-index: 9991;
-  background: radial-gradient(ellipse at center, transparent 55%, rgba(5, 3, 11, .85) 100%);
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(5, 4, 2, .88) 100%);
 }
 
 /* ============================================================
