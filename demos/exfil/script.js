@@ -184,14 +184,14 @@ shellBotGroup.userData = { explode: new THREE.Vector3(0, -1.2, 0) };
 }
 drive.add(shellBotGroup);
 
-// ─── 3. PCB — green FR4 with multiple distinct surface-mount components ───
+// ─── 3. PCB — dense green FR4 with via field, gold pads, real circuit detail ───
 const pcbGroup = new THREE.Group();
 pcbGroup.userData = { explode: new THREE.Vector3(0, 0, 0.8) };
 {
   // FR4 substrate
   const pcb = new THREE.Mesh(new THREE.BoxGeometry(1.85, 0.035, 0.58), matPCBgreen);
   pcbGroup.add(pcb);
-  pcbGroup.add(rim(pcb, 0xc8a043, 0.4));
+  pcbGroup.add(rim(pcb, 0xc8a043, 0.35));
 
   // GOLD CONTACT FINGERS on the USB-A end of the PCB
   for (let i = 0; i < 4; i++) {
@@ -202,7 +202,7 @@ pcbGroup.userData = { explode: new THREE.Vector3(0, 0, 0.8) };
     finger.position.set(-0.85, 0.020, -0.08 + i * 0.053);
     pcbGroup.add(finger);
   }
-  // GOLD CONTACT FINGERS on the USB-C end (smaller, denser, two rows)
+  // GOLD CONTACT FINGERS on the USB-C end (smaller, denser)
   for (let i = 0; i < 12; i++) {
     const finger = new THREE.Mesh(
       new THREE.BoxGeometry(0.10, 0.003, 0.015),
@@ -212,85 +212,196 @@ pcbGroup.userData = { explode: new THREE.Vector3(0, 0, 0.8) };
     pcbGroup.add(finger);
   }
 
-  // PCB silkscreen traces (thin pink emissive lines)
-  function addTrace(x, z, w) {
+  // VIA HOLE FIELD — ~60 small gold dots scattered across the PCB
+  // (these are the small plated through-holes that connect PCB layers)
+  const viaGeom = new THREE.CircleGeometry(0.008, 8);
+  const viaMat = new THREE.MeshStandardMaterial({
+    color: 0xc8a043, metalness: 0.85, roughness: 0.3,
+    emissive: 0x4a3010, emissiveIntensity: 0.4,
+  });
+  // dense via cluster around where the NAND chip will sit
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 5; c++) {
+      const v = new THREE.Mesh(viaGeom, viaMat);
+      v.rotation.x = -Math.PI / 2;
+      v.position.set(-0.55 + r * 0.13, 0.019, -0.20 + c * 0.10);
+      pcbGroup.add(v);
+    }
+  }
+  // scattered vias near the controller area
+  for (let i = 0; i < 14; i++) {
+    const v = new THREE.Mesh(viaGeom, viaMat);
+    v.rotation.x = -Math.PI / 2;
+    v.position.set(0.20 + Math.random() * 0.35, 0.019, -0.22 + Math.random() * 0.44);
+    pcbGroup.add(v);
+  }
+
+  // SILKSCREEN COMPONENT LABELS — small white-ish rectangles ("R1", "C2", "U1" markers)
+  const silkMat = new THREE.MeshBasicMaterial({ color: 0xe8e0c0, transparent: true, opacity: 0.65 });
+  const silkPositions = [
+    [-0.55, -0.14, 0.04, 0.012],
+    [-0.42,  0.16, 0.03, 0.012],
+    [ 0.05, -0.18, 0.03, 0.012],
+    [ 0.40,  0.20, 0.04, 0.012],
+    [ 0.65, -0.08, 0.03, 0.012],
+    [ 0.55,  0.12, 0.04, 0.012],
+    [-0.10,  0.20, 0.03, 0.012],
+  ];
+  silkPositions.forEach(([x, z, w, h]) => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, 0.001, h), silkMat);
+    m.position.set(x, 0.020, z);
+    pcbGroup.add(m);
+  });
+
+  // PCB silkscreen traces — short routed paths (right-angle bends)
+  function addTrace(x, z, w, h = 0.005) {
     const t = new THREE.Mesh(
-      new THREE.BoxGeometry(w, 0.002, 0.008),
-      new THREE.MeshBasicMaterial({ color: 0xFF0066, transparent: true, opacity: 0.7 })
+      new THREE.BoxGeometry(w, 0.002, h),
+      new THREE.MeshBasicMaterial({ color: 0xFF3388, transparent: true, opacity: 0.55 })
     );
     t.position.set(x, 0.019, z);
     pcbGroup.add(t);
   }
-  addTrace(-0.30, -0.05, 0.5);
-  addTrace(-0.20, 0.05, 0.7);
-  addTrace( 0.10, -0.10, 0.55);
-  addTrace( 0.30, 0.12, 0.4);
-  addTrace( 0.40, -0.20, 0.45);
+  // routed pattern emerging from USB-C contact fingers
+  addTrace(0.65, -0.10, 0.3); addTrace(0.50, -0.10, 0.005, 0.2);
+  addTrace(0.42, -0.05, 0.18); addTrace(0.35, 0.00, 0.005, 0.16);
+  // controller to NAND
+  addTrace(0.10, 0.05, 0.4); addTrace(-0.10, 0.05, 0.005, 0.18);
+  addTrace(-0.20, 0.12, 0.3);
+  // ground plane lines
+  addTrace(-0.30, -0.20, 0.5);
+  addTrace(0.20, 0.22, 0.45);
+
+  // Small POLYGON pad outlines (silver squares around the via cluster ends)
+  const padMat = new THREE.MeshStandardMaterial({ color: 0xb8bcc4, metalness: 0.85, roughness: 0.3 });
+  for (let i = 0; i < 8; i++) {
+    const pad = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.001, 0.018), padMat);
+    pad.position.set(0.55 + (i % 4) * 0.08, 0.020, -0.10 + Math.floor(i/4) * 0.20);
+    pcbGroup.add(pad);
+  }
 }
 drive.add(pcbGroup);
 
-// ─── 4. NAND flash IC — large square TSOP-style chip with visible pin rows ───
+// ─── 4. NAND flash IC — large TSOP chip dominates the PCB, real pin rows + printed text ───
 const nandGroup = new THREE.Group();
-nandGroup.userData = { explode: new THREE.Vector3(-0.5, 1.6, 0) };
+nandGroup.userData = { explode: new THREE.Vector3(-0.4, 1.6, 0) };
 {
-  // chip body
-  const chip = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.06, 0.30), matNANDbody);
-  chip.position.set(-0.30, 0.067, 0);
+  // chip body — significantly larger to dominate the board like a real NAND
+  const W = 0.65, D = 0.07, H = 0.34;
+  const chip = new THREE.Mesh(new THREE.BoxGeometry(W, D, H), matNANDbody);
+  chip.position.set(-0.25, 0.072, 0);
   nandGroup.add(chip);
-  nandGroup.add(rim(chip, 0x00F5FF, 0.85));
 
-  // dimple marker (round indent on one corner — chip orientation pin)
+  // chip top face — slightly raised plane with PRINTED TEXT painted via canvas texture
+  const tex = (() => {
+    const c = document.createElement("canvas");
+    c.width = 512; c.height = 256;
+    const g = c.getContext("2d");
+    g.fillStyle = "#16161c";
+    g.fillRect(0, 0, c.width, c.height);
+    g.fillStyle = "#9aa0aa";
+    g.font = "700 38px ui-monospace, monospace";
+    g.textAlign = "center";
+    g.fillText("EXFIL", c.width / 2, 70);
+    g.font = "500 26px ui-monospace, monospace";
+    g.fillText("3D-NAND TLC 256GB", c.width / 2, 110);
+    g.font = "400 22px ui-monospace, monospace";
+    g.fillStyle = "#7a7e88";
+    g.fillText("EX256-A0  WAH//B042", c.width / 2, 150);
+    g.fillText("Z742180  CHN  2026/W42", c.width / 2, 180);
+    g.font = "400 18px ui-monospace, monospace";
+    g.fillStyle = "#5a5e68";
+    g.fillText("◯ pin 1", 60, 230);
+    return new THREE.CanvasTexture(c);
+  })();
+  const face = new THREE.Mesh(
+    new THREE.PlaneGeometry(W * 0.95, H * 0.92),
+    new THREE.MeshStandardMaterial({ map: tex, metalness: 0.2, roughness: 0.55 })
+  );
+  face.rotation.x = -Math.PI / 2;
+  face.position.set(-0.25, 0.072 + D/2 + 0.0005, 0);
+  nandGroup.add(face);
+
+  // pin-1 dimple — the small round indent
   const dimple = new THREE.Mesh(
-    new THREE.CircleGeometry(0.012, 12),
+    new THREE.CircleGeometry(0.012, 16),
     new THREE.MeshStandardMaterial({ color: 0x040404, roughness: 0.9 })
   );
   dimple.rotation.x = -Math.PI / 2;
-  dimple.position.set(-0.30 - 0.17, 0.098, -0.11);
+  dimple.position.set(-0.25 - W/2 + 0.04, 0.072 + D/2 + 0.001, -H/2 + 0.04);
   nandGroup.add(dimple);
 
-  // 8 pins on each long side
-  const pinGeom = new THREE.BoxGeometry(0.025, 0.012, 0.014);
-  for (let i = 0; i < 8; i++) {
+  // 24 thin gold pins on EACH long side — that's the dense TSOP look
+  const PINS_PER_SIDE = 24;
+  const pinGeom = new THREE.BoxGeometry(0.03, 0.008, 0.008);
+  for (let i = 0; i < PINS_PER_SIDE; i++) {
+    const z = -H/2 + 0.025 + (i / (PINS_PER_SIDE - 1)) * (H - 0.05);
     const p1 = new THREE.Mesh(pinGeom, matGoldPin);
-    p1.position.set(-0.30, 0.043, -0.13 + i * 0.038);
-    p1.translateX(-0.215);
+    p1.position.set(-0.25 - W/2 - 0.014, 0.052, z);
     nandGroup.add(p1);
     const p2 = new THREE.Mesh(pinGeom, matGoldPin);
-    p2.position.set(-0.30, 0.043, -0.13 + i * 0.038);
-    p2.translateX(0.215);
+    p2.position.set(-0.25 + W/2 + 0.014, 0.052, z);
     nandGroup.add(p2);
   }
+
+  // very subtle cyan rim halo (kept dim so chip looks like a chip not a sci-fi prop)
+  nandGroup.add(rim(chip, 0x00F5FF, 0.25));
 }
 drive.add(nandGroup);
 
-// ─── 5. Controller IC — smaller square QFN package ───
+// ─── 5. Controller IC — QFN package with printed marking + dense pin perimeter ───
 const ctrlGroup = new THREE.Group();
 ctrlGroup.userData = { explode: new THREE.Vector3(0.6, 1.4, 0) };
 {
-  const chip = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.05, 0.28), matCtrlBody);
+  const W = 0.30, D = 0.05, H = 0.30;
+  const chip = new THREE.Mesh(new THREE.BoxGeometry(W, D, H), matCtrlBody);
   chip.position.set(0.30, 0.062, 0.05);
   ctrlGroup.add(chip);
-  ctrlGroup.add(rim(chip, 0xFF0066, 0.85));
 
-  // hex marking on top (laser-etched)
-  const hex = new THREE.Mesh(
-    new THREE.RingGeometry(0.06, 0.075, 6),
-    new THREE.MeshBasicMaterial({ color: 0xFF0066, side: THREE.DoubleSide, transparent: true, opacity: 0.9 })
+  // printed top face via canvas texture
+  const tex = (() => {
+    const c = document.createElement("canvas");
+    c.width = 256; c.height = 256;
+    const g = c.getContext("2d");
+    g.fillStyle = "#0e0e14";
+    g.fillRect(0, 0, c.width, c.height);
+    g.fillStyle = "#7a7e88";
+    g.font = "600 28px ui-monospace, monospace";
+    g.textAlign = "center";
+    g.fillText("EXFIL-C", c.width / 2, 80);
+    g.font = "500 22px ui-monospace, monospace";
+    g.fillText("USB3.2", c.width / 2, 115);
+    g.font = "400 18px ui-monospace, monospace";
+    g.fillStyle = "#5a5e68";
+    g.fillText("AC-256", c.width / 2, 150);
+    g.fillText("2026 W42", c.width / 2, 175);
+    // pin-1 dot
+    g.fillStyle = "#FF3388";
+    g.beginPath(); g.arc(40, 40, 6, 0, Math.PI * 2); g.fill();
+    return new THREE.CanvasTexture(c);
+  })();
+  const face = new THREE.Mesh(
+    new THREE.PlaneGeometry(W * 0.95, H * 0.95),
+    new THREE.MeshStandardMaterial({ map: tex, metalness: 0.2, roughness: 0.6 })
   );
-  hex.rotation.x = -Math.PI / 2;
-  hex.position.set(0.30, 0.088, 0.05);
-  ctrlGroup.add(hex);
+  face.rotation.x = -Math.PI / 2;
+  face.position.set(0.30, 0.062 + D/2 + 0.0005, 0.05);
+  ctrlGroup.add(face);
 
-  // QFN pins around all 4 sides (small)
-  const qfnGeom = new THREE.BoxGeometry(0.018, 0.008, 0.012);
-  for (let i = 0; i < 6; i++) {
-    const off = -0.075 + i * 0.030;
-    const t = 0.142;
-    const m1 = new THREE.Mesh(qfnGeom, matGoldPin); m1.position.set(0.30 - t, 0.040, 0.05 + off); ctrlGroup.add(m1);
-    const m2 = new THREE.Mesh(qfnGeom, matGoldPin); m2.position.set(0.30 + t, 0.040, 0.05 + off); ctrlGroup.add(m2);
-    const m3 = new THREE.Mesh(qfnGeom, matGoldPin); m3.rotation.y = Math.PI/2; m3.position.set(0.30 + off, 0.040, 0.05 - t); ctrlGroup.add(m3);
-    const m4 = new THREE.Mesh(qfnGeom, matGoldPin); m4.rotation.y = Math.PI/2; m4.position.set(0.30 + off, 0.040, 0.05 + t); ctrlGroup.add(m4);
+  // QFN pins around all 4 sides (denser — 12 per side)
+  const qfnGeom = new THREE.BoxGeometry(0.014, 0.006, 0.008);
+  const PER_SIDE = 12;
+  for (let i = 0; i < PER_SIDE; i++) {
+    const off = -H/2 + 0.018 + (i / (PER_SIDE - 1)) * (H - 0.036);
+    const t = 0.16;
+    const m1 = new THREE.Mesh(qfnGeom, matGoldPin); m1.position.set(0.30 - t, 0.045, 0.05 + off); ctrlGroup.add(m1);
+    const m2 = new THREE.Mesh(qfnGeom, matGoldPin); m2.position.set(0.30 + t, 0.045, 0.05 + off); ctrlGroup.add(m2);
+    const m3 = new THREE.Mesh(qfnGeom, matGoldPin); m3.rotation.y = Math.PI/2; m3.position.set(0.30 + off, 0.045, 0.05 - t); ctrlGroup.add(m3);
+    const m4 = new THREE.Mesh(qfnGeom, matGoldPin); m4.rotation.y = Math.PI/2; m4.position.set(0.30 + off, 0.045, 0.05 + t); ctrlGroup.add(m4);
   }
+
+  // subtle pink rim
+  ctrlGroup.add(rim(chip, 0xFF0066, 0.35));
 }
 drive.add(ctrlGroup);
 
@@ -518,12 +629,18 @@ function tick() {
   updateUI();
 
   const t = performance.now() * 0.001;
-  // Camera orbit tightens toward the drive as we scroll
-  const orbit = progress * Math.PI * 0.5 + t * 0.12;
-  const camDist = 5.8 - progress * 0.8;
-  const camHeight = 0.3 + progress * 0.5;
+  // Camera arc:
+  //   0.00–0.45  orbit at medium distance, low angle
+  //   0.45–0.72  zoom IN + tilt DOWN — let the viewer read the chip text
+  //   0.72–1.00  pull back, orbit
+  const coreFocus = smooth(0.42, 0.65, progress) * (1 - smooth(0.72, 0.88, progress));
+
+  const orbit = progress * Math.PI * 0.4 + t * 0.10;
+  const camDist = (5.8 - progress * 0.9) - coreFocus * 2.2;          // pull in for core
+  const camHeight = 0.3 + progress * 0.4 + coreFocus * 1.6;          // rise up for top view
   camera.position.set(Math.sin(orbit) * camDist, camHeight, Math.cos(orbit) * camDist);
-  camera.lookAt(0, progress * 0.25, 0);
+  // look down at the PCB during the core focus
+  camera.lookAt(0, progress * 0.2 - coreFocus * 0.3, 0);
 
   // Disassembly: each group moves along its explode vector
   groups.forEach((g, i) => {
