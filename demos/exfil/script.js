@@ -4,6 +4,12 @@
    ========================================================= */
 
 import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 
 const stage       = document.getElementById("stage");
 const canvas      = document.getElementById("three-canvas");
@@ -30,6 +36,63 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true 
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.setClearColor(0x05030B, 1);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;     // cinematic tonemap
+renderer.toneMappingExposure = 1.1;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+// Procedural HDRI from Three's RoomEnvironment — gives photoreal reflections on metals/glass
+// without downloading a 10 MB .hdr file. Free.
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+// Post-processing: bloom on the neon emissive parts (lid strip, LED, traces)
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+composer.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.55, 0.42, 0.82));
+composer.addPass(new OutputPass());
+
+// =================================================================
+// GLB AUTO-SWAP — drop your Meshy.ai-generated file here:
+//   demos/exfil/assets/exfil-drive.glb
+// If found, the procedural model is hidden and the GLB takes its place.
+// =================================================================
+const meshyHolder = new THREE.Group();
+scene.add(meshyHolder);
+const loader = new GLTFLoader();
+loader.load(
+  "assets/exfil-drive.glb",
+  (gltf) => {
+    const m = gltf.scene;
+    // auto-fit to roughly 2.5 units wide
+    const box = new THREE.Box3().setFromObject(m);
+    const size = box.getSize(new THREE.Vector3());
+    const max = Math.max(size.x, size.y, size.z) || 1;
+    const scale = 2.5 / max;
+    m.scale.setScalar(scale);
+    box.setFromObject(m);
+    const center = box.getCenter(new THREE.Vector3());
+    m.position.sub(center.multiplyScalar(scale));
+    // lift environment lighting effect
+    m.traverse((node) => {
+      if (node.isMesh) {
+        node.material.envMapIntensity = 1.3;
+        // a touch of cyberpunk emissive on any material that has emissive
+        if (node.material.emissive && node.material.emissive.r === 0 && node.material.emissive.g === 0) {
+          // skip — leave authored materials alone
+        }
+      }
+    });
+    meshyHolder.add(m);
+    // hide the procedural drive
+    drive.visible = false;
+    console.log("✓ Loaded Meshy GLB — procedural model hidden");
+  },
+  undefined,
+  () => {
+    // No GLB present — keep procedural model
+    console.log("ℹ No assets/exfil-drive.glb found — using procedural model. Drop a Meshy.ai .glb at that path to swap.");
+  }
+);
 
 // =================================================================
 // Lighting — cyberpunk vibe (pink key + cyan rim + yellow accent)
@@ -562,6 +625,7 @@ function resize() {
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
   renderer.setSize(w, h);
+  composer.setSize(w, h);
 }
 window.addEventListener("resize", resize);
 resize();
@@ -656,10 +720,18 @@ function tick() {
     g.rotation.y = localT * 0.15 * (i % 2 === 0 ? 1 : -1);
   });
 
-  // Subtle idle rotation
+  // Subtle idle rotation (procedural drive)
   drive.rotation.y = Math.sin(t * 0.8) * 0.05 + t * 0.05;
+  // Same idle rotation for any loaded GLB
+  meshyHolder.rotation.y = Math.sin(t * 0.6) * 0.06 + t * 0.07;
+  // GLB scrolls don't use the disassembly groups — instead the whole model
+  // tilts forward and zooms slightly as you scroll, like a product showcase.
+  if (meshyHolder.children.length > 0) {
+    meshyHolder.rotation.x = -progress * 0.35;
+    meshyHolder.scale.setScalar(1 + progress * 0.15);
+  }
 
-  renderer.render(scene, camera);
+  composer.render();
   requestAnimationFrame(tick);
 }
 tick();
