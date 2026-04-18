@@ -162,16 +162,16 @@ print(f"[explode] joined into {len(named_parts)} named parts")
 # Movement values are RELATIVE deltas applied to original position
 PARTS = {
     # name           dx    dy    dz    start  end
-    "Slider_Left":  ( -0.3, 0,   1.5,  0,     35),    # buttons fire first
-    "Slider_Right": (  0.3, 0,   1.5,  3,     38),
-    "TopShell":     (  0,   0,   1.0,  10,    50),    # shell follows
-    "USB_A_Left":   ( -2.2, 0,   0,    18,    60),    # connectors slide
-    "USB_C_Right":  (  2.2, 0,   0,    18,    60),
-    "BottomShell":  (  0,   0,  -1.0,  25,    65),    # bottom drops last
-    "PCB":          (  0,   0,   0.1,  20,    50),    # PCB barely moves (just lifts slightly)
+    "Slider_Left":  ( -0.5, 0,   2.4,  0,     45),    # buttons fly furthest up
+    "Slider_Right": (  0.5, 0,   2.4,  4,     49),
+    "TopShell":     (  0,   0,   1.4,  15,    65),    # shell lifts
+    "USB_A_Left":   ( -2.8, 0,   0,    25,    75),    # connectors slide all the way out
+    "USB_C_Right":  (  2.8, 0,   0,    25,    75),
+    "BottomShell":  (  0,   0,  -1.4,  35,    85),    # bottom drops far
+    "PCB":          (  0,   0,   0.0,  0,     0 ),    # PCB stays — internals reveal
 }
 
-TOTAL_FRAMES = 90
+TOTAL_FRAMES = 100
 
 print("[explode] keyframing staggered disassembly...")
 for name, (dx, dy, dz, start, end) in PARTS.items():
@@ -200,8 +200,8 @@ cam_data = bpy.data.cameras.new("Camera")
 cam_data.lens = 50
 cam_obj = bpy.data.objects.new("Camera", cam_data)
 bpy.context.scene.collection.objects.link(cam_obj)
-cam_obj.location = (0, -8, 2.5)
-cam_obj.rotation_euler = (math.radians(78), 0, 0)
+cam_obj.location = (0, -10, 1.8)
+cam_obj.rotation_euler = (math.radians(82), 0, 0)
 bpy.context.scene.camera = cam_obj
 
 # ---------- Lights — black & gold ----------
