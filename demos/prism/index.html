@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PRISM — A spatial computer for the rest of us</title>
+<meta name="description" content="PRISM · An AR/VR headset designed for everyday spatial computing. Scroll to disassemble." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="hud-top">
+  <div class="hud-l">
+    <span class="brand-mark">◇</span>
+    <span class="brand-name">PRISM</span>
+    <span class="brand-rev">spatial computer · gen 1</span>
+  </div>
+  <div class="hud-c">
+    <span id="hud-section">// SCROLL TO DISASSEMBLE</span>
+  </div>
+  <div class="hud-r">
+    <span class="hud-stat">FOV <em id="hud-fov">000°</em></span>
+    <span class="hud-stat">PPD <em id="hud-ppd">00</em></span>
+    <span class="hud-stat">WT <em id="hud-wt">000g</em></span>
+  </div>
+</header>
+
+<div class="bracket b-tl"></div>
+<div class="bracket b-tr"></div>
+<div class="bracket b-bl"></div>
+<div class="bracket b-br"></div>
+
+<!-- ============ STAGE — three.js scene + scroll ============ -->
+<section class="stage" id="stage">
+  <div class="stage-sticky">
+    <canvas id="three-canvas"></canvas>
+
+    <div class="stage-overlays">
+      <div class="overlay" data-from="0" data-to="0.18">
+        <p class="kicker">// 01 · Introducing</p>
+        <h2 class="overlay-h">A spatial computer for the <em>rest of us.</em></h2>
+        <p class="overlay-sub">Scroll to disassemble.</p>
+      </div>
+      <div class="overlay" data-from="0.22" data-to="0.45">
+        <p class="kicker">// 02 · Optics</p>
+        <h2 class="overlay-h">Pancake lenses<br/>at <em>52 pixels per degree.</em></h2>
+        <p class="overlay-sub">Apple Vision Pro is 34. Quest 3 is 25.</p>
+      </div>
+      <div class="overlay" data-from="0.50" data-to="0.72">
+        <p class="kicker">// 03 · Compute</p>
+        <h2 class="overlay-h">All on-device.<br/><em>No tether.</em></h2>
+        <p class="overlay-sub">Custom 7nm spatial coprocessor. 9 hours active runtime.</p>
+      </div>
+      <div class="overlay" data-from="0.78" data-to="1.0">
+        <p class="kicker">// 04 · PRISM</p>
+        <h2 class="overlay-h">$899.<br/><em>Shipping Q4 2026.</em></h2>
+        <p class="overlay-sub">Reserve below — first 1,000 units, 20% off.</p>
+      </div>
+    </div>
+
+    <div class="stage-progress">
+      <div class="progress-track"><i id="progress-bar"></i></div>
+      <span class="progress-pct"><em id="progress-pct">000</em>%</span>
+    </div>
+
+    <div class="stage-hint">SCROLL ↓</div>
+  </div>
+</section>
+
+<!-- ============ SPECS ============ -->
+<section class="specs">
+  <div class="specs-head">
+    <p class="kicker">// Specifications</p>
+    <h2>The headset, <em>spec by spec.</em></h2>
+  </div>
+  <div class="spec-grid">
+    <div class="spec"><span class="spec-num">52</span><span class="spec-unit">PPD · PER EYE</span><p>Pancake lenses with custom wafer optics. Sharper than reading distance on a 27" 4K display.</p></div>
+    <div class="spec"><span class="spec-num">120Hz</span><span class="spec-unit">REFRESH</span><p>Sustained, not theoretical peak. Foveated rendering with eye tracking at 240 Hz.</p></div>
+    <div class="spec"><span class="spec-num">110°</span><span class="spec-unit">HORIZONTAL FOV</span><p>The widest in its class. Comfortable peripheral vision for spatial work.</p></div>
+    <div class="spec"><span class="spec-num">412g</span><span class="spec-unit">WEIGHT · COMPLETE</span><p>Lighter than Vision Pro by 188g. Distributed crown-strap balances on the temples.</p></div>
+    <div class="spec"><span class="spec-num">9h</span><span class="spec-unit">RUNTIME · ACTIVE</span><p>On-board battery sled. No tethered pack. Hot-swappable in 12 seconds.</p></div>
+    <div class="spec"><span class="spec-num">$899</span><span class="spec-unit">PRICE</span><p>Founders' edition. We took every margin out of the BOM and put it into the optics.</p></div>
+  </div>
+</section>
+
+<!-- ============ EARLY ACCESS ============ -->
+<section class="early" id="early">
+  <p class="kicker">// Reserve</p>
+  <h2 class="early-title">First <em>1,000.</em></h2>
+  <p class="early-sub">Founders' price: <strong>$719</strong> (20% off MSRP). $50 deposit, fully refundable. Shipping Q4 2026.</p>
+  <form class="early-form" onsubmit="event.preventDefault(); this.classList.add('sent');">
+    <input type="email" placeholder="email" required />
+    <input type="text" placeholder="size · S / M / L" required />
+    <button type="submit">Reserve →</button>
+    <p class="form-thanks">✓ Slot reserved. We will email you within 14 days.</p>
+  </form>
+</section>
+
+<footer class="foot">
+  <div class="foot-l">
+    <span class="brand-mark">◇</span>
+    <span>PRISM · designed by <a href="../../">Efe Biskin</a></span>
+  </div>
+  <div class="foot-r">
+    <a href="../../">← back to portfolio</a>
+  </div>
+</footer>
+
+<!-- three.js (CDN, no build step) -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js"
+  }
+}
+</script>
+<script type="module" src="script.js"></script>
+</body>
+</html>

@@ -574,6 +574,24 @@ strong { font-weight: 500; }
   color: #111111;
   font-family: "Cormorant Garamond", Georgia, serif;
 }
+.brand-thumb-prism {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(0, 225, 255, .35), transparent 55%),
+    radial-gradient(circle at 20% 80%, rgba(167, 139, 250, .25), transparent 55%),
+    linear-gradient(135deg, #06070A 0%, #0E1118 50%, #050508 100%);
+  color: #00E1FF;
+  font-family: "Inter", sans-serif;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+.prism-glyph {
+  position: absolute;
+  top: 1rem; left: 1rem;
+  color: #00E1FF;
+  text-shadow: 0 0 12px #00E1FF;
+  font-size: 1rem;
+}
 .brand-issue {
   position: absolute;
   bottom: 1rem; left: 1rem;
