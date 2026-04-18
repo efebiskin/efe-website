@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ATLAS — A compute engine for the next decade</title>
+<meta name="description" content="ATLAS · A 9,800-TOPS edge AI compute engine at 12 watts. Designed in California. Manufactured in Hsinchu. Shipping Q3 2026." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ============ HUD top bar ============ -->
+<header class="hud-top">
+  <div class="hud-l">
+    <span class="brand-mark">◇</span>
+    <span class="brand-name">ATLAS</span>
+    <span class="brand-rev">rev 0.4 · A0 silicon</span>
+  </div>
+  <div class="hud-c">
+    <span id="hud-section">// SCROLL TO INITIALIZE</span>
+  </div>
+  <div class="hud-r">
+    <span class="hud-stat">PWR <em id="hud-pwr">00.0W</em></span>
+    <span class="hud-stat">CLK <em id="hud-clk">0.000GHz</em></span>
+    <span class="hud-stat">TOPS <em id="hud-tops">0,000</em></span>
+  </div>
+</header>
+
+<!-- ============ HUD corner brackets ============ -->
+<div class="bracket b-tl"></div>
+<div class="bracket b-tr"></div>
+<div class="bracket b-bl"></div>
+<div class="bracket b-br"></div>
+
+<!-- ============ STAGE — exploded-view chip + scroll-pinned ============ -->
+<section class="stage" id="stage">
+  <div class="stage-sticky">
+
+    <!-- ─── EXPLODED VIEW ─── (flexbox-stacked) -->
+    <div class="exploded" id="exploded">
+      <div class="piece" data-y="-260" data-delay="0.00">
+        <div class="shape lid"><span class="engraved">ATLAS A0 · ◇</span></div>
+      </div>
+      <div class="piece" data-y="-180" data-delay="0.05">
+        <div class="shape vapor"></div>
+      </div>
+      <div class="piece" data-y="-100" data-delay="0.10">
+        <div class="shape tim"></div>
+      </div>
+      <div class="piece" data-y="0"    data-delay="0.15">
+        <div class="shape die">
+          <div class="die-grid"></div>
+          <span class="die-label">SILICON · 7nm</span>
+        </div>
+      </div>
+      <div class="piece" data-y="100"  data-delay="0.20">
+        <div class="shape substrate">
+          <div class="trace t1"></div><div class="trace t2"></div>
+          <div class="trace t3"></div><div class="trace t4"></div>
+        </div>
+      </div>
+      <div class="piece" data-y="180"  data-delay="0.25">
+        <div class="shape pins"><div class="pin-grid"></div></div>
+      </div>
+      <div class="piece" data-y="260"  data-delay="0.30">
+        <div class="shape frame"></div>
+      </div>
+    </div>
+
+    <!-- ─── SCROLL-DRIVEN OVERLAY HEADLINES ─── -->
+    <div class="stage-overlays">
+      <div class="overlay" data-from="0" data-to="0.20">
+        <p class="kicker">// 01 · Introducing</p>
+        <h2 class="overlay-h">A new compute engine.</h2>
+        <p class="overlay-sub">Scroll to disassemble.</p>
+      </div>
+      <div class="overlay" data-from="0.30" data-to="0.55">
+        <p class="kicker">// 02 · The silicon</p>
+        <h2 class="overlay-h"><em>9,800 TOPS</em><br/>at twelve watts.</h2>
+        <p class="overlay-sub">384 tiled cores on a custom matrix engine.</p>
+      </div>
+      <div class="overlay" data-from="0.60" data-to="0.85">
+        <p class="kicker">// 03 · Auditable</p>
+        <h2 class="overlay-h">Every layer,<br/><em>open.</em></h2>
+        <p class="overlay-sub">Open RTL. Open firmware. Open verification.</p>
+      </div>
+      <div class="overlay" data-from="0.90" data-to="1.0">
+        <p class="kicker">// 04 · ATLAS</p>
+        <h2 class="overlay-h">Built for the<br/><em>next decade.</em></h2>
+        <p class="overlay-sub">Shipping Q3 2026.</p>
+      </div>
+    </div>
+
+    <div class="stage-progress">
+      <div class="progress-track"><i id="progress-bar"></i></div>
+      <span class="progress-pct"><em id="progress-pct">000</em>%</span>
+    </div>
+
+    <div class="stage-hint">SCROLL ↓</div>
+  </div>
+</section>
+
+<!-- ============ SPECS BAND ============ -->
+<section class="specs">
+  <div class="specs-head">
+    <p class="kicker">// Specifications</p>
+    <h2>The numbers, <em>without theatre.</em></h2>
+  </div>
+
+  <div class="spec-grid">
+    <div class="spec">
+      <span class="spec-num">9,800</span>
+      <span class="spec-unit">TOPS · INT8</span>
+      <p>Sustained, not peak. Measured under continuous load with the standard MLPerf inference suite at 25°C.</p>
+    </div>
+    <div class="spec">
+      <span class="spec-num">12W</span>
+      <span class="spec-unit">TDP · TYPICAL</span>
+      <p>Passive cooling at 50°C ambient. No fan, no liquid loop, no thermal throttling under stated workload.</p>
+    </div>
+    <div class="spec">
+      <span class="spec-num">384</span>
+      <span class="spec-unit">CORES · TILED</span>
+      <p>Eight clusters of 48 SIMD-32 cores. Mesh interconnect. 1.4 TB/s aggregate bisection bandwidth.</p>
+    </div>
+    <div class="spec">
+      <span class="spec-num">128GB</span>
+      <span class="spec-unit">UNIFIED MEMORY</span>
+      <p>HBM3e on-package, 4.8 TB/s. Single coherent address space across host + accelerator.</p>
+    </div>
+    <div class="spec">
+      <span class="spec-num">7nm</span>
+      <span class="spec-unit">PROCESS · TSMC N7</span>
+      <p>Mature node by intent. Production yield, conservative defect density, lower BOM.</p>
+    </div>
+    <div class="spec">
+      <span class="spec-num">A0</span>
+      <span class="spec-unit">SILICON · TAPED OUT</span>
+      <p>First silicon back from the fab Feb 2026. Bring-up complete. Two known errata, both software-mitigated.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ COMPARISON ============ -->
+<section class="compare">
+  <div class="cmp-head">
+    <p class="kicker">// Versus</p>
+    <h2>How it compares.</h2>
+    <p class="cmp-note">Inference throughput (LLaMA 3 70B, INT8, batch 1) per watt. Higher is better. Independently verified.</p>
+  </div>
+
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th></th>
+        <th>Tokens/sec/watt</th>
+        <th>TDP</th>
+        <th>$/dev kit</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="cmp-us">
+        <td>ATLAS A0</td>
+        <td><strong>14.8</strong> <i class="bar" style="--w:100%"></i></td>
+        <td>12 W</td>
+        <td>$2,400</td>
+      </tr>
+      <tr>
+        <td>NVIDIA H100 PCIe</td>
+        <td>2.1 <i class="bar" style="--w:14%"></i></td>
+        <td>350 W</td>
+        <td>$30,000</td>
+      </tr>
+      <tr>
+        <td>Apple M4 Max</td>
+        <td>3.4 <i class="bar" style="--w:23%"></i></td>
+        <td>40 W</td>
+        <td>$3,500</td>
+      </tr>
+      <tr>
+        <td>Groq LPU</td>
+        <td>5.2 <i class="bar" style="--w:35%"></i></td>
+        <td>175 W</td>
+        <td>$15,000</td>
+      </tr>
+      <tr>
+        <td>Cerebras WSE-3</td>
+        <td>0.8 <i class="bar" style="--w:5%"></i></td>
+        <td>23 kW</td>
+        <td>$2.5M</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============ ENGINEERED ============ -->
+<section class="engineered">
+  <p class="kicker">// Engineered for</p>
+  <div class="eng-list">
+    <div class="eng-row"><span class="eng-num">→</span><h3>Edge inference at human-scale latency.</h3></div>
+    <div class="eng-row"><span class="eng-num">→</span><h3>Long-context models that fit on a single board.</h3></div>
+    <div class="eng-row"><span class="eng-num">→</span><h3>Robotics control loops measured in milliseconds.</h3></div>
+    <div class="eng-row"><span class="eng-num">→</span><h3>Hardware that you can verify yourself.</h3></div>
+    <div class="eng-row"><span class="eng-num">→</span><h3>A supply chain you can name end-to-end.</h3></div>
+  </div>
+</section>
+
+<!-- ============ EARLY ACCESS ============ -->
+<section class="early" id="early">
+  <p class="kicker">// Early access</p>
+  <h2 class="early-title">
+    Reserve a <em>dev kit.</em>
+  </h2>
+  <p class="early-sub">$2,400. Shipping Q3 2026. Limited to verified developers and design partners. No deposit required at reservation.</p>
+
+  <form class="early-form" onsubmit="event.preventDefault(); this.classList.add('sent');">
+    <input type="email" placeholder="work email" required />
+    <input type="text" placeholder="team / project" required />
+    <button type="submit">Reserve →</button>
+    <p class="form-thanks">✓ On the list. We will be in touch within 14 days.</p>
+  </form>
+
+  <ul class="early-trust">
+    <li>◇ Open RTL drop with first dev kits</li>
+    <li>◇ 24-month firmware update guarantee</li>
+    <li>◇ Independent third-party verification reports</li>
+  </ul>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="foot">
+  <div class="foot-l">
+    <span class="brand-mark">◇</span>
+    <span>ATLAS · A division of <a href="../../">Efe Biskin</a></span>
+  </div>
+  <div class="foot-r">
+    <span>San José, CA · Hsinchu, TW</span>
+    <span>·</span>
+    <a href="../../">← back to portfolio</a>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
