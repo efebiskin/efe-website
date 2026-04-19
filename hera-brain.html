@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>HERA · Brain</title>
+<meta name="description" content="HERA · 3D WebGL vault graph. 800+ notes, 1500+ links, 6 layout presets. Iron-Man HUD aesthetic." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<!-- three.js -->
+<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+
+<style>
+  /* ════════════════════════════════════════════════════════════
+     HERA · BRAIN — 3D vault graph with Iron-Man / Jarvis HUD.
+     Inspired by Prompt-Surfer/obsidian-jarvis-ui (AGPL).
+     This page is a self-contained demo — generates ~800 fake
+     notes + ~1500 links and renders them in a 3D force layout.
+     ════════════════════════════════════════════════════════════ */
+
+  :root{
+    --bg:           #000;
+    --bg-soft:      rgba(0, 14, 28, .7);
+    --cyan:         #00DDFF;
+    --cyan-dim:     #4FB3D9;
+    --cyan-deep:    #003344;
+    --cyan-glow:    rgba(0, 221, 255, .35);
+    --hairline:     rgba(0, 221, 255, .25);
+    --hairline-dim: rgba(0, 221, 255, .12);
+    --pink:         #FF55C4;
+    --green:        #66FF99;
+    --yellow:       #FFE066;
+    --orange:       #FF9F40;
+    --purple:       #B580FF;
+    --ink:          #E5FCFD;
+    --ink-dim:      rgba(229, 252, 253, .55);
+    --font-mono:    "JetBrains Mono", ui-monospace, monospace;
+    --font-display: "Archivo", system-ui, sans-serif;
+  }
+
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--font-mono);overflow:hidden;font-size:13px;letter-spacing:.02em}
+  button,input{font-family:inherit;color:inherit;border:none;background:none;outline:none;font-size:inherit}
+  button{cursor:pointer}
+  ::selection{background:var(--cyan);color:#000}
+  ::-webkit-scrollbar{width:4px;height:4px}
+  ::-webkit-scrollbar-thumb{background:var(--hairline);border-radius:2px}
+
+  /* ─── 3D canvas fills the viewport ─── */
+  #canvas-host{
+    position:fixed;inset:0;z-index:1;
+    background:radial-gradient(ellipse 80% 60% at 50% 50%, #001827 0%, #000 70%);
+  }
+  #canvas-host canvas{display:block;width:100%;height:100%}
+
+  /* ─── Scanline overlay for CRT vibe ─── */
+  .scanlines{
+    position:fixed;inset:0;z-index:2;pointer-events:none;
+    background:repeating-linear-gradient(180deg, rgba(0,221,255,.012) 0 2px, transparent 2px 4px);
+    mix-blend-mode:screen;
+  }
+
+  /* ─── Vignette + corner glow ─── */
+  .vignette{
+    position:fixed;inset:0;z-index:3;pointer-events:none;
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 50%, transparent 0%, transparent 60%, rgba(0,0,0,.6) 100%),
+      radial-gradient(circle at 0 0,   rgba(0,221,255,.06), transparent 30%),
+      radial-gradient(circle at 100% 100%, rgba(0,221,255,.04), transparent 30%);
+  }
+
+  /* ─── Generic HUD panel ─── */
+  .panel{
+    background:var(--bg-soft);
+    border:1px solid var(--hairline);
+    backdrop-filter:blur(8px);
+    border-radius:6px;
+    padding:14px 16px;
+    color:var(--ink-dim);
+  }
+  .panel-corner{
+    position:relative;
+  }
+  .panel-corner::before,
+  .panel-corner::after{
+    content:"";position:absolute;width:10px;height:10px;border:1px solid var(--cyan);
+    pointer-events:none;
+  }
+  .panel-corner::before{top:-1px;left:-1px;border-right:none;border-bottom:none}
+  .panel-corner::after{bottom:-1px;right:-1px;border-left:none;border-top:none}
+
+  /* ─── Top-left status HUD ─── */
+  .hud-stats{
+    position:fixed;top:24px;left:24px;z-index:10;
+    color:var(--cyan);font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;
+    line-height:1.7;
+    text-shadow:0 0 8px rgba(0,221,255,.5);
+    pointer-events:none;
+  }
+  .hud-stats .label{color:var(--cyan-dim);margin-right:8px}
+  .hud-stats .num{color:var(--cyan);font-weight:700}
+  .hud-stats .stable{display:inline-flex;align-items:center;gap:8px;margin-top:6px;font-size:10px;letter-spacing:.16em}
+  .hud-stats .stable::before{
+    content:"";width:7px;height:7px;background:var(--cyan);border-radius:1px;
+    box-shadow:0 0 10px var(--cyan);animation:pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity:.4 }
+    50%     { opacity:1 }
+  }
+
+  /* ─── Top-right brand back-link ─── */
+  .hud-brand{
+    position:fixed;top:24px;right:24px;z-index:10;
+    display:flex;align-items:center;gap:14px;
+    font-family:var(--font-mono);font-size:11px;letter-spacing:.18em;color:var(--cyan-dim);
+  }
+  .hud-brand a{color:var(--cyan-dim);text-decoration:none;padding:7px 12px;border:1px solid var(--hairline-dim);border-radius:4px;transition:all .2s}
+  .hud-brand a:hover{color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 12px rgba(0,221,255,.3)}
+  .hud-brand .b{font-weight:700;color:var(--cyan);text-shadow:0 0 8px rgba(0,221,255,.5)}
+
+  /* ─── Search bar (top-center) ─── */
+  .hud-search{
+    position:fixed;top:24px;left:50%;transform:translateX(-50%);z-index:10;
+    width:min(440px, 50vw);
+  }
+  .hud-search-inner{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 16px;background:var(--bg-soft);
+    border:1px solid var(--cyan);border-radius:4px;
+    box-shadow:0 0 22px rgba(0,221,255,.18), inset 0 0 12px rgba(0,221,255,.06);
+  }
+  .hud-search-inner input{
+    flex:1;color:var(--ink);font-family:var(--font-mono);font-size:13px;letter-spacing:.04em;
+  }
+  .hud-search-inner input::placeholder{color:var(--cyan-dim)}
+  .hud-search-inner .icon{color:var(--cyan);font-weight:700}
+
+  /* ─── Left controls panel ─── */
+  .hud-left{
+    position:fixed;top:140px;left:24px;z-index:10;
+    width:280px;display:flex;flex-direction:column;gap:10px;
+    max-height:calc(100vh - 180px);overflow-y:auto;
+  }
+  .control-group{
+    background:var(--bg-soft);border:1px solid var(--hairline);
+    padding:14px 16px;border-radius:4px;
+    backdrop-filter:blur(8px);
+  }
+  .control-tabs{display:flex;gap:4px;padding:6px;background:rgba(0,0,0,.3);border:1px solid var(--hairline-dim);border-radius:4px;width:fit-content;margin-bottom:10px}
+  .control-tab{padding:6px 9px;border:1px solid transparent;border-radius:3px;font-size:10px;letter-spacing:.1em;color:var(--cyan-dim);text-transform:uppercase;background:transparent;cursor:pointer}
+  .control-tab.active{background:rgba(0,221,255,.12);border-color:var(--cyan);color:var(--cyan);text-shadow:0 0 8px rgba(0,221,255,.4)}
+  .control-tab:hover:not(.active){color:var(--cyan)}
+
+  .slider-row{margin:14px 0}
+  .slider-label{font-size:10px;letter-spacing:.18em;color:var(--cyan-dim);text-transform:uppercase;margin-bottom:6px;display:flex;justify-content:space-between}
+  .slider-label .val{color:var(--cyan);font-weight:700}
+  .slider{
+    width:100%;height:18px;cursor:pointer;
+    background:transparent;-webkit-appearance:none;appearance:none;
+  }
+  .slider::-webkit-slider-runnable-track{height:1px;background:var(--cyan-dim);border-radius:1px}
+  .slider::-moz-range-track{height:1px;background:var(--cyan-dim);border-radius:1px}
+  .slider::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;
+    width:10px;height:10px;border-radius:50%;background:var(--cyan);cursor:pointer;
+    box-shadow:0 0 12px var(--cyan-glow);margin-top:-5px;
+  }
+  .slider::-moz-range-thumb{
+    width:10px;height:10px;border-radius:50%;background:var(--cyan);cursor:pointer;border:none;
+    box-shadow:0 0 12px var(--cyan-glow);
+  }
+
+  .group-title{font-size:10px;letter-spacing:.22em;color:var(--cyan-dim);text-transform:uppercase;margin-bottom:10px;font-weight:700}
+
+  .shape-grid{display:grid;grid-template-columns:repeat(3, 1fr);gap:6px}
+  .shape-btn{
+    padding:10px 6px;border:1px solid var(--hairline-dim);background:transparent;border-radius:4px;
+    color:var(--cyan-dim);font-family:var(--font-mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+    cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;
+    transition:all .2s;
+  }
+  .shape-btn .shape-ico{
+    width:22px;height:22px;display:flex;align-items:center;justify-content:center;
+    color:var(--cyan-dim);
+  }
+  .shape-btn:hover{border-color:var(--cyan-dim);color:var(--cyan)}
+  .shape-btn:hover .shape-ico{color:var(--cyan)}
+  .shape-btn.active{
+    border-color:var(--cyan);background:rgba(0,221,255,.1);color:var(--cyan);
+    box-shadow:0 0 12px rgba(0,221,255,.2);
+    text-shadow:0 0 6px rgba(0,221,255,.5);
+  }
+  .shape-btn.active .shape-ico{color:var(--cyan)}
+
+  .preset-list{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+  .preset-empty{font-size:10px;color:var(--cyan-dim);font-style:italic;letter-spacing:.04em}
+  .preset-btn{
+    padding:6px 10px;border:1px dashed var(--hairline-dim);background:transparent;border-radius:3px;
+    color:var(--cyan-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+    text-align:center;cursor:pointer;transition:all .2s;
+  }
+  .preset-btn:hover{border-color:var(--cyan);color:var(--cyan)}
+
+  /* ─── Mini-map ─── */
+  .mini-map{
+    margin-top:8px;
+    width:100%;height:130px;
+    border:1px solid var(--cyan);border-radius:4px;
+    background:rgba(0,0,0,.5);
+    position:relative;overflow:hidden;
+    box-shadow:0 0 14px rgba(0,221,255,.15);
+  }
+  .mini-map canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+
+  /* ─── Right keyboard hints ─── */
+  .hud-right{
+    position:fixed;bottom:170px;right:24px;z-index:10;
+    background:var(--bg-soft);border:1px solid var(--hairline);border-radius:4px;
+    padding:14px 16px;backdrop-filter:blur(8px);
+    color:var(--cyan-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;
+    line-height:2;
+  }
+  .hud-right .key{color:var(--cyan);font-weight:700;margin-right:8px;text-shadow:0 0 6px rgba(0,221,255,.4)}
+  .hud-right-toggle{
+    position:absolute;top:-1px;right:100%;
+    margin-right:6px;
+    padding:6px 9px;background:var(--bg-soft);border:1px solid var(--hairline);border-radius:4px;
+    color:var(--cyan-dim);font-size:10px;letter-spacing:.16em;
+    writing-mode:vertical-rl;text-orientation:mixed;
+  }
+
+  /* ─── Bottom timeline scrubber ─── */
+  .hud-timeline{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:10;
+    width:min(560px, 75vw);
+    background:var(--bg-soft);border:1px solid var(--hairline);border-radius:4px;
+    padding:14px 18px;backdrop-filter:blur(8px);
+  }
+  .timeline-presets{display:flex;justify-content:center;gap:6px;margin-bottom:10px}
+  .tp{
+    padding:5px 11px;border:1px solid var(--hairline-dim);border-radius:3px;
+    color:var(--cyan-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:.16em;
+    text-transform:uppercase;background:transparent;cursor:pointer;transition:all .15s;
+  }
+  .tp:hover{color:var(--cyan);border-color:var(--cyan-dim)}
+  .tp.active{color:var(--cyan);border-color:var(--cyan);background:rgba(0,221,255,.1);box-shadow:0 0 8px rgba(0,221,255,.2)}
+
+  .timeline-track{position:relative;height:4px;background:rgba(0,221,255,.15);border-radius:2px;cursor:pointer;margin:8px 0}
+  .timeline-fill{position:absolute;top:0;left:0;height:100%;background:linear-gradient(90deg, transparent, var(--cyan));border-radius:2px;width:60%;box-shadow:0 0 10px rgba(0,221,255,.4)}
+  .timeline-handle{position:absolute;top:50%;width:12px;height:12px;background:var(--cyan);border-radius:50%;transform:translate(-50%,-50%);left:60%;box-shadow:0 0 16px var(--cyan-glow);transition:transform .15s}
+  .timeline-handle:hover{transform:translate(-50%,-50%) scale(1.3)}
+
+  .timeline-meta{display:flex;justify-content:space-between;margin-top:6px;font-size:10px;letter-spacing:.1em;color:var(--cyan-dim)}
+
+  .timeline-controls{display:flex;justify-content:center;gap:5px;margin-top:10px;align-items:center}
+  .tc{
+    padding:4px 10px;border:1px solid var(--hairline-dim);border-radius:3px;
+    color:var(--cyan-dim);font-size:10px;letter-spacing:.1em;
+    background:transparent;cursor:pointer;transition:all .15s;
+  }
+  .tc:hover{color:var(--cyan);border-color:var(--cyan-dim)}
+  .tc.play{padding:4px 14px}
+  .tc.active{color:var(--cyan);border-color:var(--cyan);background:rgba(0,221,255,.1)}
+
+  /* ─── Hover tooltip on graph node ─── */
+  .node-tip{
+    position:fixed;z-index:20;pointer-events:none;
+    padding:10px 14px;background:rgba(0,8,20,.96);
+    border:1px solid var(--cyan);border-radius:4px;
+    color:var(--ink);font-family:var(--font-mono);font-size:11px;letter-spacing:.04em;
+    max-width:300px;
+    box-shadow:0 0 24px rgba(0,221,255,.3);
+    opacity:0;transition:opacity .15s;
+    transform:translate(12px, -50%);
+  }
+  .node-tip.visible{opacity:1}
+  .node-tip .nt-title{color:var(--cyan);font-weight:700;font-size:12px;margin-bottom:4px;text-shadow:0 0 6px rgba(0,221,255,.4)}
+  .node-tip .nt-meta{color:var(--cyan-dim);font-size:10px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+  .node-tip .nt-snip{color:var(--ink-dim);line-height:1.4;font-size:10px}
+  .node-tip .nt-tag{display:inline-block;padding:2px 6px;border:1px solid var(--hairline);border-radius:2px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;margin-right:4px}
+
+  /* ─── Loading state ─── */
+  .loader{
+    position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px;
+    background:#000;z-index:100;color:var(--cyan);font-family:var(--font-mono);font-size:12px;letter-spacing:.2em;
+    transition:opacity .6s;
+  }
+  .loader.hidden{opacity:0;pointer-events:none}
+  .loader-bar{width:240px;height:2px;background:rgba(0,221,255,.15);border-radius:1px;overflow:hidden;position:relative}
+  .loader-bar::after{
+    content:"";position:absolute;inset:0 100% 0 0;background:var(--cyan);box-shadow:0 0 12px var(--cyan-glow);
+    animation:load 1.6s var(--cyan) ease-out forwards;
+  }
+  @keyframes load { to { inset:0 } }
+
+  /* ─── reduced motion ─── */
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation-duration:.001ms !important;transition-duration:.001ms !important}
+  }
+
+  @media (max-width: 980px){
+    .hud-left{display:none}
+    .hud-right{display:none}
+    .hud-search{width:80vw}
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── Loading splash ─── -->
+<div class="loader" id="loader">
+  <div>BOOTING HERA · BRAIN</div>
+  <div class="loader-bar"></div>
+  <div style="font-size:10px;color:var(--cyan-dim)">v0.4 · WebGL · 800 nodes</div>
+</div>
+
+<div id="canvas-host"></div>
+<div class="scanlines"></div>
+<div class="vignette"></div>
+
+<!-- ─── HUD: top-left stats ─── -->
+<div class="hud-stats">
+  <div><span class="label">NODES:</span><span class="num" id="statNodes">0</span></div>
+  <div><span class="label">VISIBLE:</span><span class="num" id="statVisible">0</span></div>
+  <div><span class="label">LINKS:</span><span class="num" id="statLinks">0</span></div>
+  <div><span class="label">FPS:</span><span class="num" id="statFPS">60</span></div>
+  <div class="stable">SIM STABLE</div>
+</div>
+
+<!-- ─── HUD: top-right brand ─── -->
+<div class="hud-brand">
+  <span class="b">HERA · BRAIN</span>
+  <a href="./hera.html">← BACK TO HERA</a>
+</div>
+
+<!-- ─── HUD: top-center search ─── -->
+<div class="hud-search">
+  <div class="hud-search-inner panel-corner">
+    <span class="icon">⌕</span>
+    <input id="searchInput" placeholder="Search notes…  #tag  ~semantic   (Tab to complete)" autocomplete="off" spellcheck="false" />
+  </div>
+</div>
+
+<!-- ─── HUD: left settings panel ─── -->
+<div class="hud-left">
+  <div class="control-group panel-corner">
+    <div class="control-tabs">
+      <button class="control-tab active" data-tab="layout">⚙</button>
+      <button class="control-tab" data-tab="filter">▣</button>
+    </div>
+
+    <div class="tab-pane" data-tab="layout">
+      <div class="slider-row">
+        <div class="slider-label">SPREAD <span class="val" id="lblSpread">3.5×</span></div>
+        <input type="range" min="1" max="8" step=".1" value="3.5" class="slider" id="sliderSpread">
+      </div>
+      <div class="slider-row">
+        <div class="slider-label">NODE SIZE <span class="val" id="lblNode">1.5×</span></div>
+        <input type="range" min=".5" max="4" step=".1" value="1.5" class="slider" id="sliderNode">
+      </div>
+      <div class="slider-row">
+        <div class="slider-label">SUPERNODE SIZE <span class="val" id="lblSuper">3.0×</span></div>
+        <input type="range" min="1" max="6" step=".1" value="3.0" class="slider" id="sliderSuper">
+      </div>
+      <div class="slider-row">
+        <div class="slider-label">ULTRANODE SIZE <span class="val" id="lblUltra">4.0×</span></div>
+        <input type="range" min="2" max="8" step=".1" value="4.0" class="slider" id="sliderUltra">
+      </div>
+
+      <div class="group-title" style="margin-top:18px">SHAPE</div>
+      <div class="shape-grid">
+        <button class="shape-btn" data-shape="natural">
+          <span class="shape-ico">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+              <circle cx="12" cy="12" r="3"/>
+              <circle cx="6" cy="6" r="2"/>
+              <circle cx="18" cy="7" r="2"/>
+              <circle cx="5" cy="17" r="2"/>
+              <circle cx="19" cy="17" r="2"/>
+            </svg>
+          </span>
+          Natural
+        </button>
+        <button class="shape-btn" data-shape="sun">
+          <span class="shape-ico">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+              <circle cx="12" cy="12" r="3"/>
+              <line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/>
+              <line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/>
+              <line x1="5" y1="5" x2="8" y2="8"/><line x1="16" y1="16" x2="19" y2="19"/>
+              <line x1="19" y1="5" x2="16" y2="8"/><line x1="8" y1="16" x2="5" y2="19"/>
+            </svg>
+          </span>
+          The Sun
+        </button>
+        <button class="shape-btn" data-shape="saturn">
+          <span class="shape-ico">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+              <circle cx="12" cy="12" r="4"/>
+              <ellipse cx="12" cy="12" rx="10" ry="3"/>
+            </svg>
+          </span>
+          Saturn
+        </button>
+        <button class="shape-btn active" data-shape="brain">
+          <span class="shape-ico">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+              <path d="M9 4 C 5 4, 3 7, 5 10 C 3 12, 4 16, 8 17 L 8 20 L 12 20 L 12 4 Z"/>
+              <path d="M15 4 C 19 4, 21 7, 19 10 C 21 12, 20 16, 16 17 L 16 20 L 12 20 L 12 4 Z"/>
+            </svg>
+          </span>
+          Brain
+        </button>
+        <button class="shape-btn" data-shape="milkyway">
+          <span class="shape-ico">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+              <path d="M3 12 C 6 6, 18 6, 21 12 C 18 18, 6 18, 3 12 Z"/>
+              <path d="M7 12 C 9 9, 15 9, 17 12 C 15 15, 9 15, 7 12 Z"/>
+            </svg>
+          </span>
+          Milky Way
+        </button>
+        <button class="shape-btn" data-shape="boxes">
+          <span class="shape-ico">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+              <rect x="3" y="3" width="7" height="7"/>
+              <rect x="14" y="3" width="7" height="7"/>
+              <rect x="3" y="14" width="7" height="7"/>
+              <rect x="14" y="14" width="7" height="7"/>
+            </svg>
+          </span>
+          Tag Boxes
+        </button>
+      </div>
+
+      <div class="group-title" style="margin-top:18px">PRESETS</div>
+      <button class="preset-btn">[ + SAVE PRESET ]</button>
+      <div class="preset-empty" style="margin-top:6px">No saved presets</div>
+    </div>
+
+    <div class="tab-pane" data-tab="filter" hidden>
+      <div class="group-title">VIEW</div>
+      <div class="preset-list">
+        <button class="preset-btn">[ ALL NOTES ]</button>
+        <button class="preset-btn">[ FAVOURITES ]</button>
+        <button class="preset-btn">[ DEFAULT ]</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="mini-map">
+    <canvas id="mini"></canvas>
+  </div>
+</div>
+
+<!-- ─── HUD: right keyboard hints ─── -->
+<div class="hud-right panel-corner">
+  <div><span class="key">/</span>SEARCH</div>
+  <div><span class="key">R</span>RESET VIEW</div>
+  <div><span class="key">F</span>FAVOURITE</div>
+  <div><span class="key">ESC</span>CLOSE</div>
+  <div><span class="key">H</span>FOCUS</div>
+  <div><span class="key">]</span>EXPAND</div>
+  <div><span class="key">[</span>COLLAPSE</div>
+  <div><span class="key">RIGHT-DRAG</span>DRAG</div>
+</div>
+
+<!-- ─── HUD: bottom timeline ─── -->
+<div class="hud-timeline panel-corner">
+  <div class="timeline-presets">
+    <button class="tp" data-tp="1d">1D</button>
+    <button class="tp" data-tp="1w">1W</button>
+    <button class="tp" data-tp="1m">1M</button>
+    <button class="tp" data-tp="1y">1Y</button>
+    <button class="tp active" data-tp="all">ALL</button>
+  </div>
+  <div class="timeline-track" id="timelineTrack">
+    <div class="timeline-fill" id="timelineFill"></div>
+    <div class="timeline-handle" id="timelineHandle"></div>
+  </div>
+  <div class="timeline-meta">
+    <span id="timelineStart">Feb 14, 26</span>
+    <span id="timelineEnd">Apr 18, 26</span>
+  </div>
+  <div class="timeline-controls">
+    <button class="tc" title="Reset">↺</button>
+    <button class="tc play" id="playBtn" title="Play">▶</button>
+    <button class="tc active" data-speed="1">1×</button>
+    <button class="tc" data-speed="2">2×</button>
+    <button class="tc" data-speed="5">5×</button>
+    <button class="tc" data-speed="10">10×</button>
+    <button class="tc" data-speed="20">20×</button>
+  </div>
+</div>
+
+<!-- ─── Hover tooltip ─── -->
+<div class="node-tip" id="nodeTip">
+  <div class="nt-title">—</div>
+  <div class="nt-meta">—</div>
+  <div class="nt-snip">—</div>
+</div>
+
+<script>
+(() => {
+"use strict";
+
+// ════════════════════════════════════════════════════════════════
+// GENERATE FAKE VAULT DATA
+// ════════════════════════════════════════════════════════════════
+
+const TAGS = [
+  { name:"project",  color:0x00DDFF, label:"PROJECT" },
+  { name:"note",     color:0xFF55C4, label:"NOTE" },
+  { name:"journal",  color:0x66FF99, label:"JOURNAL" },
+  { name:"book",     color:0xFFE066, label:"BOOK" },
+  { name:"idea",     color:0xB580FF, label:"IDEA" },
+  { name:"trade",    color:0xFF9F40, label:"TRADE" },
+];
+
+// Realistic title fragments (mixed for variety)
+const PROJECT_NAMES = ["Meteora API","Biskin Studio","HERA Brain","Xeneon Widgets","The Oracle","sec-form4-parser","mini-react","python-dsa","EXFIL demo","Motion sites","Apple Card payoff","Olympiq capstone","LFVI","Java algorithms"];
+const NOTE_TOPICS   = ["Vercel deploy notes","Cold outreach v3","Color theory","Spring easings","WebGL basics","FastAPI patterns","Pydantic typing","Three.js scenes","Touch targets","CSS grid quirks","Scroll-driven anim","React server components","Edge functions","Form validation"];
+const JOURNAL_DATES = ["Morning brief","Evening review","Week ahead","Lessons learned","Bug post-mortem","Standup notes","1:1 prep","Weekly metrics","Coffee thoughts"];
+const BOOK_TITLES   = ["Dune (re-read)","Designing Data-Intensive","Made to Stick","Atomic Habits","The Mom Test","Range","Refactoring (Fowler)","High Output Mgmt","Show Your Work","Hyperion","The Pragmatic Programmer"];
+const IDEAS         = ["Voice-driven IDE","Trading bot UI","ML feature store","Personal CRM","Email triage agent","RSS-to-podcast","Code review bot","Music recommender","Habit tracker","Weather alerts","Calendar AI","Receipt scanner","Habit chains"];
+const TRADES        = ["NVDA Form-4 buy","AAPL momentum entry","TSLA stop loss","SPY short hedge","MSFT 30d hold","Embargo backtest","Form-4 anomaly","Insider selling NVDA","Crypto rebalance","Risk parity tweak"];
+
+const TITLES_BY_TAG = {
+  project: PROJECT_NAMES,
+  note:    NOTE_TOPICS,
+  journal: JOURNAL_DATES,
+  book:    BOOK_TITLES,
+  idea:    IDEAS,
+  trade:   TRADES,
+};
+
+const N_NODES = 800;
+const seedrand = (() => { let s = 1234; return () => { s = (s * 9301 + 49297) % 233280; return s / 233280; }; })();
+const pick  = arr => arr[Math.floor(seedrand() * arr.length)];
+const rand  = (a,b) => a + (b - a) * seedrand();
+const irand = (a,b) => Math.floor(rand(a, b + 1));
+
+const nodes = [];
+const links = [];
+const titleSet = new Set();
+
+// Build nodes — assign tag, generate title from tag pool
+for (let i = 0; i < N_NODES; i++){
+  const tag = TAGS[irand(0, TAGS.length - 1)];
+  const pool = TITLES_BY_TAG[tag.name];
+  let title = pick(pool);
+  // Disambiguate duplicates with a suffix
+  let n = 2;
+  while (titleSet.has(title)){ title = `${pick(pool)} (${n++})`; }
+  titleSet.add(title);
+
+  // Date: distributed across last 60 days, weighted toward recent
+  const daysAgo = Math.floor(Math.pow(seedrand(), 1.6) * 60);
+  const ts = Date.now() - daysAgo * 86400000;
+
+  nodes.push({
+    id: i,
+    title,
+    tag: tag.name,
+    color: tag.color,
+    size: 1, // computed after links
+    ts,
+    snippet: pickSnippet(tag.name),
+    favorite: seedrand() < 0.04,
+  });
+}
+
+function pickSnippet(tag){
+  const snippets = {
+    project: "Active build. Stack notes + recent commits. Last touched today.",
+    note:    "Reference / scratch. Worth keeping for the next time this comes up.",
+    journal: "Daily log entry. Mood, blockers, wins, what shipped.",
+    book:    "Reading notes + pull quotes. Re-read if revisiting the topic.",
+    idea:    "Half-baked. Don't act yet, let it marinate. Linked to other ideas.",
+    trade:   "Position log. Entry, exit, P&L, what the model said vs. what happened.",
+  };
+  return snippets[tag] || "—";
+}
+
+// Build links — most edges go between nodes with shared tags + a few cross-tag
+function makeLinks(){
+  const buckets = {};
+  for (const n of nodes){
+    (buckets[n.tag] = buckets[n.tag] || []).push(n);
+  }
+  // Within-tag links (cluster tightly)
+  for (const tag in buckets){
+    const arr = buckets[tag];
+    for (let i = 0; i < arr.length; i++){
+      const k = irand(1, 3); // 1-3 within-tag links
+      for (let j = 0; j < k; j++){
+        const a = arr[i].id;
+        const b = arr[irand(0, arr.length - 1)].id;
+        if (a !== b) links.push({ a, b });
+      }
+    }
+  }
+  // Cross-tag links (sparser)
+  for (let i = 0; i < N_NODES * 0.3; i++){
+    const a = irand(0, N_NODES - 1);
+    const b = irand(0, N_NODES - 1);
+    if (a !== b) links.push({ a, b });
+  }
+}
+makeLinks();
+
+// Compute node sizes — count neighbors (degree)
+const degree = new Array(N_NODES).fill(0);
+for (const l of links){ degree[l.a]++; degree[l.b]++; }
+let maxDeg = 1;
+for (const d of degree) if (d > maxDeg) maxDeg = d;
+for (let i = 0; i < N_NODES; i++){
+  const d = degree[i];
+  const norm = d / maxDeg;
+  if (norm > 0.7)      nodes[i].size = 4; // ultranode
+  else if (norm > 0.4) nodes[i].size = 3; // supernode
+  else if (norm > 0.2) nodes[i].size = 2;
+  else                 nodes[i].size = 1;
+}
+
+// Update HUD numbers
+document.getElementById("statNodes").textContent = N_NODES;
+document.getElementById("statVisible").textContent = N_NODES;
+document.getElementById("statLinks").textContent = links.length;
+
+// ════════════════════════════════════════════════════════════════
+// LAYOUT PRESETS — compute (x,y,z) for each node by shape
+// ════════════════════════════════════════════════════════════════
+
+let SPREAD = 3.5;
+
+const layouts = {
+  natural(i){
+    // Force-ish blob — random points in sphere weighted toward centre
+    const r = Math.pow(seedrandIdx(i), 0.5) * 60 * SPREAD;
+    const theta = seedrandIdx(i + 1) * Math.PI * 2;
+    const phi   = Math.acos(2 * seedrandIdx(i + 2) - 1);
+    return [r * Math.sin(phi) * Math.cos(theta), r * Math.sin(phi) * Math.sin(theta), r * Math.cos(phi)];
+  },
+  sun(i){
+    // Concentric shells based on degree (high-degree = inner)
+    const n = nodes[i];
+    const ringIdx = 4 - n.size; // ultranode (4) → ring 0
+    const r = (15 + ringIdx * 30) * SPREAD;
+    const theta = (i / N_NODES) * Math.PI * 2 * 6 + ringIdx * .7;
+    const phi = Math.acos(2 * (i / N_NODES) - 1);
+    return [r * Math.sin(phi) * Math.cos(theta), r * Math.sin(phi) * Math.sin(theta), r * Math.cos(phi) * .3];
+  },
+  saturn(i){
+    // Disk on XZ plane with ring banding
+    const r = (10 + (i % 7) * 14 + seedrandIdx(i) * 5) * SPREAD;
+    const theta = (i / N_NODES) * Math.PI * 2 * 4;
+    const y = (seedrandIdx(i + 1) - .5) * 8;
+    return [r * Math.cos(theta), y, r * Math.sin(theta)];
+  },
+  brain(i){
+    // Two hemispheres — left/right brain
+    const side = (i % 2 === 0) ? -1 : 1;
+    const r = (30 + seedrandIdx(i) * 60) * SPREAD * .5;
+    const theta = seedrandIdx(i + 1) * Math.PI * 2;
+    const phi   = Math.acos(2 * seedrandIdx(i + 2) - 1);
+    const x = side * (35 * SPREAD * .5 + r * Math.sin(phi) * Math.cos(theta) * .5);
+    const y = r * Math.sin(phi) * Math.sin(theta) * .8;
+    const z = r * Math.cos(phi) * .8;
+    return [x, y, z];
+  },
+  milkyway(i){
+    // Spiral galaxy
+    const arm = i % 3; // 3 arms
+    const t = i / N_NODES * 6 + arm * (Math.PI * 2 / 3);
+    const r = (5 + Math.pow(i / N_NODES, .8) * 80) * SPREAD;
+    const wobble = (seedrandIdx(i) - .5) * 15;
+    return [r * Math.cos(t) + wobble, (seedrandIdx(i + 5) - .5) * 8, r * Math.sin(t) + wobble];
+  },
+  boxes(i){
+    // Cluster by tag — each tag in its own cube
+    const tagIdx = TAGS.findIndex(t => t.name === nodes[i].tag);
+    const cols = 3;
+    const cx = ((tagIdx % cols) - 1) * 80 * SPREAD;
+    const cy = (Math.floor(tagIdx / cols) - 0.5) * 80 * SPREAD;
+    const cz = 0;
+    const r = (seedrandIdx(i) * 25) * SPREAD * .4;
+    const theta = seedrandIdx(i + 1) * Math.PI * 2;
+    const phi = Math.acos(2 * seedrandIdx(i + 2) - 1);
+    return [cx + r * Math.sin(phi) * Math.cos(theta),
+            cy + r * Math.sin(phi) * Math.sin(theta),
+            cz + r * Math.cos(phi)];
+  },
+};
+
+// Deterministic pseudo-random per index (same node always lands same place)
+function seedrandIdx(idx){
+  let s = (idx * 9301 + 49297) % 233280;
+  s = (s * 9301 + 49297) % 233280;
+  return s / 233280;
+}
+
+let currentShape = "brain";
+let nodePositions = nodes.map((n, i) => layouts[currentShape](i));
+let nodeTargets = nodePositions.map(p => [...p]);
+
+// ════════════════════════════════════════════════════════════════
+// THREE.JS SCENE
+// ════════════════════════════════════════════════════════════════
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 4000);
+camera.position.set(0, 0, 380);
+
+const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0x000000, 0);
+document.getElementById("canvas-host").appendChild(renderer.domElement);
+
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ─── NODES (Points cloud) ───
+let NODE_SIZE = 1.5, SUPER_SIZE = 3.0, ULTRA_SIZE = 4.0;
+
+function buildNodes(){
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(N_NODES * 3);
+  const col = new Float32Array(N_NODES * 3);
+  const sz  = new Float32Array(N_NODES);
+  for (let i = 0; i < N_NODES; i++){
+    pos[i*3] = nodePositions[i][0]; pos[i*3+1] = nodePositions[i][1]; pos[i*3+2] = nodePositions[i][2];
+    const c = new THREE.Color(nodes[i].color);
+    col[i*3] = c.r; col[i*3+1] = c.g; col[i*3+2] = c.b;
+    const baseSize = nodes[i].size;
+    sz[i] = baseSize === 4 ? ULTRA_SIZE * 4 : baseSize === 3 ? SUPER_SIZE * 4 : baseSize === 2 ? NODE_SIZE * 3 : NODE_SIZE * 2;
+  }
+  geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute("color", new THREE.BufferAttribute(col, 3));
+  geo.setAttribute("size", new THREE.BufferAttribute(sz, 1));
+  return geo;
+}
+
+// Sprite texture for soft-glow point
+function makeNodeTexture(){
+  const c = document.createElement("canvas");
+  c.width = c.height = 64;
+  const ctx = c.getContext("2d");
+  const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  g.addColorStop(0,    "rgba(255,255,255,1)");
+  g.addColorStop(0.18, "rgba(255,255,255,.8)");
+  g.addColorStop(0.45, "rgba(255,255,255,.18)");
+  g.addColorStop(1,    "rgba(255,255,255,0)");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 64, 64);
+  return new THREE.CanvasTexture(c);
+}
+
+const nodeMat = new THREE.ShaderMaterial({
+  uniforms: { tex: { value: makeNodeTexture() } },
+  vertexShader: `
+    attribute float size;
+    varying vec3 vColor;
+    void main() {
+      vColor = color;
+      vec4 mv = modelViewMatrix * vec4(position, 1.0);
+      gl_PointSize = size * (320.0 / -mv.z);
+      gl_Position = projectionMatrix * mv;
+    }`,
+  fragmentShader: `
+    uniform sampler2D tex;
+    varying vec3 vColor;
+    void main() {
+      vec4 t = texture2D(tex, gl_PointCoord);
+      if (t.a < 0.04) discard;
+      gl_FragColor = vec4(vColor, 1.0) * t;
+    }`,
+  vertexColors: true,
+  transparent: true,
+  depthWrite: false,
+  blending: THREE.AdditiveBlending,
+});
+let nodeGeom = buildNodes();
+const nodeMesh = new THREE.Points(nodeGeom, nodeMat);
+scene.add(nodeMesh);
+
+// ─── LINKS (LineSegments) ───
+function buildLinks(){
+  const pos = new Float32Array(links.length * 6);
+  const col = new Float32Array(links.length * 6);
+  for (let i = 0; i < links.length; i++){
+    const a = nodePositions[links[i].a], b = nodePositions[links[i].b];
+    pos[i*6]   = a[0]; pos[i*6+1] = a[1]; pos[i*6+2] = a[2];
+    pos[i*6+3] = b[0]; pos[i*6+4] = b[1]; pos[i*6+5] = b[2];
+    // Faint cyan, slightly tinted toward each end's color
+    col[i*6]   = .15; col[i*6+1] = .55; col[i*6+2] = .7;
+    col[i*6+3] = .15; col[i*6+4] = .55; col[i*6+5] = .7;
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute("color", new THREE.BufferAttribute(col, 3));
+  return geo;
+}
+const linkMat = new THREE.LineBasicMaterial({
+  vertexColors: true,
+  transparent: true,
+  opacity: 0.18,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false,
+});
+let linkGeom = buildLinks();
+const linkMesh = new THREE.LineSegments(linkGeom, linkMat);
+scene.add(linkMesh);
+
+// ════════════════════════════════════════════════════════════════
+// CAMERA CONTROLS — manual orbit (no OrbitControls dep)
+// ════════════════════════════════════════════════════════════════
+
+let camTheta = 0, camPhi = Math.PI / 2 - .2, camDist = 380;
+let targetTheta = 0, targetPhi = Math.PI / 2 - .2, targetDist = 380;
+let isDragging = false, dragX = 0, dragY = 0;
+
+const updateCam = () => {
+  camera.position.x = camDist * Math.sin(camPhi) * Math.cos(camTheta);
+  camera.position.y = camDist * Math.cos(camPhi);
+  camera.position.z = camDist * Math.sin(camPhi) * Math.sin(camTheta);
+  camera.lookAt(0, 0, 0);
+};
+
+document.addEventListener("mousedown", e => {
+  if (e.target.closest(".panel,.hud-search,.hud-left,.hud-right,.hud-timeline,.hud-brand,.hud-stats")) return;
+  isDragging = true; dragX = e.clientX; dragY = e.clientY;
+  document.body.style.cursor = "grabbing";
+});
+document.addEventListener("mouseup", () => { isDragging = false; document.body.style.cursor = "" });
+document.addEventListener("mousemove", e => {
+  if (!isDragging) return;
+  targetTheta -= (e.clientX - dragX) * 0.005;
+  targetPhi   -= (e.clientY - dragY) * 0.005;
+  targetPhi = Math.max(0.1, Math.min(Math.PI - 0.1, targetPhi));
+  dragX = e.clientX; dragY = e.clientY;
+});
+window.addEventListener("wheel", e => {
+  if (e.target.closest(".panel,.hud-search,.hud-left,.hud-right,.hud-timeline")) return;
+  e.preventDefault();
+  targetDist *= (1 + e.deltaY * 0.001);
+  targetDist = Math.max(120, Math.min(900, targetDist));
+}, { passive:false });
+
+// ════════════════════════════════════════════════════════════════
+// SHAPE SWITCHING + ANIMATION
+// ════════════════════════════════════════════════════════════════
+
+function setShape(name){
+  currentShape = name;
+  document.querySelectorAll(".shape-btn").forEach(b => b.classList.toggle("active", b.dataset.shape === name));
+  // compute new targets
+  for (let i = 0; i < N_NODES; i++){
+    nodeTargets[i] = layouts[name](i);
+  }
+}
+document.querySelectorAll(".shape-btn").forEach(btn => {
+  btn.addEventListener("click", () => setShape(btn.dataset.shape));
+});
+
+// Sliders
+document.getElementById("sliderSpread").addEventListener("input", e => {
+  SPREAD = parseFloat(e.target.value);
+  document.getElementById("lblSpread").textContent = SPREAD.toFixed(1) + "×";
+  setShape(currentShape); // recompute layout targets
+});
+const updateSizes = () => {
+  NODE_SIZE  = parseFloat(document.getElementById("sliderNode").value);
+  SUPER_SIZE = parseFloat(document.getElementById("sliderSuper").value);
+  ULTRA_SIZE = parseFloat(document.getElementById("sliderUltra").value);
+  document.getElementById("lblNode").textContent  = NODE_SIZE.toFixed(1) + "×";
+  document.getElementById("lblSuper").textContent = SUPER_SIZE.toFixed(1) + "×";
+  document.getElementById("lblUltra").textContent = ULTRA_SIZE.toFixed(1) + "×";
+  // rebuild size attribute
+  const sz = nodeGeom.getAttribute("size").array;
+  for (let i = 0; i < N_NODES; i++){
+    const baseSize = nodes[i].size;
+    sz[i] = baseSize === 4 ? ULTRA_SIZE * 4 : baseSize === 3 ? SUPER_SIZE * 4 : baseSize === 2 ? NODE_SIZE * 3 : NODE_SIZE * 2;
+  }
+  nodeGeom.getAttribute("size").needsUpdate = true;
+};
+document.getElementById("sliderNode").addEventListener("input", updateSizes);
+document.getElementById("sliderSuper").addEventListener("input", updateSizes);
+document.getElementById("sliderUltra").addEventListener("input", updateSizes);
+
+// ════════════════════════════════════════════════════════════════
+// SEARCH — dim out non-matching nodes
+// ════════════════════════════════════════════════════════════════
+
+let searchQuery = "";
+document.getElementById("searchInput").addEventListener("input", e => {
+  searchQuery = e.target.value.trim().toLowerCase();
+  // Recompute colors based on match
+  const col = nodeGeom.getAttribute("color").array;
+  let visible = 0;
+  for (let i = 0; i < N_NODES; i++){
+    const matches = !searchQuery ||
+      nodes[i].title.toLowerCase().includes(searchQuery) ||
+      ("#" + nodes[i].tag).includes(searchQuery);
+    if (matches) visible++;
+    const c = new THREE.Color(matches ? nodes[i].color : 0x223344);
+    col[i*3] = c.r; col[i*3+1] = c.g; col[i*3+2] = c.b;
+  }
+  nodeGeom.getAttribute("color").needsUpdate = true;
+  document.getElementById("statVisible").textContent = visible;
+});
+
+// ════════════════════════════════════════════════════════════════
+// HOVER TOOLTIP — raycaster
+// ════════════════════════════════════════════════════════════════
+
+const ray = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+ray.params.Points.threshold = 4;
+const tip = document.getElementById("nodeTip");
+
+document.addEventListener("mousemove", e => {
+  if (e.target.closest(".panel,.hud-search,.hud-left,.hud-right,.hud-timeline,.hud-brand,.hud-stats")){
+    tip.classList.remove("visible"); return;
+  }
+  mouse.x =  (e.clientX / window.innerWidth)  * 2 - 1;
+  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+  ray.setFromCamera(mouse, camera);
+  const hits = ray.intersectObject(nodeMesh);
+  if (hits.length){
+    const idx = hits[0].index;
+    const n = nodes[idx];
+    tip.querySelector(".nt-title").textContent = n.title;
+    tip.querySelector(".nt-meta").innerHTML = `<span class="nt-tag">#${n.tag}</span> · ${new Date(n.ts).toLocaleDateString()} · degree ${degree[idx]}`;
+    tip.querySelector(".nt-snip").textContent = n.snippet;
+    tip.style.left = e.clientX + "px";
+    tip.style.top  = e.clientY + "px";
+    tip.classList.add("visible");
+  } else {
+    tip.classList.remove("visible");
+  }
+});
+
+// ════════════════════════════════════════════════════════════════
+// MINI-MAP — secondary tiny rendering
+// ════════════════════════════════════════════════════════════════
+
+const miniRenderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+const miniCanvas = document.getElementById("mini");
+const setMiniSize = () => {
+  const r = miniCanvas.getBoundingClientRect();
+  miniRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+  miniRenderer.setSize(r.width, r.height, false);
+  miniCanvas.width = r.width; miniCanvas.height = r.height;
+};
+miniCanvas.parentNode.appendChild(miniRenderer.domElement);
+miniRenderer.domElement.style.cssText = "position:absolute;inset:0;width:100%;height:100%";
+miniCanvas.remove();
+setMiniSize();
+window.addEventListener("resize", setMiniSize);
+const miniCam = new THREE.PerspectiveCamera(60, 1, 1, 4000);
+
+// ════════════════════════════════════════════════════════════════
+// TIMELINE — control which nodes are visible by date
+// ════════════════════════════════════════════════════════════════
+
+let timelinePos = 1.0; // 0 = oldest only, 1 = all
+const fillEl   = document.getElementById("timelineFill");
+const handleEl = document.getElementById("timelineHandle");
+const trackEl  = document.getElementById("timelineTrack");
+const setTimelinePos = v => {
+  timelinePos = Math.max(0, Math.min(1, v));
+  fillEl.style.width = (timelinePos * 100) + "%";
+  handleEl.style.left = (timelinePos * 100) + "%";
+};
+trackEl.addEventListener("click", e => {
+  const r = trackEl.getBoundingClientRect();
+  setTimelinePos((e.clientX - r.left) / r.width);
+});
+document.querySelectorAll(".tp").forEach(b => {
+  b.addEventListener("click", () => {
+    document.querySelectorAll(".tp").forEach(x => x.classList.toggle("active", x === b));
+  });
+});
+document.querySelectorAll("[data-speed]").forEach(b => {
+  b.addEventListener("click", () => {
+    document.querySelectorAll("[data-speed]").forEach(x => x.classList.toggle("active", x === b));
+  });
+});
+let isPlaying = false;
+document.getElementById("playBtn").addEventListener("click", function(){
+  isPlaying = !isPlaying;
+  this.textContent = isPlaying ? "⏸" : "▶";
+});
+setTimelinePos(0.6);
+
+// ════════════════════════════════════════════════════════════════
+// TAB SWITCHING (left panel)
+// ════════════════════════════════════════════════════════════════
+document.querySelectorAll(".control-tab").forEach(t => {
+  t.addEventListener("click", () => {
+    document.querySelectorAll(".control-tab").forEach(x => x.classList.toggle("active", x === t));
+    document.querySelectorAll(".tab-pane").forEach(p => p.hidden = (p.dataset.tab !== t.dataset.tab));
+  });
+});
+
+// ════════════════════════════════════════════════════════════════
+// KEYBOARD SHORTCUTS
+// ════════════════════════════════════════════════════════════════
+document.addEventListener("keydown", e => {
+  if (e.target.tagName === "INPUT") return;
+  if (e.key === "/"){ e.preventDefault(); document.getElementById("searchInput").focus(); }
+  if (e.key === "r" || e.key === "R"){ targetTheta = 0; targetPhi = Math.PI/2 - .2; targetDist = 380; }
+  if (e.key === "Escape"){ document.getElementById("searchInput").value = ""; document.getElementById("searchInput").dispatchEvent(new Event("input")); }
+});
+
+// ════════════════════════════════════════════════════════════════
+// MAIN RENDER LOOP
+// ════════════════════════════════════════════════════════════════
+
+let lastFrame = performance.now();
+let frameCount = 0;
+let lastFPS = performance.now();
+
+function animate(){
+  requestAnimationFrame(animate);
+  const now = performance.now();
+  const dt = Math.min(0.05, (now - lastFrame) / 1000);
+  lastFrame = now;
+
+  // damped camera
+  camTheta += (targetTheta - camTheta) * 0.12;
+  camPhi   += (targetPhi   - camPhi)   * 0.12;
+  camDist  += (targetDist  - camDist)  * 0.12;
+  // gentle auto-rotate when idle
+  if (!isDragging) targetTheta += dt * 0.05;
+  updateCam();
+
+  // tween node positions toward targets
+  const pos = nodeGeom.getAttribute("position").array;
+  let stillMoving = false;
+  for (let i = 0; i < N_NODES; i++){
+    for (let k = 0; k < 3; k++){
+      const cur = pos[i*3 + k], tgt = nodeTargets[i][k];
+      const next = cur + (tgt - cur) * 0.06;
+      pos[i*3 + k] = next;
+      if (Math.abs(tgt - cur) > 0.01) stillMoving = true;
+    }
+    nodePositions[i][0] = pos[i*3];
+    nodePositions[i][1] = pos[i*3+1];
+    nodePositions[i][2] = pos[i*3+2];
+  }
+  nodeGeom.getAttribute("position").needsUpdate = true;
+
+  // rebuild link positions to follow nodes
+  const lpos = linkGeom.getAttribute("position").array;
+  for (let i = 0; i < links.length; i++){
+    const a = nodePositions[links[i].a], b = nodePositions[links[i].b];
+    lpos[i*6]   = a[0]; lpos[i*6+1] = a[1]; lpos[i*6+2] = a[2];
+    lpos[i*6+3] = b[0]; lpos[i*6+4] = b[1]; lpos[i*6+5] = b[2];
+  }
+  linkGeom.getAttribute("position").needsUpdate = true;
+
+  // playback advance the timeline
+  if (isPlaying){
+    const speed = parseInt((document.querySelector("[data-speed].active") || {}).dataset?.speed || 1);
+    setTimelinePos(timelinePos + dt * 0.04 * speed);
+    if (timelinePos >= 1) { isPlaying = false; document.getElementById("playBtn").textContent = "▶"; }
+  }
+
+  // dim/hide nodes outside timeline window
+  const col = nodeGeom.getAttribute("color").array;
+  const now60 = Date.now();
+  const oldestTs = now60 - 60 * 86400000;
+  const cutoffTs = oldestTs + (now60 - oldestTs) * timelinePos;
+  let visible = 0;
+  for (let i = 0; i < N_NODES; i++){
+    const inWindow = nodes[i].ts <= cutoffTs;
+    const matches = !searchQuery ||
+      nodes[i].title.toLowerCase().includes(searchQuery) ||
+      ("#" + nodes[i].tag).includes(searchQuery);
+    const show = inWindow && matches;
+    if (show) visible++;
+    if (show){
+      const c = new THREE.Color(nodes[i].color);
+      col[i*3] = c.r; col[i*3+1] = c.g; col[i*3+2] = c.b;
+    } else {
+      col[i*3] = .04; col[i*3+1] = .08; col[i*3+2] = .12;
+    }
+  }
+  nodeGeom.getAttribute("color").needsUpdate = true;
+  document.getElementById("statVisible").textContent = visible;
+
+  renderer.render(scene, camera);
+
+  // mini-map (top-down ortho-ish)
+  miniCam.position.set(0, 600, 0);
+  miniCam.lookAt(0, 0, 0);
+  miniRenderer.render(scene, miniCam);
+
+  // FPS
+  frameCount++;
+  if (now - lastFPS > 500){
+    document.getElementById("statFPS").textContent = Math.round(frameCount * 1000 / (now - lastFPS));
+    frameCount = 0; lastFPS = now;
+  }
+}
+
+// hide loader after a beat
+setTimeout(() => document.getElementById("loader").classList.add("hidden"), 800);
+animate();
+
+})();
+</script>
+</body>
+</html>
