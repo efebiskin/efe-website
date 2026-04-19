@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>HERA — your assistant.</title>
+<meta name="description" content="HERA · personal AI assistant with desktop control, persistent memory, voice, and a 42-tool brain. Web interface for the Jarvis-style local agent." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* ════════════════════════════════════════════════════════════════
+     HERA — Miami palette (sunset → cyan).
+     Built as a single-file SPA: chat / memory / tools / history /
+     settings, all view-switched in JS. Talks to a local HERA
+     backend if configured (POST /chat, GET /memory, GET /tools,
+     GET /status), falls back to a mock mode for the demo.
+     ════════════════════════════════════════════════════════════════ */
+
+  :root{
+    /* MIAMI PALETTE — pulled from the reference image */
+    --cyan:        #33FFFF;
+    --cyan-deep:   #00C7E5;
+    --cyan-soft:   #A4F0FA;
+    --pink:        #F164B6;
+    --pink-soft:   #F698C9;
+    --pink-deep:   #D43A95;
+    --white:       #E5FCFD;
+    --purple:      #7C4DFF;
+    --indigo:      #2A1A5E;
+
+    /* Surface tones */
+    --bg:          #0A0B1F;
+    --bg-soft:     #12132E;
+    --bg-deeper:   #060718;
+    --card:        rgba(255, 255, 255, .035);
+    --card-soft:   rgba(255, 255, 255, .02);
+    --card-edge:   rgba(255, 255, 255, .08);
+    --card-glow:   rgba(51, 255, 255, .12);
+    --hairline:    rgba(255, 255, 255, .06);
+
+    /* Type */
+    --ink:         var(--white);
+    --ink-dim:     rgba(229, 252, 253, .62);
+    --ink-mute:    rgba(229, 252, 253, .35);
+
+    /* The signature gradient */
+    --grad: linear-gradient(135deg, var(--cyan) 0%, var(--pink) 100%);
+    --grad-soft: linear-gradient(135deg, rgba(51,255,255,.12), rgba(241,100,182,.1));
+
+    /* Easings */
+    --ease-out-quart:   cubic-bezier(.22, 1, .36, 1);
+    --ease-spring:      cubic-bezier(.34, 1.56, .64, 1);
+    --ease-spring-soft: cubic-bezier(.5, 1.25, .6, 1);
+    --ease-in-out:      cubic-bezier(.83, 0, .17, 1);
+
+    --font-display: "Archivo", system-ui, sans-serif;
+    --font-serif:   "Instrument Serif", Georgia, serif;
+    --font-mono:    "JetBrains Mono", ui-monospace, monospace;
+  }
+
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{
+    height:100%;background:var(--bg);color:var(--ink);
+    font-family:var(--font-display);
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  }
+  body{
+    overflow:hidden;position:relative;
+    /* Sunset mesh — base layer that sets the room temperature */
+    background:
+      radial-gradient(ellipse 80vw 60vh at 80% 100%, rgba(241,100,182,.16),  transparent 55%),
+      radial-gradient(ellipse 60vw 50vh at 0% 0%,    rgba(51,255,255,.14),   transparent 55%),
+      radial-gradient(ellipse 50vw 40vh at 50% 50%,  rgba(124,77,255,.06),   transparent 60%),
+      var(--bg);
+  }
+  a{color:inherit;text-decoration:none}
+  button,input,textarea{font-family:inherit;color:inherit;border:none;background:none;outline:none;font-size:inherit}
+  button{cursor:pointer}
+  ::selection{background:var(--cyan);color:#000}
+  ::-webkit-scrollbar{width:6px;height:6px}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:3px}
+  ::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.18)}
+
+  .mono{font-family:var(--font-mono);letter-spacing:.04em}
+  .grad-text{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+
+  /* ─── grain ─────────────────────────────────────────── */
+  .grain{
+    position:fixed;inset:0;z-index:1;pointer-events:none;
+    opacity:.04;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  /* ─── animated palm-silhouette horizon at the bottom ── */
+  .horizon-art{
+    position:fixed;left:0;right:0;bottom:0;height:200px;z-index:1;pointer-events:none;
+    opacity:.45;
+    background:
+      linear-gradient(to top, var(--bg) 0%, transparent 100%);
+  }
+  .horizon-art svg{position:absolute;left:0;right:0;bottom:0;width:100%;height:100%;display:block}
+  .horizon-art .palm{fill:#000;opacity:.85}
+
+  /* ─── APP SHELL ─────────────────────────────────────── */
+  .app{
+    position:fixed;inset:0;z-index:5;
+    display:grid;
+    grid-template-columns: 232px 1fr 280px;
+    grid-template-rows: 64px 1fr;
+    grid-template-areas:
+      "side header right"
+      "side main   right";
+  }
+  @media (max-width: 1100px){
+    .app{grid-template-columns: 200px 1fr; grid-template-areas: "side header" "side main"}
+    .right{display:none}
+  }
+  @media (max-width: 720px){
+    .app{grid-template-columns: 1fr; grid-template-areas: "header" "main"}
+    .side{display:none}
+  }
+
+  /* ═════ HEADER ═════ */
+  .header{
+    grid-area:header;display:flex;align-items:center;justify-content:space-between;
+    padding:0 24px;border-bottom:1px solid var(--hairline);
+    backdrop-filter:blur(16px);background:rgba(10,11,31,.4);
+    z-index:6;
+  }
+  .brand{display:flex;align-items:center;gap:14px}
+  .brand-mark{
+    width:36px;height:36px;border-radius:11px;
+    background:var(--grad);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:900;font-size:18px;color:#000;letter-spacing:-.02em;
+    box-shadow: 0 0 0 1px rgba(255,255,255,.1), 0 12px 28px -8px rgba(241,100,182,.45);
+    position:relative;overflow:hidden;
+  }
+  .brand-mark::before{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(135deg, transparent 0%, rgba(255,255,255,.4) 50%, transparent 100%);
+    transform:translateX(-100%);
+    animation:sheen 4s ease-in-out infinite;
+  }
+  @keyframes sheen { 0%,40% { transform:translateX(-100%) } 50% { transform:translateX(100%) } 60%,100% { transform:translateX(100%) } }
+  .brand-text{display:flex;flex-direction:column;line-height:1}
+  .brand-name{font-size:18px;font-weight:900;letter-spacing:-.02em;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .brand-sub{font-family:var(--font-mono);font-size:9px;letter-spacing:.22em;color:var(--ink-mute);text-transform:uppercase;margin-top:3px}
+
+  .header-status{display:flex;align-items:center;gap:14px;font-family:var(--font-mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase}
+  .pill-mode{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:7px 12px;border:1px solid var(--card-edge);border-radius:999px;
+    color:var(--ink-dim);background:var(--card-soft);
+  }
+  .pill-mode .dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 12px var(--cyan)}
+  .pill-mode .dot.live{animation:livePulse 1.6s ease-in-out infinite}
+  @keyframes livePulse { 0%,100% { box-shadow:0 0 6px var(--cyan); transform:scale(1) } 50% { box-shadow:0 0 18px var(--cyan); transform:scale(1.2) } }
+  .pill-mode.demo .dot{background:var(--pink);box-shadow:0 0 12px var(--pink)}
+
+  .nav-back{
+    font-family:var(--font-mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--ink-dim);padding:7px 12px;border-radius:999px;border:1px solid transparent;
+    transition:all .2s;
+  }
+  .nav-back:hover{color:var(--ink);border-color:var(--card-edge);background:var(--card-soft)}
+
+  /* ═════ SIDEBAR ═════ */
+  .side{
+    grid-area:side;border-right:1px solid var(--hairline);
+    padding:20px 14px;display:flex;flex-direction:column;gap:4px;
+    background:rgba(10,11,31,.3);backdrop-filter:blur(8px);
+  }
+  .side-section{font-family:var(--font-mono);font-size:9px;letter-spacing:.24em;color:var(--ink-mute);text-transform:uppercase;padding:14px 12px 8px}
+  .side-link{
+    display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;
+    color:var(--ink-dim);font-size:14px;letter-spacing:.005em;
+    cursor:pointer;transition:all .15s;border:1px solid transparent;
+  }
+  .side-link:hover{color:var(--ink);background:rgba(255,255,255,.025)}
+  .side-link.active{
+    background:linear-gradient(135deg, rgba(51,255,255,.08), rgba(241,100,182,.06));
+    border-color:rgba(51,255,255,.18);
+    color:var(--ink);
+  }
+  .side-link.active .ico{color:var(--cyan)}
+  .side-link .ico{width:18px;height:18px;flex-shrink:0;opacity:.7}
+  .side-link.active .ico{opacity:1}
+  .side-badge{
+    margin-left:auto;font-family:var(--font-mono);font-size:9px;
+    padding:2px 7px;background:var(--card);border:1px solid var(--card-edge);border-radius:999px;
+    color:var(--ink-mute);letter-spacing:.1em;
+  }
+  .side-link.active .side-badge{color:var(--cyan);border-color:rgba(51,255,255,.3);background:rgba(51,255,255,.06)}
+
+  .side-foot{margin-top:auto;padding:14px 12px;font-family:var(--font-mono);font-size:10px;color:var(--ink-mute);letter-spacing:.1em;line-height:1.5}
+  .side-foot a{color:var(--cyan-soft)}
+
+  /* ═════ MAIN VIEW ═════ */
+  .main{
+    grid-area:main;overflow:hidden;display:flex;flex-direction:column;position:relative;
+  }
+  .view{display:none;flex-direction:column;height:100%}
+  .view.active{display:flex}
+
+  /* ═══ CHAT VIEW ═══ */
+  .chat-stream{
+    flex:1;overflow-y:auto;padding:32px 36px 20px;
+    display:flex;flex-direction:column;gap:22px;
+  }
+  @media (max-width:720px){.chat-stream{padding:18px 18px 14px}}
+  .msg{display:flex;gap:14px;align-items:flex-start;max-width:880px;width:100%}
+  .msg.user{margin-left:auto;flex-direction:row-reverse}
+  .avatar{
+    width:34px;height:34px;border-radius:50%;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.06em;
+  }
+  .avatar.hera{background:var(--grad);color:#000;box-shadow:0 8px 20px -6px rgba(241,100,182,.5)}
+  .avatar.user{background:var(--card);color:var(--ink-dim);border:1px solid var(--card-edge)}
+  .msg-body{
+    padding:14px 18px;border-radius:14px;font-size:14.5px;line-height:1.55;
+    max-width:680px;
+    background:var(--card);border:1px solid var(--card-edge);
+  }
+  .msg.user .msg-body{
+    background:linear-gradient(135deg, rgba(51,255,255,.1), rgba(241,100,182,.08));
+    border-color:rgba(51,255,255,.2);
+  }
+  .msg-body code{font-family:var(--font-mono);background:rgba(0,0,0,.3);padding:2px 6px;border-radius:4px;font-size:.88em;color:var(--cyan)}
+  .msg-body pre{font-family:var(--font-mono);background:rgba(0,0,0,.4);padding:12px 14px;border-radius:8px;font-size:12.5px;color:var(--cyan-soft);overflow-x:auto;margin-top:8px;border:1px solid var(--hairline)}
+  .msg-meta{display:flex;align-items:center;gap:8px;margin-top:6px;font-family:var(--font-mono);font-size:10px;color:var(--ink-mute);letter-spacing:.08em}
+  .msg.user .msg-meta{justify-content:flex-end}
+  .tool-call{
+    display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:999px;
+    background:rgba(241,100,182,.08);border:1px solid rgba(241,100,182,.25);
+    color:var(--pink-soft);font-size:10px;
+  }
+  .tool-call::before{content:"⚡"}
+
+  /* typing indicator */
+  .typing{display:flex;gap:4px;align-items:center;padding:8px 4px}
+  .typing span{width:7px;height:7px;border-radius:50%;background:var(--cyan-soft);animation:dot 1.2s ease-in-out infinite}
+  .typing span:nth-child(2){animation-delay:.15s}
+  .typing span:nth-child(3){animation-delay:.3s}
+  @keyframes dot { 0%,100% { transform:scale(.6);opacity:.4 } 50% { transform:scale(1);opacity:1 } }
+
+  /* fade-in for incoming msgs */
+  .msg{animation:msgIn .6s var(--ease-out-quart) both}
+  @keyframes msgIn { 0% { opacity:0;transform:translateY(10px) } 100% { opacity:1;transform:translateY(0) } }
+
+  /* composer */
+  .composer{
+    border-top:1px solid var(--hairline);background:rgba(10,11,31,.5);backdrop-filter:blur(12px);
+    padding:18px 36px;display:flex;flex-direction:column;gap:10px;
+  }
+  @media (max-width:720px){.composer{padding:14px 16px}}
+  .composer-row{
+    display:flex;gap:10px;align-items:flex-end;
+    background:var(--card);border:1px solid var(--card-edge);border-radius:14px;
+    padding:10px 12px;transition:border-color .2s, box-shadow .2s;
+  }
+  .composer-row:focus-within{border-color:var(--cyan);box-shadow:0 0 0 1px rgba(51,255,255,.2), 0 8px 28px -8px rgba(51,255,255,.25)}
+  .composer textarea{
+    flex:1;font-size:14.5px;resize:none;color:var(--ink);
+    line-height:1.5;padding:8px 6px;max-height:160px;background:transparent;
+  }
+  .composer textarea::placeholder{color:var(--ink-mute)}
+  .composer-btn{
+    width:38px;height:38px;border-radius:11px;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--card);border:1px solid var(--card-edge);
+    transition:all .2s var(--ease-spring-soft);
+    color:var(--ink-dim);
+  }
+  .composer-btn:hover{color:var(--ink);border-color:rgba(255,255,255,.18);transform:translateY(-1px)}
+  .composer-btn.send{background:var(--grad);color:#000;border:none;font-weight:700;box-shadow:0 8px 20px -6px rgba(241,100,182,.4)}
+  .composer-btn.send:hover{transform:translateY(-2px) scale(1.05);box-shadow:0 12px 28px -6px rgba(241,100,182,.55)}
+  .composer-btn.mic.active{background:var(--pink);color:#000;border:none;animation:micPulse 1.4s ease-in-out infinite}
+  @keyframes micPulse { 0%,100% { box-shadow:0 0 0 0 rgba(241,100,182,.5) } 50% { box-shadow:0 0 0 12px rgba(241,100,182,0) } }
+  .composer-meta{display:flex;justify-content:space-between;align-items:center;font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;color:var(--ink-mute);text-transform:uppercase}
+  .composer-meta a, .composer-meta span{color:var(--ink-mute)}
+  .composer-meta .kbd{padding:2px 6px;border:1px solid var(--card-edge);border-radius:4px;color:var(--ink-dim)}
+
+  /* ═══ MEMORY VIEW ═══ */
+  .view-head{padding:28px 36px 18px;border-bottom:1px solid var(--hairline);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px}
+  @media (max-width:720px){.view-head{padding:20px 16px 14px}}
+  .view-title{font-size:30px;font-weight:500;letter-spacing:-.02em;line-height:1}
+  .view-title em{font-family:var(--font-serif);font-style:italic;font-weight:400;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .view-sub{font-family:var(--font-mono);font-size:11px;color:var(--ink-mute);letter-spacing:.16em;text-transform:uppercase;margin-top:6px}
+  .view-search{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--card);border:1px solid var(--card-edge);border-radius:999px;min-width:240px}
+  .view-search input{font-size:13px;flex:1;color:var(--ink)}
+  .view-search input::placeholder{color:var(--ink-mute)}
+
+  .memory-grid{
+    flex:1;overflow-y:auto;padding:24px 36px 36px;
+    display:grid;gap:14px;
+    grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
+    align-content:start;
+  }
+  @media (max-width:720px){.memory-grid{padding:16px}}
+  .mem-card{
+    padding:18px;border:1px solid var(--card-edge);border-radius:14px;background:var(--card);
+    display:flex;flex-direction:column;gap:10px;
+    transition:transform .25s var(--ease-spring-soft), border-color .2s, background .2s;
+    cursor:pointer;
+  }
+  .mem-card:hover{transform:translateY(-3px);border-color:rgba(51,255,255,.25);background:rgba(255,255,255,.05)}
+  .mem-meta{display:flex;align-items:center;gap:10px;font-family:var(--font-mono);font-size:10px;color:var(--ink-mute);letter-spacing:.1em;text-transform:uppercase}
+  .mem-meta .tag{padding:2px 8px;border:1px solid var(--card-edge);border-radius:999px;background:var(--card-soft)}
+  .mem-title{font-size:15px;font-weight:700;letter-spacing:-.005em;line-height:1.3}
+  .mem-snippet{font-size:13px;color:var(--ink-dim);line-height:1.55}
+  .mem-card .when{margin-left:auto;color:var(--cyan-soft)}
+
+  /* ═══ TOOLS VIEW ═══ */
+  .tools-grid{
+    flex:1;overflow-y:auto;padding:24px 36px 36px;
+    display:grid;gap:10px;
+    grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));
+    align-content:start;
+  }
+  @media (max-width:720px){.tools-grid{padding:16px}}
+  .tool-row{
+    padding:14px 16px;border:1px solid var(--card-edge);border-radius:10px;background:var(--card);
+    display:flex;align-items:center;gap:12px;
+    transition:all .2s;font-size:13px;
+  }
+  .tool-row:hover{border-color:rgba(241,100,182,.3);background:rgba(241,100,182,.04)}
+  .tool-row .ns{font-family:var(--font-mono);color:var(--cyan);font-size:12px;font-weight:700}
+  .tool-row .nm{font-family:var(--font-mono);color:var(--ink);font-size:12px;font-weight:500}
+  .tool-row .desc{color:var(--ink-mute);font-size:12px;margin-left:auto;text-align:right;max-width:50%}
+
+  /* ═══ HISTORY VIEW ═══ */
+  .history-list{
+    flex:1;overflow-y:auto;padding:24px 36px 36px;
+    display:flex;flex-direction:column;gap:8px;
+  }
+  @media (max-width:720px){.history-list{padding:16px}}
+  .session{
+    padding:16px 18px;border:1px solid var(--card-edge);border-radius:12px;background:var(--card);
+    display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;
+    cursor:pointer;transition:all .2s;
+  }
+  .session:hover{border-color:rgba(51,255,255,.25);background:rgba(255,255,255,.04)}
+  .session-when{font-family:var(--font-mono);font-size:11px;color:var(--ink-mute);letter-spacing:.1em;width:100px}
+  .session-when b{display:block;color:var(--ink);font-weight:600;margin-bottom:2px;font-size:13px}
+  .session-title{font-size:14px;font-weight:600;letter-spacing:-.005em}
+  .session-title small{display:block;color:var(--ink-mute);font-weight:400;margin-top:4px;font-size:12px}
+  .session-stat{font-family:var(--font-mono);font-size:11px;color:var(--cyan-soft);letter-spacing:.1em}
+
+  /* ═══ SETTINGS VIEW ═══ */
+  .settings{
+    flex:1;overflow-y:auto;padding:24px 36px 36px;
+    display:flex;flex-direction:column;gap:18px;max-width:760px;
+  }
+  @media (max-width:720px){.settings{padding:16px}}
+  .setting-card{padding:24px;border:1px solid var(--card-edge);border-radius:16px;background:var(--card);display:flex;flex-direction:column;gap:14px}
+  .setting-card h3{font-size:16px;font-weight:700;letter-spacing:-.005em;display:flex;align-items:center;gap:10px}
+  .setting-card h3 .grad-text{font-family:var(--font-serif);font-style:italic;font-weight:400;font-size:1.1em}
+  .setting-card p{font-size:13px;color:var(--ink-dim);line-height:1.55}
+  .setting-card label{display:block;font-family:var(--font-mono);font-size:10px;color:var(--ink-mute);letter-spacing:.18em;text-transform:uppercase;margin-bottom:6px}
+  .setting-card input, .setting-card select{
+    width:100%;padding:10px 12px;background:var(--bg-deeper);border:1px solid var(--card-edge);border-radius:8px;
+    font-family:var(--font-mono);font-size:12px;color:var(--ink);letter-spacing:.04em;
+  }
+  .setting-card input:focus, .setting-card select:focus{border-color:var(--cyan)}
+  .setting-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding-top:6px}
+  .switch{position:relative;width:42px;height:24px;background:var(--bg-deeper);border-radius:999px;border:1px solid var(--card-edge);cursor:pointer;transition:all .25s}
+  .switch::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--ink-dim);transition:all .25s var(--ease-spring-soft)}
+  .switch.on{background:var(--grad);border-color:transparent}
+  .switch.on::after{left:20px;background:#000}
+
+  .save-btn{
+    align-self:flex-start;padding:10px 18px;border-radius:999px;
+    background:var(--grad);color:#000;font-weight:700;font-size:13px;
+    transition:all .2s;
+  }
+  .save-btn:hover{transform:translateY(-1px);box-shadow:0 8px 20px -6px rgba(241,100,182,.4)}
+
+  /* ═════ STATUS PANEL (right) ═════ */
+  .right{
+    grid-area:right;border-left:1px solid var(--hairline);
+    padding:24px 22px;display:flex;flex-direction:column;gap:18px;overflow-y:auto;
+    background:rgba(10,11,31,.3);backdrop-filter:blur(8px);
+  }
+  .pane-section{display:flex;flex-direction:column;gap:10px}
+  .pane-label{font-family:var(--font-mono);font-size:9px;letter-spacing:.24em;color:var(--ink-mute);text-transform:uppercase}
+
+  /* voice visualizer */
+  .voice-viz{
+    height:90px;border:1px solid var(--card-edge);border-radius:14px;background:var(--card);
+    display:flex;align-items:center;justify-content:center;gap:5px;padding:0 18px;
+    position:relative;overflow:hidden;
+  }
+  .voice-viz::before{
+    content:"";position:absolute;inset:0;
+    background:radial-gradient(ellipse 60% 80% at 50% 50%, rgba(51,255,255,.1), transparent 70%);
+    opacity:0;transition:opacity .3s;
+  }
+  .voice-viz.speaking::before{opacity:1}
+  .voice-viz .bar{
+    width:3px;background:var(--cyan-soft);border-radius:2px;
+    height:8px;transition:height .15s ease-out;
+    box-shadow:0 0 8px rgba(51,255,255,.4);
+  }
+  .voice-viz.speaking .bar{
+    animation:vbar 1s ease-in-out infinite;
+    background:var(--grad);
+  }
+  .voice-viz .bar:nth-child(odd){animation-direction:reverse}
+  .voice-viz .bar:nth-child(2){animation-delay:-.1s}
+  .voice-viz .bar:nth-child(3){animation-delay:-.2s}
+  .voice-viz .bar:nth-child(4){animation-delay:-.3s}
+  .voice-viz .bar:nth-child(5){animation-delay:-.4s}
+  .voice-viz .bar:nth-child(6){animation-delay:-.5s}
+  .voice-viz .bar:nth-child(7){animation-delay:-.15s}
+  .voice-viz .bar:nth-child(8){animation-delay:-.25s}
+  .voice-viz .bar:nth-child(9){animation-delay:-.35s}
+  @keyframes vbar { 0%,100% { height:8px } 50% { height:60px } }
+
+  .pane-row{display:grid;grid-template-columns:auto 1fr;gap:12px 14px;align-items:center;font-family:var(--font-mono);font-size:11px;letter-spacing:.06em}
+  .pane-row dt{color:var(--ink-mute);text-transform:uppercase;letter-spacing:.18em;font-size:9px}
+  .pane-row dd{color:var(--ink)}
+  .pane-row dd .accent{color:var(--cyan)}
+  .pane-row dd .pink{color:var(--pink-soft)}
+
+  .recent-tools{display:flex;flex-direction:column;gap:6px}
+  .recent-tool{
+    padding:8px 12px;border:1px solid var(--card-edge);border-radius:8px;background:var(--card-soft);
+    font-family:var(--font-mono);font-size:11px;color:var(--ink-dim);
+    display:flex;justify-content:space-between;
+  }
+  .recent-tool .ago{color:var(--ink-mute);font-size:10px}
+
+  /* ═════ LANDING WELCOME (when chat is empty) ═════ */
+  .welcome{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:60px 36px;gap:18px;
+  }
+  .welcome h1{
+    font-size:clamp(40px,6vw,84px);font-weight:500;letter-spacing:-.04em;line-height:.95;
+    background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    max-width:14ch;
+  }
+  .welcome h1 em{font-family:var(--font-serif);font-style:italic;font-weight:400}
+  .welcome p{color:var(--ink-dim);font-size:16px;max-width:48ch;line-height:1.55}
+  .welcome-quick{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;justify-content:center;max-width:600px}
+  .quick-chip{
+    padding:10px 14px;border:1px solid var(--card-edge);border-radius:999px;
+    background:var(--card-soft);font-size:13px;color:var(--ink-dim);
+    cursor:pointer;transition:all .2s;
+  }
+  .quick-chip:hover{border-color:var(--cyan);color:var(--ink);background:rgba(51,255,255,.05)}
+
+  /* ─── reduced motion ─── */
+  @media (prefers-reduced-motion: reduce) {
+    *,*::before,*::after{animation-duration:.001ms !important;animation-delay:0ms !important;transition-duration:.001ms !important}
+  }
+</style>
+</head>
+<body>
+
+<div class="grain" aria-hidden="true"></div>
+
+<!-- palm horizon at the bottom — pure SVG silhouette -->
+<div class="horizon-art" aria-hidden="true">
+  <svg viewBox="0 0 1440 200" preserveAspectRatio="none">
+    <!-- four palm-tree silhouettes scattered across the bottom -->
+    <g class="palm">
+      <!-- palm 1 -->
+      <path d="M120 200 V120 C100 110, 70 105, 50 115 C75 110, 95 115, 115 130 C90 130, 70 140, 60 160 C90 145, 110 140, 120 145 V120 C130 110, 160 100, 180 110 C155 110, 130 115, 120 130 C150 125, 175 130, 195 145 C170 135, 140 135, 120 145"/>
+      <rect x="118" y="120" width="4" height="80" />
+      <!-- palm 2 -->
+      <path d="M340 200 V100 C310 90, 270 85, 245 100 C275 92, 305 95, 335 110 C300 105, 270 115, 250 135 C290 115, 320 110, 340 115 V100 C360 85, 400 80, 425 95 C395 88, 360 90, 340 110 C375 100, 410 105, 440 125 C405 110, 365 110, 340 120"/>
+      <rect x="338" y="100" width="5" height="100" />
+      <!-- palm 3 -->
+      <path d="M780 200 V90 C745 80, 700 75, 670 95 C710 80, 745 85, 775 105 C740 95, 705 110, 685 135 C725 110, 760 105, 780 110 V90 C805 75, 850 70, 880 85 C845 78, 805 80, 780 100 C820 90, 860 95, 895 115 C855 100, 815 100, 780 110"/>
+      <rect x="777" y="90" width="6" height="110" />
+      <!-- palm 4 (smaller) -->
+      <path d="M1180 200 V130 C1160 122, 1135 118, 1115 128 C1135 122, 1155 125, 1175 138 C1150 132, 1130 142, 1118 162 C1145 145, 1170 140, 1180 145 V130 C1195 122, 1220 118, 1240 128 C1218 124, 1198 128, 1180 140 C1208 130, 1230 135, 1248 150 C1225 138, 1198 138, 1180 145"/>
+      <rect x="1178" y="130" width="4" height="70" />
+      <!-- palm 5 (smaller right side) -->
+      <path d="M1340 200 V140 C1320 132, 1295 128, 1278 138 C1298 132, 1315 135, 1335 148 C1310 142, 1290 152, 1280 170 C1305 155, 1325 150, 1340 155 V140 C1355 132, 1380 128, 1395 138"/>
+      <rect x="1338" y="140" width="4" height="60" />
+    </g>
+  </svg>
+</div>
+
+<!-- ═════════════ APP ═════════════ -->
+<div class="app">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="brand">
+      <div class="brand-mark">H</div>
+      <div class="brand-text">
+        <span class="brand-name">HERA</span>
+        <span class="brand-sub">Personal AI · v0.4</span>
+      </div>
+    </div>
+    <div class="header-status">
+      <span class="pill-mode demo" id="modePill"><span class="dot live"></span><span id="modeText">DEMO MODE</span></span>
+      <a href="./index.html" class="nav-back">← Portfolio</a>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <nav class="side">
+    <div class="side-section">Workspace</div>
+    <div class="side-link active" data-view="chat">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+      Chat
+      <span class="side-badge">live</span>
+    </div>
+    <div class="side-link" data-view="memory">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      Memory
+      <span class="side-badge" id="memBadge">128</span>
+    </div>
+    <div class="side-link" data-view="tools">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      Tools
+      <span class="side-badge" id="toolsBadge">42</span>
+    </div>
+    <div class="side-link" data-view="history">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      History
+    </div>
+
+    <div class="side-section" style="margin-top:18px">Setup</div>
+    <div class="side-link" data-view="settings">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Settings
+    </div>
+
+    <div class="side-foot">
+      <strong style="color:var(--ink);font-weight:700">HERA</strong> v0.4<br/>
+      Telegram + Avatar<br/>
+      <a href="#" id="docsLink">Docs &nbsp;↗</a>
+    </div>
+  </nav>
+
+  <!-- MAIN: views -->
+  <main class="main">
+
+    <!-- ═══ CHAT VIEW ═══ -->
+    <section class="view active" data-view="chat">
+      <div class="chat-stream" id="chatStream">
+        <div class="welcome">
+          <h1><em>Welcome back,</em> Efe.</h1>
+          <p>Ask me anything — I have access to your Obsidian vault, your screen, your code, your trades, the web. I remember our last 128 sessions.</p>
+          <div class="welcome-quick">
+            <span class="quick-chip" data-q="What did we work on yesterday?">What did we work on yesterday?</span>
+            <span class="quick-chip" data-q="Summarize this week's trades">Summarize this week's trades</span>
+            <span class="quick-chip" data-q="Open my motion-sites brief">Open my motion-sites brief</span>
+            <span class="quick-chip" data-q="What's the weather in Thousand Oaks?">Weather in Thousand Oaks?</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="composer">
+        <div class="composer-row">
+          <textarea id="composerInput" rows="1" placeholder="Ask HERA..." spellcheck="false"></textarea>
+          <button class="composer-btn mic" id="micBtn" title="Voice input (push to talk)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          </button>
+          <button class="composer-btn send" id="sendBtn" title="Send (⏎)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+        <div class="composer-meta">
+          <span><span class="kbd">⏎</span> send · <span class="kbd">⇧⏎</span> newline · <span class="kbd">/</span> command</span>
+          <span id="modelLabel">opus 4.7 · 1M context</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ MEMORY VIEW ═══ -->
+    <section class="view" data-view="memory">
+      <div class="view-head">
+        <div>
+          <h2 class="view-title">Memory <em>vault.</em></h2>
+          <div class="view-sub">128 entries · Obsidian-backed · last sync 2m ago</div>
+        </div>
+        <div class="view-search">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input id="memSearch" placeholder="Search memory..." />
+        </div>
+      </div>
+      <div class="memory-grid" id="memoryGrid"><!-- populated by JS --></div>
+    </section>
+
+    <!-- ═══ TOOLS VIEW ═══ -->
+    <section class="view" data-view="tools">
+      <div class="view-head">
+        <div>
+          <h2 class="view-title">Tool <em>belt.</em></h2>
+          <div class="view-sub">42 tools · 9 namespaces · all callable from chat</div>
+        </div>
+        <div class="view-search">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input id="toolSearch" placeholder="Filter tools..." />
+        </div>
+      </div>
+      <div class="tools-grid" id="toolsGrid"><!-- populated by JS --></div>
+    </section>
+
+    <!-- ═══ HISTORY VIEW ═══ -->
+    <section class="view" data-view="history">
+      <div class="view-head">
+        <div>
+          <h2 class="view-title">Session <em>history.</em></h2>
+          <div class="view-sub">past 30 days · resume any thread by clicking</div>
+        </div>
+      </div>
+      <div class="history-list" id="historyList"><!-- populated by JS --></div>
+    </section>
+
+    <!-- ═══ SETTINGS VIEW ═══ -->
+    <section class="view" data-view="settings">
+      <div class="view-head">
+        <div>
+          <h2 class="view-title">Settings <em>&amp; backend.</em></h2>
+          <div class="view-sub">credentials saved client-side only · localStorage</div>
+        </div>
+      </div>
+      <div class="settings">
+        <div class="setting-card">
+          <h3>Backend <span class="grad-text">connection.</span></h3>
+          <p>HERA's brain runs locally on your machine. Point this UI at it. If unset, the page runs in <strong style="color:var(--pink-soft)">demo mode</strong> with mocked replies.</p>
+          <div>
+            <label>Base URL</label>
+            <input id="setBase" placeholder="http://localhost:7777" autocomplete="off" />
+          </div>
+          <div>
+            <label>API key (optional)</label>
+            <input id="setKey" placeholder="hera_..." autocomplete="off" type="password" />
+          </div>
+          <div class="setting-row">
+            <span style="font-size:13px;color:var(--ink-dim)">Stream replies token-by-token</span>
+            <div class="switch on" id="setStream"></div>
+          </div>
+          <div class="setting-row">
+            <span style="font-size:13px;color:var(--ink-dim)">ElevenLabs voice on reply</span>
+            <div class="switch on" id="setVoice"></div>
+          </div>
+        </div>
+
+        <div class="setting-card">
+          <h3>Model <span class="grad-text">routing.</span></h3>
+          <p>Pick which Claude tier handles different request types. Opus 4.7 gets the heavy reasoning, Haiku 4.5 takes the quick stuff.</p>
+          <div>
+            <label>Default model</label>
+            <select id="setModel">
+              <option value="opus">claude-opus-4-7 · 1M context</option>
+              <option value="sonnet">claude-sonnet-4 · 200K</option>
+              <option value="haiku">claude-haiku-4-5 · 200K</option>
+            </select>
+          </div>
+          <div>
+            <label>Cost cap per turn</label>
+            <input id="setCap" placeholder="2.00" value="2.00" />
+          </div>
+        </div>
+
+        <div class="setting-card">
+          <h3>Memory <span class="grad-text">source.</span></h3>
+          <p>Where HERA reads and writes long-term memory. Obsidian vault is the default — markdown files HERA can recall mid-conversation.</p>
+          <div>
+            <label>Vault path</label>
+            <input id="setVault" placeholder="C:/Users/eless/Desktop/HERA/memory" />
+          </div>
+        </div>
+
+        <button class="save-btn" id="saveSettings">Save settings</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- RIGHT STATUS PANEL -->
+  <aside class="right">
+    <div class="pane-section">
+      <span class="pane-label">Voice</span>
+      <div class="voice-viz" id="voiceViz">
+        <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+        <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+        <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+      </div>
+    </div>
+
+    <div class="pane-section">
+      <span class="pane-label">Status</span>
+      <dl class="pane-row">
+        <dt>Mode</dt><dd id="paneMode">DEMO</dd>
+        <dt>Mood</dt><dd>focused <span class="accent">⚡</span></dd>
+        <dt>Model</dt><dd>opus <span class="accent">4.7</span></dd>
+        <dt>Context</dt><dd id="paneCtx"><span class="accent">3.4k</span> / 1M</dd>
+        <dt>Cost</dt><dd>$<span class="pink" id="paneCost">0.04</span></dd>
+        <dt>Latency</dt><dd id="paneLat"><span class="accent">340</span> ms</dd>
+      </dl>
+    </div>
+
+    <div class="pane-section">
+      <span class="pane-label">Recent tools</span>
+      <div class="recent-tools" id="recentTools">
+        <div class="recent-tool"><span>obsidian.search</span><span class="ago">12s</span></div>
+        <div class="recent-tool"><span>memory.recall</span><span class="ago">14s</span></div>
+        <div class="recent-tool"><span>web.fetch</span><span class="ago">2m</span></div>
+        <div class="recent-tool"><span>vision.screen</span><span class="ago">8m</span></div>
+      </div>
+    </div>
+
+    <div class="pane-section">
+      <span class="pane-label">Today</span>
+      <dl class="pane-row">
+        <dt>Sessions</dt><dd>4</dd>
+        <dt>Tool calls</dt><dd>27</dd>
+        <dt>Tokens</dt><dd><span class="accent">142k</span></dd>
+        <dt>Spend</dt><dd>$<span class="pink">1.18</span></dd>
+      </dl>
+    </div>
+  </aside>
+
+</div>
+
+<script>
+(() => {
+  // ═══════════════════════════════════════════════════════════════
+  // STATE + STORAGE
+  // ═══════════════════════════════════════════════════════════════
+  const STORAGE = {
+    base: "hera.base",
+    key:  "hera.key",
+    stream: "hera.stream",
+    voice:  "hera.voice",
+    model:  "hera.model",
+    cap:    "hera.cap",
+    vault:  "hera.vault",
+  };
+  const state = {
+    base: localStorage.getItem(STORAGE.base) || "",
+    key:  localStorage.getItem(STORAGE.key)  || "",
+    stream: localStorage.getItem(STORAGE.stream) !== "false",
+    voice:  localStorage.getItem(STORAGE.voice)  !== "false",
+    model:  localStorage.getItem(STORAGE.model)  || "opus",
+    cap:    localStorage.getItem(STORAGE.cap)    || "2.00",
+    vault:  localStorage.getItem(STORAGE.vault)  || "C:/Users/eless/Desktop/HERA/memory",
+  };
+  const isLive = () => !!state.base;
+
+  // ═══════════════════════════════════════════════════════════════
+  // VIEW ROUTER
+  // ═══════════════════════════════════════════════════════════════
+  document.querySelectorAll(".side-link[data-view]").forEach(link => {
+    link.addEventListener("click", () => {
+      const view = link.dataset.view;
+      document.querySelectorAll(".side-link").forEach(l => l.classList.toggle("active", l === link));
+      document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.dataset.view === view));
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════
+  // MODE PILL
+  // ═══════════════════════════════════════════════════════════════
+  const refreshMode = () => {
+    const live = isLive();
+    document.getElementById("modePill").classList.toggle("demo", !live);
+    document.getElementById("modeText").textContent = live ? "LIVE · CONNECTED" : "DEMO MODE";
+    document.getElementById("paneMode").textContent = live ? "LIVE" : "DEMO";
+  };
+
+  // ═══════════════════════════════════════════════════════════════
+  // CHAT
+  // ═══════════════════════════════════════════════════════════════
+  const stream = document.getElementById("chatStream");
+  const composer = document.getElementById("composerInput");
+  const sendBtn = document.getElementById("sendBtn");
+  const micBtn = document.getElementById("micBtn");
+  const voiceViz = document.getElementById("voiceViz");
+
+  const escapeHtml = s => String(s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+  const addUserMsg = (text) => {
+    const div = document.createElement("div");
+    div.className = "msg user";
+    div.innerHTML = `
+      <div class="avatar user">EFE</div>
+      <div>
+        <div class="msg-body">${escapeHtml(text)}</div>
+        <div class="msg-meta"><span>now</span></div>
+      </div>`;
+    stream.appendChild(div);
+    div.scrollIntoView({behavior:"smooth", block:"end"});
+  };
+
+  const addHeraMsg = () => {
+    const div = document.createElement("div");
+    div.className = "msg hera";
+    div.innerHTML = `
+      <div class="avatar hera">H</div>
+      <div style="flex:1;min-width:0">
+        <div class="msg-body" data-body><div class="typing"><span></span><span></span><span></span></div></div>
+        <div class="msg-meta"><span data-tools></span> <span data-time></span></div>
+      </div>`;
+    stream.appendChild(div);
+    div.scrollIntoView({behavior:"smooth", block:"end"});
+    return div;
+  };
+
+  // Mock conversation responses — keyword-driven
+  const mockResponses = [
+    {
+      match: /yesterday|last|previous/i,
+      tools: ["obsidian.search", "memory.recall"],
+      reply: `Yesterday we shipped <code>v0.2</code> of the Xeneon widgets channel and built the Biskin Studio landing page. You also pushed Meteora's <code>/v1/quotes</code> endpoint with a Yahoo + Stooq fallback.\n\nThe big unfinished thread: deciding whether to pursue a custom domain for <code>biskin.studio</code>. Want me to pull that thread?`,
+    },
+    {
+      match: /trade|stock|portfolio|signal/i,
+      tools: ["obsidian.search", "stock.quote", "trade.signal"],
+      reply: `Looking at the Oracle paper account — <strong>+1.2% today, +5.4% MTD</strong>. The Form-4 signal flagged <code>NVDA</code> and <code>AAPL</code> on insider buys this morning. No new openings since the 30-day-hold is still active on 8 positions.\n\nI'm watching Friday's PCE print as the next macro inflection.`,
+    },
+    {
+      match: /weather|forecast/i,
+      tools: ["weather.current"],
+      reply: `Thousand Oaks right now: <strong>26.6°C / 80°F</strong>, clear sky, light SW wind at 14 km/h. Tomorrow's max is <strong>28°</strong> — should be a good run morning.`,
+    },
+    {
+      match: /motion|brief|studio|client/i,
+      tools: ["obsidian.read", "memory.recall"],
+      reply: `Pulling up the <code>motion-sites/brief.md</code>:\n\n<pre>Target: $2k MRR by July\nRate: $2.5k starter / $5k signature / $12.5k+ production\nLead source: cold outreach + portfolio link\nFirst 3 pilots: discounted to $1.5k each for testimonials</pre>\n\nNo new leads logged since Tuesday. Want me to draft a cold-outreach template?`,
+    },
+    {
+      match: /screen|see|show|look/i,
+      tools: ["vision.screen"],
+      reply: `I see your VS Code with <code>hera.html</code> open — you're scrolling around the Miami sunset palette. There's also a Claude tab and a localhost preview at <code>:5557</code>.\n\nWant me to do anything with what's on screen?`,
+    },
+    {
+      match: /thank|thanks|appreciate|good job|nice/i,
+      tools: [],
+      reply: `Anytime, Efe. 💗`,
+    },
+  ];
+  const defaultResponse = {
+    tools: ["claude.opus", "memory.recall"],
+    reply: `On it. Give me a moment to think — I'm threading this against your last 30 days of context to make sure I don't repeat myself.\n\nQuick clarify: do you want the short answer or do you want me to actually go do the thing?`,
+  };
+
+  const matchMock = (text) => {
+    for (const r of mockResponses){ if (r.match.test(text)) return r; }
+    return defaultResponse;
+  };
+
+  // typewriter effect — chars appear in real time
+  const typeWrite = async (el, html, opts = {}) => {
+    const speed = opts.speed ?? 14; // ms / char
+    el.innerHTML = "";
+    // We need to type-in HTML carefully. Strategy: type the visible-text
+    // and allow tags to appear as a block at the right position.
+    // Simpler approach: type plain text first, replace at end.
+    const tmp = document.createElement("div");
+    tmp.innerHTML = html;
+    const plain = tmp.textContent;
+
+    let i = 0;
+    return new Promise(resolve => {
+      const tick = () => {
+        i += Math.max(1, Math.floor(plain.length / 80)); // chunk
+        el.textContent = plain.slice(0, i);
+        if (i >= plain.length){
+          el.innerHTML = html;
+          resolve();
+        } else {
+          setTimeout(tick, speed);
+        }
+      };
+      tick();
+    });
+  };
+
+  const sendMessage = async (text) => {
+    if (!text.trim()) return;
+    // remove welcome screen on first send
+    const welcome = stream.querySelector(".welcome");
+    if (welcome) welcome.remove();
+
+    addUserMsg(text);
+    composer.value = "";
+    composer.style.height = "auto";
+
+    // hera reply
+    const heraEl = addHeraMsg();
+    const body = heraEl.querySelector("[data-body]");
+    const toolSpan = heraEl.querySelector("[data-tools]");
+    const timeSpan = heraEl.querySelector("[data-time]");
+
+    if (isLive()){
+      // ─── LIVE MODE: hit the user's HERA backend ────────────
+      try {
+        const r = await fetch(`${state.base.replace(/\/$/, "")}/chat`, {
+          method:"POST",
+          headers:{"Content-Type":"application/json", ...(state.key ? {"X-API-Key": state.key} : {})},
+          body: JSON.stringify({ message: text, stream: state.stream, model: state.model }),
+        });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const data = await r.json();
+        body.innerHTML = "";
+        await typeWrite(body, data.reply || "(no reply)");
+        if (data.tools?.length){
+          toolSpan.innerHTML = data.tools.map(t => `<span class="tool-call">${escapeHtml(t)}</span>`).join(" ");
+        }
+        timeSpan.textContent = `· ${data.latency_ms || 0}ms · ${data.model || "?"}`;
+        speakBars(true); setTimeout(() => speakBars(false), 1800);
+      } catch(e){
+        body.textContent = `⚠ Couldn't reach HERA at ${state.base}: ${e.message}. Falling back to demo mode.`;
+      }
+    } else {
+      // ─── DEMO MODE: matched mock response with realistic delay ──
+      await new Promise(r => setTimeout(r, 600 + Math.random()*400));
+      const m = matchMock(text);
+      body.innerHTML = "";
+      await typeWrite(body, m.reply.replace(/\n\n/g, "<br><br>"));
+      if (m.tools.length){
+        toolSpan.innerHTML = m.tools.map(t => `<span class="tool-call">${escapeHtml(t)}</span>`).join(" ");
+      }
+      const lat = 280 + Math.floor(Math.random() * 220);
+      timeSpan.textContent = `· ${lat}ms · opus 4.7`;
+      // bump pane stats
+      document.getElementById("paneLat").innerHTML = `<span class="accent">${lat}</span> ms`;
+      const cur = parseFloat(document.getElementById("paneCost").textContent);
+      document.getElementById("paneCost").textContent = (cur + 0.02 + Math.random() * 0.04).toFixed(2);
+      // voice viz on
+      if (state.voice) { speakBars(true); setTimeout(() => speakBars(false), 2200); }
+      // recent tool log
+      bumpRecentTools(m.tools);
+    }
+  };
+
+  // voice visualizer
+  const speakBars = (on) => voiceViz.classList.toggle("speaking", on);
+
+  const bumpRecentTools = (tools) => {
+    if (!tools.length) return;
+    const root = document.getElementById("recentTools");
+    tools.forEach(t => {
+      const div = document.createElement("div");
+      div.className = "recent-tool";
+      div.innerHTML = `<span>${escapeHtml(t)}</span><span class="ago">now</span>`;
+      root.prepend(div);
+    });
+    // trim to 6
+    while (root.children.length > 6) root.lastElementChild.remove();
+  };
+
+  // composer events
+  sendBtn.addEventListener("click", () => sendMessage(composer.value));
+  composer.addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.shiftKey){ e.preventDefault(); sendMessage(composer.value); }
+  });
+  composer.addEventListener("input", () => {
+    composer.style.height = "auto";
+    composer.style.height = Math.min(composer.scrollHeight, 160) + "px";
+  });
+
+  // mic toggle (demo only — no real STT here)
+  let micActive = false;
+  micBtn.addEventListener("click", () => {
+    micActive = !micActive;
+    micBtn.classList.toggle("active", micActive);
+    if (micActive){
+      composer.placeholder = "Listening… (demo)";
+      setTimeout(() => {
+        if (micActive){
+          micActive = false;
+          micBtn.classList.remove("active");
+          composer.placeholder = "Ask HERA...";
+          composer.value = "What did we work on yesterday?";
+        }
+      }, 2200);
+    } else {
+      composer.placeholder = "Ask HERA...";
+    }
+  });
+
+  // welcome quick chips
+  document.querySelectorAll(".quick-chip").forEach(chip => {
+    chip.addEventListener("click", () => sendMessage(chip.dataset.q));
+  });
+
+  // ═══════════════════════════════════════════════════════════════
+  // MEMORY VIEW — populate
+  // ═══════════════════════════════════════════════════════════════
+  const memoryEntries = [
+    { tag:"PROJECT", title:"Biskin Studio launch", when:"2h", snippet:"Shipped studio.html with Miami-cousin lime palette, bento grid, three case studies, three pricing tiers. Live at efe-website-plum.vercel.app/studio.html." },
+    { tag:"TRADE",   title:"Form-4 signal: NVDA", when:"6h", snippet:"Insider purchase by C-level, $2.4M block. Signal score 0.78. Added to 30-day-hold queue." },
+    { tag:"NOTE",    title:"Cold outreach copy v3", when:"1d", snippet:"Tighter opener, drop the 'we' for 'I'. Ship rate beats pitch rate. Reply: 4/12 vs 1/12 on v2." },
+    { tag:"PROJECT", title:"Xeneon widgets v0.3", when:"1d", snippet:"Dropped Discord (read-only didn't pull weight), wired all links to deployed URL via auto-detect, added cyan accent on dark." },
+    { tag:"DECISION",title:"Pivot from 'Greek god' theme", when:"2d", snippet:"Theatrical aesthetic was wrong for portfolio. Modern poster + split statue replaces it. Kept the mythic kicker font." },
+    { tag:"LEARN",   title:"Jitter motion vocabulary", when:"3d", snippet:"Medium-weight 80px display, -1.6px tracking. Sine-wave horizon with emoji nodes. Help-button bottom-right pulse." },
+    { tag:"TRADE",   title:"Oracle MTD: +5.4%", when:"3d", snippet:"63% win rate over 47 trades. Best month since rebuild. Worst trade: -3.1% on a stop, no Form-4 backing." },
+    { tag:"NOTE",    title:"Apple Card payoff timeline", when:"4d", snippet:"At $2k/mo MRR from Biskin Studio, 11 months to clear the $22k. First pilot booked = first month." },
+    { tag:"PROJECT", title:"Meteora /v1/quotes shipped", when:"5d", snippet:"Yahoo Finance v7 primary, Stooq fallback (CSV, +-separator gotcha). 60s cache, 50-symbol limit per call." },
+    { tag:"NOTE",    title:"HERA — voice over webRTC", when:"6d", snippet:"ElevenLabs latency too high for natural turn-taking. Switching to OpenAI realtime API for the listen path." },
+    { tag:"DECISION",title:"Stop chasing OOS edge", when:"1w", snippet:"April 16 model results: features don't predict target. Don't trust ML signal alone. Insider + momentum is the real edge." },
+    { tag:"LEARN",   title:"Vercel deploy = git push", when:"1w", snippet:"`vercel --prod --yes` works on first try if vercel.json sits at root. Auto-aliases to <name>-plum.vercel.app." },
+  ];
+  const memGrid = document.getElementById("memoryGrid");
+  const renderMemory = (filter = "") => {
+    const f = filter.trim().toLowerCase();
+    memGrid.innerHTML = "";
+    memoryEntries
+      .filter(e => !f || (e.title + " " + e.snippet + " " + e.tag).toLowerCase().includes(f))
+      .forEach(e => {
+        const div = document.createElement("div");
+        div.className = "mem-card";
+        div.innerHTML = `
+          <div class="mem-meta">
+            <span class="tag">${e.tag}</span>
+            <span class="when">${e.when}</span>
+          </div>
+          <div class="mem-title">${escapeHtml(e.title)}</div>
+          <div class="mem-snippet">${escapeHtml(e.snippet)}</div>`;
+        memGrid.appendChild(div);
+      });
+    if (!memGrid.children.length){
+      memGrid.innerHTML = `<div style="color:var(--ink-mute);font-size:13px;padding:40px;grid-column:1/-1;text-align:center">no matches</div>`;
+    }
+  };
+  renderMemory();
+  document.getElementById("memSearch").addEventListener("input", e => renderMemory(e.target.value));
+
+  // ═══════════════════════════════════════════════════════════════
+  // TOOLS VIEW — 42 tools across namespaces
+  // ═══════════════════════════════════════════════════════════════
+  const tools = [
+    ["obsidian", "search",  "search the vault by query"],
+    ["obsidian", "read",    "read a note by path"],
+    ["obsidian", "write",   "create a new note"],
+    ["obsidian", "append",  "append to an existing note"],
+    ["memory",   "recall",  "pull recent context for a topic"],
+    ["memory",   "commit",  "save a fact to long-term memory"],
+    ["vision",   "screen",  "OCR + describe full screen"],
+    ["vision",   "window",  "OCR + describe a single window"],
+    ["vision",   "region",  "OCR + describe a screen region"],
+    ["pc",       "click",   "click at coordinates"],
+    ["pc",       "type",    "type text"],
+    ["pc",       "keypress","send a key combo"],
+    ["pc",       "scroll",  "scroll a window"],
+    ["pc.window","list",    "enumerate open windows"],
+    ["pc.window","focus",   "raise a window"],
+    ["pc.app",   "launch",  "launch an installed app"],
+    ["pc.app",   "kill",    "terminate a process"],
+    ["file",     "read",    "read a file"],
+    ["file",     "write",   "write a file"],
+    ["file",     "search",  "find files by pattern"],
+    ["shell",    "exec",    "exec a shell command"],
+    ["shell",    "bash",    "run a bash one-liner"],
+    ["shell",    "python",  "eval a python snippet"],
+    ["web",      "search",  "google + bing web search"],
+    ["web",      "fetch",   "fetch a URL"],
+    ["web",      "scrape",  "scrape + clean HTML"],
+    ["claude",   "subagent","spawn a child agent"],
+    ["claude",   "opus",    "explicit opus call"],
+    ["claude",   "haiku",   "explicit haiku call"],
+    ["voice",    "speak",   "ElevenLabs TTS reply"],
+    ["voice",   "listen",   "open mic, return transcript"],
+    ["clock",    "now",     "current time + tz"],
+    ["calendar", "list",    "events in a window"],
+    ["calendar", "create",  "add an event"],
+    ["calendar", "delete",  "remove an event"],
+    ["weather",  "current", "current conditions for a coord"],
+    ["stock",    "quote",   "live ticker quote"],
+    ["crypto",   "price",   "live coin price"],
+    ["todo",     "add",     "append a TODO"],
+    ["todo",     "list",    "list open TODOs"],
+    ["notify",   "send",    "push a Telegram notification"],
+    ["trade",    "signal",  "Oracle: latest insider-buy signals"],
+  ];
+  const toolGrid = document.getElementById("toolsGrid");
+  const renderTools = (filter = "") => {
+    const f = filter.trim().toLowerCase();
+    toolGrid.innerHTML = "";
+    tools
+      .filter(t => !f || (t.join(".") + " " + t[2]).toLowerCase().includes(f))
+      .forEach(([ns, nm, desc]) => {
+        const div = document.createElement("div");
+        div.className = "tool-row";
+        div.innerHTML = `<span class="ns">${ns}.</span><span class="nm">${nm}</span><span class="desc">${escapeHtml(desc)}</span>`;
+        toolGrid.appendChild(div);
+      });
+    if (!toolGrid.children.length){
+      toolGrid.innerHTML = `<div style="color:var(--ink-mute);font-size:13px;padding:40px;grid-column:1/-1;text-align:center">no matches</div>`;
+    }
+  };
+  renderTools();
+  document.getElementById("toolSearch").addEventListener("input", e => renderTools(e.target.value));
+
+  // ═══════════════════════════════════════════════════════════════
+  // HISTORY VIEW
+  // ═══════════════════════════════════════════════════════════════
+  const sessions = [
+    { date:"Apr 18", time:"19:42", title:"Ship Biskin Studio landing page", sub:"deployed to vercel · 4 turns · 8 tools used", stat:"$0.42" },
+    { date:"Apr 18", time:"15:18", title:"Build Xeneon channel + dark mode", sub:"painted lime → cyan → black across 5 commits", stat:"$0.31" },
+    { date:"Apr 18", time:"11:02", title:"Meteora /v1/quotes endpoint", sub:"Yahoo + Stooq fallback, 60s cache", stat:"$0.18" },
+    { date:"Apr 17", time:"22:14", title:"Form-4 signal review for next week", sub:"3 names flagged, 2 added to watch", stat:"$0.07" },
+    { date:"Apr 17", time:"14:55", title:"Xeneon widgets v0.2 — five new", sub:"clock, pomo, hn, crypto, stocks", stat:"$0.55" },
+    { date:"Apr 16", time:"21:08", title:"Trading model post-mortem", sub:"OOS results don't generalize, pivoting", stat:"$0.21" },
+    { date:"Apr 16", time:"09:30", title:"Daily morning brief", sub:"weather + news + market open + 1 todo", stat:"$0.04" },
+    { date:"Apr 15", time:"19:50", title:"Cold-outreach copy v3 draft", sub:"4 reply variants, A/B notes", stat:"$0.12" },
+  ];
+  const histList = document.getElementById("historyList");
+  sessions.forEach(s => {
+    const div = document.createElement("div");
+    div.className = "session";
+    div.innerHTML = `
+      <div class="session-when"><b>${s.date}</b>${s.time}</div>
+      <div class="session-title">${escapeHtml(s.title)}<small>${escapeHtml(s.sub)}</small></div>
+      <div class="session-stat">${s.stat}</div>`;
+    histList.appendChild(div);
+  });
+
+  // ═══════════════════════════════════════════════════════════════
+  // SETTINGS
+  // ═══════════════════════════════════════════════════════════════
+  const setBase = document.getElementById("setBase");
+  const setKey = document.getElementById("setKey");
+  const setStream = document.getElementById("setStream");
+  const setVoice = document.getElementById("setVoice");
+  const setModel = document.getElementById("setModel");
+  const setCap = document.getElementById("setCap");
+  const setVault = document.getElementById("setVault");
+
+  setBase.value = state.base;
+  setKey.value = state.key;
+  setModel.value = state.model;
+  setCap.value = state.cap;
+  setVault.value = state.vault;
+  if (!state.stream) setStream.classList.remove("on");
+  if (!state.voice) setVoice.classList.remove("on");
+
+  setStream.addEventListener("click", () => setStream.classList.toggle("on"));
+  setVoice.addEventListener("click", () => setVoice.classList.toggle("on"));
+
+  document.getElementById("saveSettings").addEventListener("click", () => {
+    state.base = setBase.value.trim();
+    state.key  = setKey.value.trim();
+    state.stream = setStream.classList.contains("on");
+    state.voice  = setVoice.classList.contains("on");
+    state.model  = setModel.value;
+    state.cap    = setCap.value.trim();
+    state.vault  = setVault.value.trim();
+    Object.entries(state).forEach(([k, v]) => {
+      localStorage.setItem(STORAGE[k], typeof v === "boolean" ? String(v) : v);
+    });
+    refreshMode();
+    document.querySelector('.side-link[data-view="chat"]').click();
+    // toast
+    const toast = document.createElement("div");
+    toast.textContent = "Saved.";
+    toast.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--grad);color:#000;padding:10px 20px;border-radius:999px;font-weight:700;font-size:13px;z-index:1000;box-shadow:0 12px 28px -8px rgba(241,100,182,.5)`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 1800);
+  });
+
+  refreshMode();
+  composer.focus();
+})();
+</script>
+</body>
+</html>
