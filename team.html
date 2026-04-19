@@ -26,16 +26,18 @@
     --warm:         #8A8A8A;   /* mid-gray "warm" — actually the cool-gray sun-b from portfolio */
     --warm-glow:    rgba(255,255,255,.08);
 
-    /* Department "colors" — all greys + white, varied by tone for visual rhythm */
-    --d-eng:        #FFFFFF;
-    --d-design:     #DADADA;
-    --d-marketing:  #BCBCBC;
-    --d-ads:        #A0A0A0;
-    --d-trading:    #FFFFFF;
-    --d-ops:        #DADADA;
-    --d-research:   #BCBCBC;
-    --d-planner:    #A0A0A0;
-    --d-personal:   #FFFFFF;
+    /* Department accent colors — secondary layer behind the B/W/gray main
+       UI. Appear as dot indicators, card top-lines, modal accents. Kept
+       muted enough not to break the mono discipline. */
+    --d-eng:        #6BA3FF;   /* steel blue — signal */
+    --d-design:     #FF7AC6;   /* hot pink — creation */
+    --d-marketing:  #B188FF;   /* violet — persuasion */
+    --d-ads:        #FF9558;   /* tangerine — attention */
+    --d-trading:    #4ECB9E;   /* jade — growth */
+    --d-ops:        #FFB847;   /* amber — industry */
+    --d-research:   #7A96FF;   /* azure — depth */
+    --d-planner:    #5FCFAD;   /* teal — structure */
+    --d-personal:   #FF8888;   /* coral — self */
 
     /* Status — only WHITE for "running" stands out */
     --s-idle:       rgba(245,245,245,.25);
@@ -75,6 +77,17 @@
     position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.04;mix-blend-mode:overlay;
     background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
   }
+
+  /* Demo notice strip — always visible, top of viewport */
+  .demo-strip{
+    position:fixed;top:0;left:0;right:0;z-index:50;
+    background:rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.08);
+    font-family:var(--font-mono);font-size:10px;letter-spacing:.22em;
+    color:rgba(245,245,245,.55);text-transform:uppercase;
+    padding:8px 20px;text-align:center;backdrop-filter:blur(10px);
+  }
+  .demo-strip .on{color:#fff;font-weight:700}
+  .app{top:32px !important}  /* push app down by strip height */
 
   /* ═══ APP SHELL ═══ */
   .app{
@@ -151,7 +164,8 @@
   }
   .dept-link:hover{color:var(--ink);background:rgba(255,255,255,.025)}
   .dept-link.active{background:rgba(255,255,255,.04);border-color:var(--hairline-strong);color:var(--ink)}
-  .dept-link .icn{width:9px;height:9px;border-radius:50%;background:var(--clr, var(--ink-mute))}
+  .dept-link .icn{width:9px;height:9px;border-radius:50%;background:var(--clr, var(--ink-mute));box-shadow:0 0 8px var(--clr, transparent);opacity:.75;transition:opacity .15s}
+  .dept-link:hover .icn, .dept-link.active .icn{opacity:1}
   .dept-link .cnt{font-family:var(--font-mono);font-size:10px;color:var(--ink-mute);letter-spacing:.08em}
 
   .side-foot{margin-top:auto;padding:14px;font-family:var(--font-mono);font-size:10px;color:var(--ink-mute);letter-spacing:.1em;line-height:1.6}
@@ -187,15 +201,16 @@
   }
   .agent-card:hover{transform:translateY(-3px);border-color:var(--hairline-strong);background:var(--bg-lift)}
   .agent-card::before{
-    content:"";position:absolute;top:0;left:0;right:0;height:1px;
+    content:"";position:absolute;top:0;left:0;right:0;height:2px;
     background:var(--clr, var(--ink));
-    opacity:.5;
+    opacity:.75;
+    transition:opacity .2s, height .2s;
   }
-  .agent-card:hover::before{opacity:1}
+  .agent-card:hover::before{opacity:1;height:3px}
   .card-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
   .card-dept{
     font-family:var(--font-mono);font-size:9px;letter-spacing:.22em;text-transform:uppercase;
-    color:var(--clr, var(--accent));font-weight:700;
+    color:var(--clr, var(--ink));font-weight:700;opacity:.9;
   }
   .card-status{display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:9px;letter-spacing:.18em;color:var(--ink-mute);text-transform:uppercase}
   .card-status .dot{width:7px;height:7px;border-radius:50%;background:var(--s-idle)}
@@ -231,7 +246,7 @@
     display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;
     font-size:12px;color:var(--ink-dim);
   }
-  .act-dot{width:7px;height:7px;border-radius:50%;background:var(--clr, var(--ink));opacity:.8}
+  .act-dot{width:7px;height:7px;border-radius:50%;background:var(--clr, var(--ink));box-shadow:0 0 6px var(--clr, var(--ink));opacity:.9}
   .act-name{font-family:var(--font-mono);font-size:11px;color:var(--ink);font-weight:500}
   .act-name small{display:block;color:var(--ink-mute);font-size:10px;margin-top:2px;letter-spacing:.04em}
   .act-time{font-family:var(--font-mono);font-size:10px;color:var(--ink-mute)}
@@ -263,12 +278,12 @@
     overflow:hidden;display:flex;flex-direction:column;position:relative;
   }
   .modal-panel::before{
-    content:"";position:absolute;top:0;left:0;right:0;height:1px;
-    background:var(--clr, var(--ink));opacity:.6;
+    content:"";position:absolute;top:0;left:0;right:0;height:3px;
+    background:var(--clr, var(--ink));opacity:.9;
   }
   .modal-head{padding:24px 28px;border-bottom:1px solid var(--hairline);display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
   .modal-head-l{flex:1}
-  .modal-head .dept{font-family:var(--font-mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-dim);font-weight:700;margin-bottom:6px}
+  .modal-head .dept{font-family:var(--font-mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--clr, var(--ink));font-weight:700;margin-bottom:6px;opacity:.9}
   .modal-head .nm{font-size:24px;font-weight:800;letter-spacing:-.015em;margin-bottom:6px}
   .modal-head .desc{font-size:13px;color:var(--ink-dim);line-height:1.55;max-width:52ch}
   .modal-close{
@@ -312,6 +327,11 @@
 <body>
 <div class="grain" aria-hidden="true"></div>
 
+<!-- showcase notice — visible strip across the top so visitors know nothing functions -->
+<div class="demo-strip">
+  <span class="on">PORTFOLIO SHOWCASE</span> · nothing is functional · no backend · all actions are UI-only demos
+</div>
+
 <div class="app">
 
   <!-- HEADER -->
@@ -330,7 +350,7 @@
       <div><span class="lbl">Today</span><span class="val warm" id="statToday">0 runs</span></div>
     </div>
     <div class="header-actions">
-      <span class="mode-pill"><span class="dot live"></span>LIVE</span>
+      <span class="mode-pill" title="This page is a portfolio showcase — nothing connects to real services."><span class="dot live"></span>SHOWCASE · DEMO</span>
       <a href="./index.html" class="nav-back">← Portfolio</a>
     </div>
   </header>
@@ -452,13 +472,13 @@
       </dl>
     </div>
     <div class="modal-actions">
-      <button class="btn btn-ghost" id="mEditBtn">Edit file</button>
-      <button class="btn btn-primary" id="mBriefBtn">Brief the agent →</button>
+      <button class="btn btn-ghost" id="mEditBtn">File path</button>
+      <button class="btn btn-primary" id="mBriefBtn">Run demo →</button>
     </div>
   </div>
 </div>
 
-<div class="toast" id="toast">Agent briefed. Results in the activity feed.</div>
+<div class="toast" id="toast">Demo run — no real agent called.</div>
 
 <script>
 (() => {
@@ -757,7 +777,7 @@
       updateCounts();
       pushActivity(a, "completed", Math.round(dur) + "ms");
     }, dur);
-    toast(`Brief sent: ${a.name}`);
+    toast(`Demo: ${a.name} simulated run`);
   };
 
   // ═══ ACTIVITY FEED ═══
