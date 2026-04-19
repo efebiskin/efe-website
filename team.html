@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Team · Mission Control</title>
+<meta name="description" content="Mission Control — 35 custom agents across 9 departments. CEO + CFO lead the team." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Mission Control palette — dark ops + department color coding */
+    --bg:         #050710;
+    --bg-soft:    #0C0F1E;
+    --bg-lift:    #13172A;
+    --ink:        #F1F4FA;
+    --ink-dim:    rgba(241,244,250,.62);
+    --ink-mute:   rgba(241,244,250,.38);
+    --hairline:   rgba(241,244,250,.08);
+    --hairline-strong: rgba(241,244,250,.14);
+
+    /* Primary accent + warm secondary */
+    --accent:       #00E5FF;   /* electric cyan */
+    --accent-glow:  rgba(0,229,255,.22);
+    --warm:         #FFB020;   /* amber / gold */
+    --warm-glow:    rgba(255,176,32,.22);
+
+    /* Department colors — map to semantic categories */
+    --d-eng:        #00E5FF;   /* cyan */
+    --d-design:     #FF4DC8;   /* pink */
+    --d-marketing:  #B580FF;   /* violet */
+    --d-ads:        #FF8A3C;   /* orange */
+    --d-trading:    #5DD39E;   /* green */
+    --d-ops:        #FFB020;   /* amber */
+    --d-research:   #7B7DFF;   /* indigo */
+    --d-planner:    #4DD4B3;   /* teal */
+    --d-personal:   #FF6B8A;   /* rose */
+
+    /* Status colors */
+    --s-idle:       rgba(241,244,250,.3);
+    --s-running:    #00E5FF;
+    --s-ok:         #5DD39E;
+    --s-warn:       #FFB020;
+    --s-err:        #FF6B8A;
+
+    /* Easings */
+    --ease-out-quart:   cubic-bezier(.22, 1, .36, 1);
+    --ease-spring:      cubic-bezier(.34, 1.56, .64, 1);
+    --ease-spring-soft: cubic-bezier(.5, 1.25, .6, 1);
+
+    --font-display: "Archivo", system-ui, sans-serif;
+    --font-serif:   "Instrument Serif", Georgia, serif;
+    --font-mono:    "JetBrains Mono", ui-monospace, monospace;
+  }
+
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--font-display);-webkit-font-smoothing:antialiased;overflow:hidden}
+  body{
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(0,229,255,.06), transparent 55%),
+      radial-gradient(1000px 500px at 10% 100%, rgba(255,176,32,.04), transparent 55%),
+      var(--bg);
+  }
+  a{color:inherit;text-decoration:none}
+  button,input,textarea{font-family:inherit;color:inherit;border:none;background:none;outline:none;font-size:inherit}
+  button{cursor:pointer}
+  ::selection{background:var(--accent);color:#000}
+  ::-webkit-scrollbar{width:6px;height:6px}
+  ::-webkit-scrollbar-thumb{background:var(--hairline-strong);border-radius:3px}
+  ::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.2)}
+
+  .mono{font-family:var(--font-mono);letter-spacing:.04em}
+
+  .grain{
+    position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.04;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  /* ═══ APP SHELL ═══ */
+  .app{
+    position:fixed;inset:0;z-index:5;
+    display:grid;
+    grid-template-columns:240px 1fr 320px;
+    grid-template-rows:68px 1fr;
+    grid-template-areas:
+      "header header header"
+      "side   main   right";
+  }
+  @media (max-width: 1200px){
+    .app{grid-template-columns:220px 1fr;grid-template-areas:"header header" "side main"}
+    .right{display:none}
+  }
+  @media (max-width: 760px){
+    .app{grid-template-columns:1fr;grid-template-areas:"header" "main"}
+    .side{display:none}
+  }
+
+  /* ═══ HEADER ═══ */
+  .header{
+    grid-area:header;display:flex;align-items:center;justify-content:space-between;
+    padding:0 28px;border-bottom:1px solid var(--hairline);
+    backdrop-filter:blur(18px);background:rgba(5,7,16,.6);z-index:10;
+  }
+  .brand{display:flex;align-items:center;gap:14px}
+  .brand-mark{
+    width:38px;height:38px;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;
+    background:linear-gradient(135deg, var(--accent) 0%, var(--warm) 100%);
+    color:#000;letter-spacing:-.02em;
+    box-shadow:0 0 0 1px rgba(255,255,255,.1), 0 12px 28px -8px var(--accent-glow);
+  }
+  .brand-text{display:flex;flex-direction:column;line-height:1}
+  .brand-name{font-size:17px;font-weight:900;letter-spacing:-.015em}
+  .brand-sub{font-family:var(--font-mono);font-size:9px;letter-spacing:.24em;color:var(--ink-mute);text-transform:uppercase;margin-top:4px}
+
+  .header-stats{display:flex;align-items:center;gap:24px;font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+  .header-stats > div{display:flex;flex-direction:column;gap:3px}
+  .header-stats .lbl{font-size:9px;letter-spacing:.22em;color:var(--ink-mute)}
+  .header-stats .val{font-size:15px;font-weight:700;color:var(--ink)}
+  .header-stats .val.accent{color:var(--accent)}
+  .header-stats .val.warm{color:var(--warm)}
+
+  .header-actions{display:flex;gap:10px;align-items:center}
+  .mode-pill{
+    display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;
+    border:1px solid var(--hairline-strong);background:rgba(255,255,255,.02);
+    font-family:var(--font-mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-dim);
+  }
+  .mode-pill .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent)}
+  .mode-pill .dot.live{animation:pulse 1.6s ease-in-out infinite}
+  @keyframes pulse {
+    0%,100% { transform:scale(1);  box-shadow:0 0 6px var(--accent) }
+    50%     { transform:scale(1.3); box-shadow:0 0 16px var(--accent) }
+  }
+  .nav-back{
+    padding:8px 14px;border-radius:999px;border:1px solid transparent;
+    font-family:var(--font-mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-dim);
+    transition:all .2s;
+  }
+  .nav-back:hover{border-color:var(--hairline-strong);background:rgba(255,255,255,.03);color:var(--ink)}
+
+  /* ═══ SIDEBAR ═══ */
+  .side{
+    grid-area:side;border-right:1px solid var(--hairline);
+    padding:20px 14px;display:flex;flex-direction:column;gap:3px;overflow-y:auto;
+    background:rgba(5,7,16,.3);backdrop-filter:blur(8px);
+  }
+  .side-title{font-family:var(--font-mono);font-size:9px;letter-spacing:.24em;color:var(--ink-mute);text-transform:uppercase;padding:10px 14px 6px}
+  .dept-link{
+    display:grid;grid-template-columns:18px 1fr auto;gap:12px;align-items:center;
+    padding:10px 14px;border-radius:8px;cursor:pointer;transition:all .15s;
+    font-size:13px;color:var(--ink-dim);border:1px solid transparent;
+  }
+  .dept-link:hover{color:var(--ink);background:rgba(255,255,255,.025)}
+  .dept-link.active{background:rgba(255,255,255,.04);border-color:var(--hairline-strong);color:var(--ink)}
+  .dept-link .icn{width:9px;height:9px;border-radius:50%;background:var(--clr, var(--ink-mute))}
+  .dept-link .cnt{font-family:var(--font-mono);font-size:10px;color:var(--ink-mute);letter-spacing:.08em}
+
+  .side-foot{margin-top:auto;padding:14px;font-family:var(--font-mono);font-size:10px;color:var(--ink-mute);letter-spacing:.1em;line-height:1.6}
+  .side-foot strong{color:var(--ink);font-weight:700}
+  .side-foot a{color:var(--accent)}
+
+  /* ═══ MAIN ═══ */
+  .main{
+    grid-area:main;overflow-y:auto;padding:28px 32px;
+  }
+  @media (max-width:760px){.main{padding:18px}}
+
+  .main-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:14px}
+  .main-head h1{font-size:32px;font-weight:500;letter-spacing:-.02em;line-height:1}
+  .main-head h1 em{font-family:var(--font-serif);font-style:italic;font-weight:400;color:var(--accent)}
+  .main-head .sub{font-family:var(--font-mono);font-size:11px;color:var(--ink-mute);letter-spacing:.14em;text-transform:uppercase;margin-top:6px}
+  .main-search{
+    display:flex;align-items:center;gap:8px;padding:9px 14px;
+    background:var(--bg-soft);border:1px solid var(--hairline-strong);border-radius:999px;min-width:240px;
+  }
+  .main-search input{flex:1;font-size:13px;color:var(--ink)}
+  .main-search input::placeholder{color:var(--ink-mute)}
+
+  .grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;
+  }
+  .agent-card{
+    padding:18px;border-radius:14px;background:var(--bg-soft);
+    border:1px solid var(--hairline);
+    display:flex;flex-direction:column;gap:14px;cursor:pointer;
+    transition:transform .25s var(--ease-spring-soft), border-color .2s, background .2s;
+    position:relative;overflow:hidden;
+  }
+  .agent-card:hover{transform:translateY(-3px);border-color:var(--hairline-strong);background:var(--bg-lift)}
+  .agent-card::before{
+    content:"";position:absolute;top:0;left:0;right:0;height:2px;
+    background:var(--clr, var(--accent));
+    box-shadow:0 0 10px var(--clr, var(--accent));
+    opacity:.6;
+  }
+  .card-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .card-dept{
+    font-family:var(--font-mono);font-size:9px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--clr, var(--accent));font-weight:700;
+  }
+  .card-status{display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:9px;letter-spacing:.18em;color:var(--ink-mute);text-transform:uppercase}
+  .card-status .dot{width:7px;height:7px;border-radius:50%;background:var(--s-idle)}
+  .card-status.running .dot{background:var(--s-running);box-shadow:0 0 8px var(--s-running);animation:pulse 1.6s ease-in-out infinite}
+  .card-name{font-size:17px;font-weight:800;letter-spacing:-.01em}
+  .card-desc{font-size:12.5px;color:var(--ink-dim);line-height:1.5;flex:1;
+    overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+  .card-meta{display:flex;justify-content:space-between;align-items:center;font-family:var(--font-mono);font-size:9px;color:var(--ink-mute);letter-spacing:.08em;text-transform:uppercase;padding-top:10px;border-top:1px solid var(--hairline)}
+  .card-meta .model{color:var(--clr, var(--accent));font-weight:700}
+  .card-meta .brief{
+    color:var(--accent);font-weight:700;cursor:pointer;padding:3px 9px;border:1px solid transparent;border-radius:999px;
+    transition:all .15s;
+  }
+  .card-meta .brief:hover{background:rgba(0,229,255,.08);border-color:var(--accent)}
+
+  .empty{
+    grid-column:1/-1;padding:60px 20px;text-align:center;color:var(--ink-mute);
+    border:1px dashed var(--hairline-strong);border-radius:14px;
+  }
+
+  /* ═══ RIGHT RAIL ═══ */
+  .right{
+    grid-area:right;border-left:1px solid var(--hairline);
+    padding:22px 20px;display:flex;flex-direction:column;gap:22px;overflow-y:auto;
+    background:rgba(5,7,16,.3);backdrop-filter:blur(8px);
+  }
+  .rail-title{font-family:var(--font-mono);font-size:9px;letter-spacing:.24em;color:var(--ink-mute);text-transform:uppercase;margin-bottom:10px;display:flex;justify-content:space-between}
+  .rail-title .live{color:var(--s-running)}
+
+  .activity-feed{display:flex;flex-direction:column;gap:8px}
+  .act{
+    padding:10px 12px;border-radius:10px;background:var(--bg-soft);border:1px solid var(--hairline);
+    display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;
+    font-size:12px;color:var(--ink-dim);
+  }
+  .act-dot{width:8px;height:8px;border-radius:50%;background:var(--clr, var(--accent));box-shadow:0 0 6px var(--clr, var(--accent))}
+  .act-name{font-family:var(--font-mono);font-size:11px;color:var(--ink);font-weight:500}
+  .act-name small{display:block;color:var(--ink-mute);font-size:10px;margin-top:2px;letter-spacing:.04em}
+  .act-time{font-family:var(--font-mono);font-size:10px;color:var(--ink-mute)}
+
+  .squad-panel{
+    padding:16px;border-radius:12px;background:linear-gradient(135deg, rgba(0,229,255,.04), rgba(255,176,32,.04));
+    border:1px solid var(--hairline-strong);
+  }
+  .squad-panel h3{font-size:14px;font-weight:700;margin-bottom:6px;letter-spacing:-.005em}
+  .squad-panel h3 em{font-family:var(--font-serif);font-style:italic;font-weight:400;color:var(--accent)}
+  .squad-panel p{font-size:12px;color:var(--ink-dim);line-height:1.55;margin-bottom:12px}
+  .squad-btn{
+    width:100%;padding:10px 14px;border-radius:8px;
+    background:linear-gradient(135deg, var(--accent), var(--warm));
+    color:#000;font-weight:800;font-size:12px;letter-spacing:.04em;
+    transition:transform .2s var(--ease-spring-soft), box-shadow .2s;
+  }
+  .squad-btn:hover{transform:translateY(-1px);box-shadow:0 10px 24px -8px var(--accent-glow)}
+
+  /* ═══ MODAL ═══ */
+  .modal{
+    position:fixed;inset:0;z-index:100;display:none;
+    background:rgba(5,7,16,.8);backdrop-filter:blur(8px);
+    padding:24px;align-items:center;justify-content:center;
+  }
+  .modal.visible{display:flex}
+  .modal-panel{
+    width:min(100%, 720px);max-height:90vh;
+    background:var(--bg-soft);border:1px solid var(--hairline-strong);border-radius:16px;
+    overflow:hidden;display:flex;flex-direction:column;position:relative;
+  }
+  .modal-panel::before{
+    content:"";position:absolute;top:0;left:0;right:0;height:3px;
+    background:var(--clr, var(--accent));box-shadow:0 0 12px var(--clr, var(--accent));
+  }
+  .modal-head{padding:24px 28px;border-bottom:1px solid var(--hairline);display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
+  .modal-head-l{flex:1}
+  .modal-head .dept{font-family:var(--font-mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--clr, var(--accent));font-weight:700;margin-bottom:6px}
+  .modal-head .nm{font-size:24px;font-weight:800;letter-spacing:-.015em;margin-bottom:6px}
+  .modal-head .desc{font-size:13px;color:var(--ink-dim);line-height:1.55;max-width:52ch}
+  .modal-close{
+    width:34px;height:34px;border-radius:8px;background:var(--bg-lift);
+    display:flex;align-items:center;justify-content:center;color:var(--ink-dim);
+    transition:all .15s;
+  }
+  .modal-close:hover{background:rgba(255,255,255,.06);color:var(--ink)}
+
+  .modal-body{padding:22px 28px;overflow-y:auto;display:flex;flex-direction:column;gap:18px}
+  .mf-row{display:grid;grid-template-columns:120px 1fr;gap:14px;font-size:12.5px;align-items:start}
+  .mf-row dt{font-family:var(--font-mono);font-size:10px;letter-spacing:.2em;color:var(--ink-mute);text-transform:uppercase;padding-top:2px}
+  .mf-row dd{color:var(--ink);line-height:1.55}
+  .mf-row code{font-family:var(--font-mono);background:var(--bg-lift);padding:2px 7px;border-radius:4px;color:var(--accent);font-size:.9em;border:1px solid var(--hairline)}
+  .mf-row .tag{display:inline-block;font-family:var(--font-mono);font-size:10px;padding:3px 8px;background:var(--bg-lift);border:1px solid var(--hairline);border-radius:999px;color:var(--ink-dim);margin-right:4px;margin-bottom:4px;letter-spacing:.08em}
+
+  .sys-prompt{background:var(--bg);border:1px solid var(--hairline);border-radius:10px;padding:14px;font-family:var(--font-mono);font-size:11.5px;line-height:1.6;color:var(--ink-dim);max-height:240px;overflow-y:auto;white-space:pre-wrap}
+
+  .modal-actions{padding:18px 28px;border-top:1px solid var(--hairline);display:flex;gap:10px;justify-content:flex-end;background:var(--bg-lift)}
+  .btn{padding:10px 18px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.04em;transition:all .2s var(--ease-spring-soft)}
+  .btn-ghost{color:var(--ink-dim);border:1px solid var(--hairline-strong)}
+  .btn-ghost:hover{color:var(--ink);background:rgba(255,255,255,.04)}
+  .btn-primary{background:linear-gradient(135deg, var(--accent), var(--warm));color:#000}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 20px -6px var(--accent-glow)}
+
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:200;
+    padding:12px 22px;border-radius:999px;
+    background:linear-gradient(135deg, var(--accent), var(--warm));color:#000;
+    font-weight:700;font-size:13px;box-shadow:0 14px 32px -10px var(--accent-glow);
+    opacity:0;transition:opacity .3s, transform .3s var(--ease-spring-soft);pointer-events:none;
+  }
+  .toast.visible{opacity:1;transform:translateX(-50%) translateY(-6px)}
+
+  /* reduced-motion */
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation-duration:.001ms !important;transition-duration:.001ms !important}
+  }
+</style>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="brand">
+      <div class="brand-mark">T</div>
+      <div class="brand-text">
+        <span class="brand-name">TEAM · Mission Control</span>
+        <span class="brand-sub">CEO + CFO lead the floor</span>
+      </div>
+    </div>
+    <div class="header-stats">
+      <div><span class="lbl">Agents</span><span class="val" id="statAgents">—</span></div>
+      <div><span class="lbl">Depts</span><span class="val" id="statDepts">9</span></div>
+      <div><span class="lbl">Active</span><span class="val accent" id="statActive">—</span></div>
+      <div><span class="lbl">Today</span><span class="val warm" id="statToday">0 runs</span></div>
+    </div>
+    <div class="header-actions">
+      <span class="mode-pill"><span class="dot live"></span>LIVE</span>
+      <a href="./index.html" class="nav-back">← Portfolio</a>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <nav class="side">
+    <div class="side-title">Departments</div>
+    <div class="dept-link active" data-dept="all" style="--clr:var(--accent)">
+      <span class="icn"></span> <span>All</span> <span class="cnt" id="cntAll">—</span>
+    </div>
+    <div class="dept-link" data-dept="engineering" style="--clr:var(--d-eng)">
+      <span class="icn"></span> <span>Engineering</span> <span class="cnt" id="cntEngineering">—</span>
+    </div>
+    <div class="dept-link" data-dept="design" style="--clr:var(--d-design)">
+      <span class="icn"></span> <span>Design</span> <span class="cnt" id="cntDesign">—</span>
+    </div>
+    <div class="dept-link" data-dept="marketing" style="--clr:var(--d-marketing)">
+      <span class="icn"></span> <span>Marketing</span> <span class="cnt" id="cntMarketing">—</span>
+    </div>
+    <div class="dept-link" data-dept="ads" style="--clr:var(--d-ads)">
+      <span class="icn"></span> <span>Ads</span> <span class="cnt" id="cntAds">—</span>
+    </div>
+    <div class="dept-link" data-dept="trading" style="--clr:var(--d-trading)">
+      <span class="icn"></span> <span>Trading</span> <span class="cnt" id="cntTrading">—</span>
+    </div>
+    <div class="dept-link" data-dept="ops" style="--clr:var(--d-ops)">
+      <span class="icn"></span> <span>Operations</span> <span class="cnt" id="cntOps">—</span>
+    </div>
+    <div class="dept-link" data-dept="research" style="--clr:var(--d-research)">
+      <span class="icn"></span> <span>Research</span> <span class="cnt" id="cntResearch">—</span>
+    </div>
+    <div class="dept-link" data-dept="planner" style="--clr:var(--d-planner)">
+      <span class="icn"></span> <span>Planner</span> <span class="cnt" id="cntPlanner">—</span>
+    </div>
+    <div class="dept-link" data-dept="personal" style="--clr:var(--d-personal)">
+      <span class="icn"></span> <span>Personal</span> <span class="cnt" id="cntPersonal">—</span>
+    </div>
+
+    <div class="side-foot">
+      <strong>Mission Control</strong><br/>
+      v0.1 · local agents<br/>
+      <a href="https://docs.claude.com/en/docs/claude-code/sub-agents" target="_blank" rel="noopener">Sub-agents docs ↗</a>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="main-head">
+      <div>
+        <h1><em>Your</em> team.</h1>
+        <div class="sub"><span id="shownCount">—</span> agents showing · filter left</div>
+      </div>
+      <div class="main-search">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--ink-mute)">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input id="searchInput" placeholder="Search agents…" autocomplete="off" />
+      </div>
+    </div>
+    <div class="grid" id="grid"></div>
+  </main>
+
+  <!-- RIGHT RAIL -->
+  <aside class="right">
+    <div>
+      <div class="rail-title"><span>Recent activity</span><span class="live">● live</span></div>
+      <div class="activity-feed" id="activity"></div>
+    </div>
+
+    <div class="squad-panel">
+      <h3>Squad <em>mode.</em></h3>
+      <p>Pick 2+ agents and fire a shared brief. The team runs in parallel, results merge into one doc.</p>
+      <button class="squad-btn" id="squadBtn">Open Squad Mode →</button>
+    </div>
+
+    <div>
+      <div class="rail-title">Today</div>
+      <div style="background:var(--bg-soft);border:1px solid var(--hairline);border-radius:10px;padding:14px;display:grid;grid-template-columns:auto 1fr;gap:10px 14px;font-family:var(--font-mono);font-size:11px">
+        <span style="color:var(--ink-mute);letter-spacing:.18em;font-size:9px;text-transform:uppercase">Runs</span><span id="todayRuns" style="color:var(--accent);font-weight:700">0</span>
+        <span style="color:var(--ink-mute);letter-spacing:.18em;font-size:9px;text-transform:uppercase">Tokens</span><span style="color:var(--ink)" id="todayTokens">0</span>
+        <span style="color:var(--ink-mute);letter-spacing:.18em;font-size:9px;text-transform:uppercase">Spend</span><span style="color:var(--warm);font-weight:700" id="todayCost">$0.00</span>
+      </div>
+    </div>
+  </aside>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+  <div class="modal-panel" id="modalPanel">
+    <div class="modal-head">
+      <div class="modal-head-l">
+        <div class="dept" id="mDept">—</div>
+        <div class="nm" id="mName">—</div>
+        <div class="desc" id="mDesc">—</div>
+      </div>
+      <button class="modal-close" id="mClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <dl class="mf-row">
+        <dt>Model</dt>
+        <dd><code id="mModel">sonnet</code></dd>
+      </dl>
+      <dl class="mf-row">
+        <dt>Tools</dt>
+        <dd id="mTools">—</dd>
+      </dl>
+      <dl class="mf-row">
+        <dt>Invoke via</dt>
+        <dd><code id="mInvoke">Agent({ subagent_type: "—" })</code></dd>
+      </dl>
+      <dl class="mf-row">
+        <dt>Persona</dt>
+        <dd><div class="sys-prompt" id="mPersona">—</div></dd>
+      </dl>
+      <dl class="mf-row">
+        <dt>Best triggers</dt>
+        <dd id="mTriggers">—</dd>
+      </dl>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="mEditBtn">Edit file</button>
+      <button class="btn btn-primary" id="mBriefBtn">Brief the agent →</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Agent briefed. Results in the activity feed.</div>
+
+<script>
+(() => {
+  // ═══ AGENT ROSTER — mirrors ~/.claude/agents/*.md ═══
+  const AGENTS = [
+    // ENGINEERING (5)
+    { slug:"code-reviewer",   name:"Code Reviewer",       dept:"engineering", model:"sonnet", tools:["Read","Grep","Glob","Bash"],
+      desc:"Reviews a diff / PR / file before merge. Catches subtle bugs, races, security holes. Tiers findings: critical / serious / stylistic / nit. Best under 500 lines.",
+      triggers:["review this","check before merge","what's wrong with X"],
+      persona:"Senior reviewer with 15 years across Python/TS/Go/Rust. Reads code the way an auditor reads contracts. Every finding cites file:line with a 1-line fix. Never hedges." },
+    { slug:"refactor-guide",  name:"Refactor Guide",      dept:"engineering", model:"sonnet", tools:["Read","Grep","Glob","Edit","Bash"],
+      desc:"Improves the shape of existing code without changing behavior. Smallest safe step first, named catalogue moves, test cover at each step. Never bundles refactors with bug fixes.",
+      triggers:["split this module","rename everywhere","extract this"],
+      persona:"Surgical refactorer — Fowler catalogue internalised. Never combines behavior change with refactor. Pre-conditions state call-sites + risks. Each step is mergeable on its own." },
+    { slug:"test-writer",     name:"Test Writer",         dept:"engineering", model:"sonnet", tools:["Read","Grep","Glob","Write","Edit","Bash"],
+      desc:"Writes pytest / vitest / jest / go-test to cover a function, pin behavior before refactor, or close a coverage gap. AAA pattern, one behavior per test, descriptive names.",
+      triggers:["write tests for X","pin this first","close coverage gap"],
+      persona:"Tests behavior not structure. Matches existing style. Writes tight tests (AAA). Covers happy + edge + error paths. Reports coverage delta. Tests the public surface only." },
+    { slug:"debug-detective", name:"Debug Detective",     dept:"engineering", model:"sonnet", tools:["Read","Grep","Glob","Bash","Edit"],
+      desc:"Diagnoses broken things. Reproduces bug, forms hypotheses, designs tiny experiments to prove/disprove. Doesn't stop at the first plausible fix — finds root cause.",
+      triggers:["it's failing","was working yesterday","flaky test"],
+      persona:"Sherlock Holmes for code. Reproducer first, evidence before theory. Three competing hypotheses minimum. Follows data not intuition. Keeps going after fix works." },
+    { slug:"doc-writer",      name:"Doc Writer",          dept:"engineering", model:"sonnet", tools:["Read","Grep","Glob","Write","Edit","WebFetch"],
+      desc:"Writes README / API docs / onboarding / architecture. Voice is Stripe / Linear — clear, confident, human. Examples that actually run.",
+      triggers:["write a README","document this API","explain the architecture"],
+      persona:"Docs-as-teammate voice. Second person, active, present tense. Show then tell. Example first, prose second. Cuts simply / just / obviously / basically." },
+
+    // DESIGN (5)
+    { slug:"brand-designer",  name:"Brand Designer",      dept:"design", model:"opus", tools:["Read","Write","WebFetch","WebSearch"],
+      desc:"Returns 3 directions for a brand — name, philosophy, type pair, palette, logo concept, references. Names trade-offs. Recommends one with reasoning.",
+      triggers:["brand direction for X","pick a type system","logo concept"],
+      persona:"Pentagram / Collins school. Every choice is a decision, every decision has a reason. Resists the first idea — always 3 directions. Won't present just one." },
+    { slug:"motion-designer", name:"Motion Designer",     dept:"design", model:"sonnet", tools:["Read","Write","Edit","WebFetch"],
+      desc:"Directs motion — what moves, in what order, with what stagger + easing + duration. Writes CSS/JS when asked. 12 Disney principles underneath every choice.",
+      triggers:["add motion to this hero","hover behavior","page transitions"],
+      persona:"Disney principles. 250ms is a personality statement. Intent drives choreography. Ease-out for enter, ease-in-out for exit. Transform + opacity only." },
+    { slug:"ui-critic",       name:"UI Critic",           dept:"design", model:"sonnet", tools:["Read","Grep","Glob","WebFetch"],
+      desc:"Honest design critique across hierarchy, rhythm, contrast, alignment, affordance. Separates craft (objective) from taste (flagged). Ends with one structural note.",
+      triggers:["roast this design","what's wrong","final pass before ship"],
+      persona:"Michael Beirut — kind, precise, no flinching. Separates craft from taste and labels every observation. Cites specific fixes. Won't redesign in the critique." },
+    { slug:"interior-designer", name:"Interior Designer",  dept:"design", model:"opus", tools:["Read","Write","WebFetch","WebSearch"],
+      desc:"Designs rooms — 3 directions with mood, material palette, color palette, lighting plan, key pieces, trade-offs. Recommends one.",
+      triggers:["design my living room","mood direction","pick a palette"],
+      persona:"Ilse Crawford / Kelly Wearstler. Atmosphere before furniture. Anchors each room on one thing. Never defaults to 'Scandinavian minimal'. Describes pieces, doesn't brand-lock." },
+    { slug:"type-color-curator", name:"Type & Color Curator", dept:"design", model:"sonnet", tools:["Read","Write","WebFetch"],
+      desc:"Picks or vets type pairings + color palettes. Names fonts with foundry + weights, colors with hex + role + WCAG contrast. Tight, fast, opinionated.",
+      triggers:["pair a type system","pick a palette","audit these fonts"],
+      persona:"Sommelier-level specificity. Won't default to Inter. Shows modular scale + CSS fallback. Measures WCAG, won't fake pass." },
+
+    // MARKETING (5)
+    { slug:"copywriter",      name:"Copywriter",          dept:"marketing", model:"sonnet", tools:["Read","Grep","Glob","Edit","Write","WebFetch"],
+      desc:"Marketing-page words — heroes, features, CTAs, microcopy. Sharp, specific, short. Cuts simply/just/really/very. Uses numbers and proper nouns instead of adjectives.",
+      triggers:["write a hero","rewrite this punchier","microcopy for empty state"],
+      persona:"Stripe / Linear voice. Active present tense. One idea per sentence. Specific beats generic. Avoids leverage/synergy/robust/game-changing." },
+    { slug:"outreach-writer", name:"Outreach Writer",     dept:"marketing", model:"sonnet", tools:["Read","WebFetch","WebSearch"],
+      desc:"Cold / warm outreach. 3 subject variants + 3 email variants + follow-up. ≤ 100 words per email. Reply rate is the only metric.",
+      triggers:["cold email to X","pitch to journalist","follow-up"],
+      persona:"Sam Parr / Ash Maurya. Specific opener, why-you, single ask, frictionless out. Sounds like a person not a department. No 'hope this finds you well'." },
+    { slug:"social-poster",   name:"Social Poster",       dept:"marketing", model:"sonnet", tools:["Read","WebFetch","WebSearch"],
+      desc:"Posts for Twitter/X, LinkedIn, Instagram, Threads. Platform-tuned. Hook variants, main post, alt post, best send window.",
+      triggers:["Twitter thread on X","LinkedIn post","Instagram caption"],
+      persona:"Knows each platform's physics. First line earns the second. Platform-native tone. Zero ChatGPT tells — no delve, no tapestry, no em-dashes-everywhere." },
+    { slug:"funnel-strategist", name:"Funnel Strategist",  dept:"marketing", model:"opus", tools:["Read","WebFetch","WebSearch"],
+      desc:"Maps the 5-stage funnel, identifies the leakiest stage, prescribes ONE next experiment with metric + duration + cost. Chooses what not to do.",
+      triggers:["map our funnel","why aren't people converting","next experiment"],
+      persona:"Chess-master positional thinker. One experiment at a time. Names what to kill, not just what to start. Retention before acquisition." },
+    { slug:"seo-optimizer",   name:"SEO Optimizer",       dept:"marketing", model:"sonnet", tools:["Read","Grep","Glob","Edit","WebFetch","Bash"],
+      desc:"Concrete SEO edits — titles, metas, headings, alts, internal links, schema, speed. Returns diffs not advice. Writes JSON-LD where it fits.",
+      triggers:["SEO audit","why isn't this ranking","add schema"],
+      persona:"Basics-first — 80% of the wins are on-page done well. Writes JSON-LD. Flags Core Web Vitals. Won't keyword-stuff. Knows intent > keywords." },
+
+    // ADS (3)
+    { slug:"ad-creative",     name:"Ad Creative",         dept:"ads", model:"sonnet", tools:["Read","WebFetch","WebSearch"],
+      desc:"Ad copy + creative angles by platform (Meta/Google/TikTok/YouTube/X/Display). 3 angles per brief — pain / aspiration / curiosity. Handles objection in-copy.",
+      triggers:["Meta ad for X","Google Search ad","TikTok hook"],
+      persona:"Knows intent (Google) vs disruption (Meta). Hook beats headline. Single CTA. Ad format discipline per platform. Predicts CPA band." },
+    { slug:"ad-targeting",    name:"Ad Targeting",        dept:"ads", model:"sonnet", tools:["Read","WebFetch"],
+      desc:"Audience targeting spec by platform. Broad vs interests vs lookalike vs custom intent. Exclusions. Retargeting window. Kill criteria.",
+      triggers:["who do we target","lookalike seed","retargeting setup"],
+      persona:"Fisherman logic — picks spots based on what's there, not the brochure. Doesn't stack 12 interests. Exclusions are 30% of performance. Sets kill criteria up front." },
+    { slug:"ad-analyst",      name:"Ad Analyst",          dept:"ads", model:"sonnet", tools:["Read","Bash","WebFetch"],
+      desc:"Reads CPM/CTR/CPC/CPA/ROAS/frequency and returns Scale/Hold/Kill/Refresh verdicts per ad with the math. Prescribes ONE next experiment.",
+      triggers:["why is CPA rising","scale or kill","ad performance review"],
+      persona:"Reads ad metrics like bloodwork. Diagnoses which side of CPC is drifting. Won't change on 2 days of data. Scales in 20% increments. Frequency > 3 = refresh." },
+
+    // TRADING (4)
+    { slug:"trading-analyst", name:"Trading Analyst",     dept:"trading", model:"opus", tools:["Read","Bash","WebFetch","Grep","Glob"],
+      desc:"Reviews today's signals + open positions, states thesis per trade, separates noise from signal. Willing to say 'do nothing'.",
+      triggers:["review today's signals","should I take this","walk the book"],
+      persona:"Desk PM voice. Every position is a falsifiable thesis. Separates decision quality from outcome. Won't predict prices — predicts ranges and actions." },
+    { slug:"risk-checker",    name:"Risk Checker",        dept:"trading", model:"sonnet", tools:["Read","Bash"],
+      desc:"Before any new trade: sizing, stop placement, sector/correlation exposure, Kelly hint, R:R. Single GO/RESIZE/NO-GO with math.",
+      triggers:["check this trade","sizing review","before I click buy"],
+      persona:"Goalkeeper logic — surviving > winning. Gates: 1.5% per trade, 30% sector, R:R ≥ 1.5, ≤ 8 positions. Math doesn't care about conviction." },
+    { slug:"backtest-runner", name:"Backtest Runner",     dept:"trading", model:"opus", tools:["Read","Write","Edit","Bash","Grep","Glob"],
+      desc:"Backtests a strategy with honest caveats — lookahead / survivorship / costs / sample / overfitting checked. Walk-forward. Reports full stats + regime sensitivity.",
+      triggers:["backtest this","would X have worked","sanity-check model"],
+      persona:"Skeptical of own results. Five classic leaks checked before publishing. Uses historical universe, not today's. Reports drawdowns, not just CAGR." },
+    { slug:"macro-watcher",   name:"Macro Watcher",       dept:"trading", model:"sonnet", tools:["Read","WebFetch","WebSearch","Bash"],
+      desc:"Daily/weekly macro brief — calendar, yields/dollar/vol/credit markers, positioning, the one event that moves everything. Won't predict prints.",
+      triggers:["macro brief","what's setup this week","did print matter"],
+      persona:"Sailor watching weather — not predicting the storm, knowing when to tighten ropes. Calibrated. 'I don't know' is a valid answer. Tie-in to the book." },
+
+    // OPERATIONS (4)
+    { slug:"deploy-pilot",    name:"Deploy Pilot",        dept:"ops", model:"sonnet", tools:["Read","Bash","Grep","Glob"],
+      desc:"Preflight → deploy → smoke → rollback-ready. Won't ship on red tests. Staging first unless hotfix. Captures rollback target before deploying.",
+      triggers:["ship this to prod","deploy the branch","rollback"],
+      persona:"Commercial pilot — checklist first. Rollback target identified before takeoff. No Friday 5pm pushes without cause. Smoke test before 'success'." },
+    { slug:"budget-watcher",  name:"Budget Watcher",      dept:"ops", model:"sonnet", tools:["Read","Grep","Glob"],
+      desc:"Reads recurring spend — subs, cloud, ads, tools. Flags zombies / duplicates / tier drift / upcoming auto-renewals. Total savings sum.",
+      triggers:["audit my subscriptions","cloud bill check","where is $ going"],
+      persona:"Polite CFO — won't moralize, states numbers. 5×$9/mo = $540/yr. Never cuts load-bearing without proposing a replacement." },
+    { slug:"weekly-reviewer", name:"Weekly Reviewer",     dept:"ops", model:"sonnet", tools:["Read","Bash","Grep","Glob"],
+      desc:"Friday review — shipped / slipped / learned / owed / queued. Distills top-3 priorities for next week + one thing to stop doing.",
+      triggers:["Friday review","wrap the week","prep Monday"],
+      persona:"Founder self-talk — honest, no spin. Max 3 priorities next week. Stop-doing list is required. Writes for future-self next Friday." },
+    { slug:"brief-writer",    name:"Brief Writer",        dept:"ops", model:"sonnet", tools:["Read","Grep","Glob","Write"],
+      desc:"One-page project brief — pitch, why-now, audience, success looks like, scope, OUT OF SCOPE, timeline, owner, constraints, risks, open questions.",
+      triggers:["write a brief","kickoff doc","spec the sprint"],
+      persona:"Basecamp pitch-doc discipline. Strict section order. Forces decisions (vague section = ask the question). Keeps to 400 words, one page." },
+
+    // RESEARCH (3)
+    { slug:"deep-researcher", name:"Deep Researcher",     dept:"research", model:"opus", tools:["Read","Write","WebFetch","WebSearch","Grep","Glob"],
+      desc:"Multi-source deep dive with citations + contradictions surfaced. Synthesises (not summarises). Calibrated confidence per claim.",
+      triggers:["research X in depth","state of the field","pre-decision research"],
+      persona:"Investigative reporter — primary sources first, secondary second. Tracks the disagreement. States what DIDN'T show up in the data. No Wikipedia as primary." },
+    { slug:"competitor-spy",  name:"Competitor Spy",      dept:"research", model:"sonnet", tools:["Read","Write","WebFetch","WebSearch"],
+      desc:"Competitor matrix — positioning, pricing, feature-by-feature, customer complaints, recent launches. Ends with THE gap + positioning rec.",
+      triggers:["what are competitors doing","find the gap","positioning audit"],
+      persona:"Reads the field to find the move opponents aren't prepared for. Separates 'they do X' from 'X works for them'. Names the most-cited complaint." },
+    { slug:"trend-finder",    name:"Trend Finder",        dept:"research", model:"sonnet", tools:["Read","Write","WebFetch","WebSearch"],
+      desc:"Scans 5+ source types (jobs, GitHub, HN, search, funding, academic) and scores direction/durability/accessibility. Names the one non-obvious signal.",
+      triggers:["what's trending","scan for patterns","too early or too late"],
+      persona:"Tracker reading the forest. Job postings = most honest signal. Accessibility > momentum. Duration > velocity. Funding is LATE." },
+
+    // PLANNER (3)
+    { slug:"project-planner", name:"Project Planner",     dept:"planner", model:"sonnet", tools:["Read","Grep","Glob","Write","Bash"],
+      desc:"Breaks a project into atomic tasks (≤1d each) with dependencies + T-shirt estimates. Milestones = user-visible deliverables. Critical path on top.",
+      triggers:["break into tasks","order of work","how long will X take"],
+      persona:"Foreman logic — every task has cost, order, dependency. Rejects 'design the UI' as a task. T-shirt sizes not hours. 3 milestones max in detail." },
+    { slug:"roadmap-architect", name:"Roadmap Architect", dept:"planner", model:"opus", tools:["Read","Write","Grep","Glob","WebFetch"],
+      desc:"Long-horizon themes, not dates. 3-5 themes per quarter with compound/dependency logic. Explicit stop-doing + bets + re-cut triggers.",
+      triggers:["Q2 roadmap","sequence these projects","18-month vision"],
+      persona:"City planner — zones the neighborhood, not every street. Themes are quarters. Explicit decisions, bets, re-cut triggers. Stop-doing is required." },
+    { slug:"priority-coach",  name:"Priority Coach",      dept:"planner", model:"sonnet", tools:["Read","Grep","Glob"],
+      desc:"Triages a 50-item list down to top 3 + explicit DELETE pile. Two axes: impact × reversibility. Names the one thing this week.",
+      triggers:["too much on my plate","what should I work on","I'm stuck"],
+      persona:"Good EA voice — shortens lists, not organizes them. Hardest move is dropping the low-impact column. Three priorities max. Delete list is the whole value." },
+
+    // PERSONAL (3)
+    { slug:"morning-brief",   name:"Morning Brief",       dept:"personal", model:"haiku", tools:["Read","WebFetch","Bash","Grep","Glob"],
+      desc:"Start-of-day briefing — calendar, inbox, yesterday shipped, weather, 3 headlines. Under 200 words. Ends with THE ONE THING today.",
+      triggers:["brief me","morning check-in","what's today"],
+      persona:"Chief of Staff memo voice. No padding. 200-word cap. The ONE THING is visually punchy. Flags the easy-to-miss. No motivational quotes." },
+    { slug:"habit-tracker",   name:"Habit Tracker",       dept:"personal", model:"haiku", tools:["Read","Write","Edit","Grep"],
+      desc:"Logs / reviews habits from ~/habits.md — streak, 7d rate, 14d rate, trend. Flags in-danger, celebrates quiet win. One adjustment per review.",
+      triggers:["log today","how am I doing","weekly habit review"],
+      persona:"Recovery coach — no judgment, no hiding. Rates > streaks. Restarts > streaks. Won't stack new habits on a perfect week. One adjustment per review." },
+    { slug:"reminder-keeper", name:"Reminder Keeper",     dept:"personal", model:"haiku", tools:["Read","Write","Edit","Grep"],
+      desc:"Captures + reviews reminders from ~/reminders.md. Buckets overdue/today/week/upcoming. Flags aging 'waiting-on' items that need a nudge.",
+      triggers:["remind me to X","what do I owe","what's due this week"],
+      persona:"Maître d' — not fancy, just reliable. Dateless = noise. Separates 'my action' from 'waiting on'. Archives completed weekly." },
+  ];
+
+  const DEPT_META = {
+    engineering: { label:"Engineering", color:"var(--d-eng)" },
+    design:      { label:"Design",      color:"var(--d-design)" },
+    marketing:   { label:"Marketing",   color:"var(--d-marketing)" },
+    ads:         { label:"Ads",         color:"var(--d-ads)" },
+    trading:     { label:"Trading",     color:"var(--d-trading)" },
+    ops:         { label:"Operations",  color:"var(--d-ops)" },
+    research:    { label:"Research",    color:"var(--d-research)" },
+    planner:     { label:"Planner",     color:"var(--d-planner)" },
+    personal:    { label:"Personal",    color:"var(--d-personal)" },
+  };
+
+  // ═══ STATE ═══
+  let activeDept = "all";
+  let searchQ = "";
+  let runningAgents = new Set();
+  let totalRuns = 0, totalTokens = 0, totalCost = 0;
+
+  const $ = s => document.querySelector(s);
+
+  // ═══ STATS ═══
+  const updateCounts = () => {
+    $("#statAgents").textContent = AGENTS.length;
+    $("#cntAll").textContent = AGENTS.length;
+    Object.keys(DEPT_META).forEach(d => {
+      const cnt = AGENTS.filter(a => a.dept === d).length;
+      const cap = d === "ops" ? "Ops" : d[0].toUpperCase() + d.slice(1);
+      const el = document.getElementById("cnt" + cap);
+      if (el) el.textContent = cnt;
+    });
+    $("#statActive").textContent = runningAgents.size;
+  };
+  updateCounts();
+
+  // ═══ GRID RENDER ═══
+  const renderGrid = () => {
+    const q = searchQ.toLowerCase();
+    const filtered = AGENTS.filter(a =>
+      (activeDept === "all" || a.dept === activeDept) &&
+      (!q || (a.name + " " + a.desc + " " + a.triggers.join(" ")).toLowerCase().includes(q))
+    );
+    $("#shownCount").textContent = filtered.length;
+    const g = $("#grid");
+    if (!filtered.length){
+      g.innerHTML = `<div class="empty">No agents match.</div>`;
+      return;
+    }
+    g.innerHTML = filtered.map(a => {
+      const color = DEPT_META[a.dept].color;
+      const running = runningAgents.has(a.slug);
+      return `
+        <div class="agent-card" data-slug="${a.slug}" style="--clr:${color}">
+          <div class="card-head">
+            <span class="card-dept">${DEPT_META[a.dept].label}</span>
+            <span class="card-status ${running ? 'running' : ''}"><span class="dot"></span>${running ? 'RUNNING' : 'IDLE'}</span>
+          </div>
+          <div class="card-name">${a.name}</div>
+          <div class="card-desc">${a.desc}</div>
+          <div class="card-meta">
+            <span>claude · <span class="model">${a.model}</span></span>
+            <span class="brief" data-slug="${a.slug}">Brief →</span>
+          </div>
+        </div>`;
+    }).join("");
+    // card clicks → open modal
+    g.querySelectorAll(".agent-card").forEach(el => {
+      el.addEventListener("click", (e) => {
+        if (e.target.classList.contains("brief")) { e.stopPropagation(); runAgent(el.dataset.slug); return; }
+        openModal(el.dataset.slug);
+      });
+    });
+  };
+  renderGrid();
+
+  // ═══ SIDEBAR FILTERS ═══
+  document.querySelectorAll(".dept-link").forEach(lnk => {
+    lnk.addEventListener("click", () => {
+      document.querySelectorAll(".dept-link").forEach(x => x.classList.toggle("active", x === lnk));
+      activeDept = lnk.dataset.dept;
+      renderGrid();
+    });
+  });
+
+  // ═══ SEARCH ═══
+  $("#searchInput").addEventListener("input", e => { searchQ = e.target.value; renderGrid(); });
+
+  // ═══ MODAL ═══
+  const openModal = (slug) => {
+    const a = AGENTS.find(x => x.slug === slug);
+    if (!a) return;
+    const color = DEPT_META[a.dept].color;
+    $("#modalPanel").style.setProperty("--clr", color);
+    $("#mDept").style.setProperty("--clr", color);
+    $("#mDept").textContent = DEPT_META[a.dept].label;
+    $("#mName").textContent = a.name;
+    $("#mDesc").textContent = a.desc;
+    $("#mModel").textContent = "claude · " + a.model;
+    $("#mTools").innerHTML = a.tools.map(t => `<span class="tag">${t}</span>`).join("");
+    $("#mInvoke").textContent = `Agent({ subagent_type: "${a.slug}", prompt: "…" })`;
+    $("#mPersona").textContent = a.persona;
+    $("#mTriggers").innerHTML = a.triggers.map(t => `<span class="tag">"${t}"</span>`).join("");
+    $("#mBriefBtn").onclick = () => { closeModal(); runAgent(slug); };
+    $("#mEditBtn").onclick = () => {
+      toast("File: ~/.claude/agents/" + slug + ".md");
+    };
+    $("#modal").classList.add("visible");
+  };
+  const closeModal = () => $("#modal").classList.remove("visible");
+  $("#mClose").onclick = closeModal;
+  $("#modal").addEventListener("click", e => { if (e.target === $("#modal")) closeModal(); });
+
+  // ═══ RUN AGENT (mock) ═══
+  const runAgent = (slug) => {
+    const a = AGENTS.find(x => x.slug === slug); if (!a) return;
+    runningAgents.add(slug);
+    renderGrid();
+    updateCounts();
+    pushActivity(a, "started");
+    const dur = 1800 + Math.random() * 2200;
+    setTimeout(() => {
+      runningAgents.delete(slug);
+      totalRuns++;
+      const toks = Math.floor(2000 + Math.random() * 8000);
+      totalTokens += toks;
+      const cost = (toks * 0.00003 * (a.model === "opus" ? 5 : a.model === "sonnet" ? 1 : 0.25));
+      totalCost += cost;
+      $("#statToday").textContent = totalRuns + " runs";
+      $("#todayRuns").textContent = totalRuns;
+      $("#todayTokens").textContent = totalTokens.toLocaleString();
+      $("#todayCost").textContent = "$" + totalCost.toFixed(2);
+      renderGrid();
+      updateCounts();
+      pushActivity(a, "completed", Math.round(dur) + "ms");
+    }, dur);
+    toast(`Brief sent: ${a.name}`);
+  };
+
+  // ═══ ACTIVITY FEED ═══
+  const pushActivity = (agent, action, extra="") => {
+    const time = new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit",second:"2-digit"});
+    const color = DEPT_META[agent.dept].color;
+    const div = document.createElement("div");
+    div.className = "act";
+    div.style.setProperty("--clr", color);
+    div.innerHTML = `
+      <span class="act-dot"></span>
+      <span class="act-name">${agent.name}<small>${action}${extra ? " · " + extra : ""}</small></span>
+      <span class="act-time">${time}</span>`;
+    $("#activity").prepend(div);
+    while ($("#activity").children.length > 12) $("#activity").lastElementChild.remove();
+  };
+
+  // seed a few activity rows
+  const seedActs = ["code-reviewer","morning-brief","weekly-reviewer","copywriter"];
+  seedActs.forEach((s,i) => {
+    const a = AGENTS.find(x => x.slug === s);
+    if (!a) return;
+    setTimeout(() => pushActivity(a, "completed", (800 + i*200) + "ms"), 100);
+  });
+
+  // ═══ TOAST ═══
+  const toast = (msg) => {
+    const t = $("#toast");
+    t.textContent = msg;
+    t.classList.add("visible");
+    clearTimeout(t._hide);
+    t._hide = setTimeout(() => t.classList.remove("visible"), 2200);
+  };
+
+  // ═══ SQUAD ═══
+  $("#squadBtn").onclick = () => {
+    toast("Squad mode coming next — pick 2+ agents for parallel runs");
+  };
+
+})();
+</script>
+</body>
+</html>
