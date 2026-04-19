@@ -548,13 +548,13 @@
     <section class="view active" data-view="chat">
       <div class="chat-stream" id="chatStream">
         <div class="welcome">
-          <h1><em>Welcome back,</em> Efe.</h1>
-          <p>Ask me anything — I have access to your Obsidian vault, your screen, your code, your trades, the web. I remember our last 128 sessions.</p>
+          <h1><em>Welcome back.</em></h1>
+          <p>Ask me anything — I have access to your knowledge vault, your screen, your code, your data, the web. I remember every conversation we've ever had.</p>
           <div class="welcome-quick">
             <span class="quick-chip" data-q="What did we work on yesterday?">What did we work on yesterday?</span>
-            <span class="quick-chip" data-q="Summarize this week's trades">Summarize this week's trades</span>
-            <span class="quick-chip" data-q="Open my motion-sites brief">Open my motion-sites brief</span>
-            <span class="quick-chip" data-q="What's the weather in Thousand Oaks?">Weather in Thousand Oaks?</span>
+            <span class="quick-chip" data-q="Summarize this week's progress">Summarize this week's progress</span>
+            <span class="quick-chip" data-q="Open the latest project brief">Open the latest project brief</span>
+            <span class="quick-chip" data-q="What's on the calendar today?">What's on the calendar today?</span>
           </div>
         </div>
       </div>
@@ -669,7 +669,7 @@
           <p>Where HERA reads and writes long-term memory. Obsidian vault is the default — markdown files HERA can recall mid-conversation.</p>
           <div>
             <label>Vault path</label>
-            <input id="setVault" placeholder="C:/Users/eless/Desktop/HERA/memory" />
+            <input id="setVault" placeholder="/path/to/your/vault" />
           </div>
         </div>
 
@@ -746,7 +746,7 @@
     voice:  localStorage.getItem(STORAGE.voice)  !== "false",
     model:  localStorage.getItem(STORAGE.model)  || "opus",
     cap:    localStorage.getItem(STORAGE.cap)    || "2.00",
-    vault:  localStorage.getItem(STORAGE.vault)  || "C:/Users/eless/Desktop/HERA/memory",
+    vault:  localStorage.getItem(STORAGE.vault)  || "/path/to/your/vault",
   };
   const isLive = () => !!state.base;
 
@@ -809,42 +809,47 @@
     return div;
   };
 
-  // Mock conversation responses — keyword-driven
+  // Mock conversation responses — neutral demo content (no real user data)
   const mockResponses = [
     {
       match: /yesterday|last|previous/i,
       tools: ["obsidian.search", "memory.recall"],
-      reply: `Yesterday we shipped <code>v0.2</code> of the Xeneon widgets channel and built the Biskin Studio landing page. You also pushed Meteora's <code>/v1/quotes</code> endpoint with a Yahoo + Stooq fallback.\n\nThe big unfinished thread: deciding whether to pursue a custom domain for <code>biskin.studio</code>. Want me to pull that thread?`,
+      reply: `Yesterday's session focused on the <code>Q3 product roadmap</code> draft and a mid-day code review on the <code>billing-service</code> repo. We also wrapped a long thread on the new pricing experiment.\n\nUnfinished: a paragraph in the launch memo you wanted me to tighten. Pull it up?`,
     },
     {
       match: /trade|stock|portfolio|signal/i,
       tools: ["obsidian.search", "stock.quote", "trade.signal"],
-      reply: `Looking at the Oracle paper account — <strong>+1.2% today, +5.4% MTD</strong>. The Form-4 signal flagged <code>NVDA</code> and <code>AAPL</code> on insider buys this morning. No new openings since the 30-day-hold is still active on 8 positions.\n\nI'm watching Friday's PCE print as the next macro inflection.`,
+      reply: `Pulling the demo paper portfolio — <strong>+0.8% today, +3.1% MTD</strong>. Two signals fired this morning, both already added to the watch queue with a 7-day hold.\n\nNothing flagged for action — the model is in observe mode through the next print.`,
     },
     {
       match: /weather|forecast/i,
       tools: ["weather.current"],
-      reply: `Thousand Oaks right now: <strong>26.6°C / 80°F</strong>, clear sky, light SW wind at 14 km/h. Tomorrow's max is <strong>28°</strong> — should be a good run morning.`,
+      reply: `Right now: <strong>22°C / 72°F</strong>, partly cloudy, light NW wind at 11 km/h. Tomorrow's max is <strong>24°</strong> — clear morning, light cloud after lunch.`,
     },
     {
-      match: /motion|brief|studio|client/i,
+      match: /motion|brief|studio|client|project/i,
       tools: ["obsidian.read", "memory.recall"],
-      reply: `Pulling up the <code>motion-sites/brief.md</code>:\n\n<pre>Target: $2k MRR by July\nRate: $2.5k starter / $5k signature / $12.5k+ production\nLead source: cold outreach + portfolio link\nFirst 3 pilots: discounted to $1.5k each for testimonials</pre>\n\nNo new leads logged since Tuesday. Want me to draft a cold-outreach template?`,
+      reply: `Latest project brief on top of the queue:\n\n<pre>Project: Atlas Landing\nTarget: launch by Friday\nScope: hero + features + pricing + footer\nStakeholder: Sam (PM)\nNext step: motion concept review at 3pm</pre>\n\nWant me to open the full brief or draft the morning standup notes?`,
     },
     {
       match: /screen|see|show|look/i,
       tools: ["vision.screen"],
-      reply: `I see your VS Code with <code>hera.html</code> open — you're scrolling around the Miami sunset palette. There's also a Claude tab and a localhost preview at <code>:5557</code>.\n\nWant me to do anything with what's on screen?`,
+      reply: `I see your editor open on a layout file, a browser tab on a localhost preview, and a notes window on the right. The preview looks like it's mid-layout-pass — a section is visibly empty below the hero.\n\nWant me to look closer at any of those?`,
+    },
+    {
+      match: /calendar|today|schedule|meeting/i,
+      tools: ["calendar.list"],
+      reply: `Three things on the calendar today:\n\n• <strong>10:00</strong> — Standup (15m)\n• <strong>13:30</strong> — Design review (45m)\n• <strong>16:00</strong> — Coffee chat (30m)\n\nNo blockers. Want a focus window blocked between 11 and 13?`,
     },
     {
       match: /thank|thanks|appreciate|good job|nice/i,
       tools: [],
-      reply: `Anytime, Efe. 💗`,
+      reply: `Anytime. 💗`,
     },
   ];
   const defaultResponse = {
     tools: ["claude.opus", "memory.recall"],
-    reply: `On it. Give me a moment to think — I'm threading this against your last 30 days of context to make sure I don't repeat myself.\n\nQuick clarify: do you want the short answer or do you want me to actually go do the thing?`,
+    reply: `On it. Give me a moment to think — I'm threading this against the last 30 days of context to make sure I don't repeat myself.\n\nQuick clarify: do you want the short answer or do you want me to actually go do the thing?`,
   };
 
   const matchMock = (text) => {
@@ -992,18 +997,18 @@
   // MEMORY VIEW — populate
   // ═══════════════════════════════════════════════════════════════
   const memoryEntries = [
-    { tag:"PROJECT", title:"Biskin Studio launch", when:"2h", snippet:"Shipped studio.html with Miami-cousin lime palette, bento grid, three case studies, three pricing tiers. Live at efe-website-plum.vercel.app/studio.html." },
-    { tag:"TRADE",   title:"Form-4 signal: NVDA", when:"6h", snippet:"Insider purchase by C-level, $2.4M block. Signal score 0.78. Added to 30-day-hold queue." },
-    { tag:"NOTE",    title:"Cold outreach copy v3", when:"1d", snippet:"Tighter opener, drop the 'we' for 'I'. Ship rate beats pitch rate. Reply: 4/12 vs 1/12 on v2." },
-    { tag:"PROJECT", title:"Xeneon widgets v0.3", when:"1d", snippet:"Dropped Discord (read-only didn't pull weight), wired all links to deployed URL via auto-detect, added cyan accent on dark." },
-    { tag:"DECISION",title:"Pivot from 'Greek god' theme", when:"2d", snippet:"Theatrical aesthetic was wrong for portfolio. Modern poster + split statue replaces it. Kept the mythic kicker font." },
-    { tag:"LEARN",   title:"Jitter motion vocabulary", when:"3d", snippet:"Medium-weight 80px display, -1.6px tracking. Sine-wave horizon with emoji nodes. Help-button bottom-right pulse." },
-    { tag:"TRADE",   title:"Oracle MTD: +5.4%", when:"3d", snippet:"63% win rate over 47 trades. Best month since rebuild. Worst trade: -3.1% on a stop, no Form-4 backing." },
-    { tag:"NOTE",    title:"Apple Card payoff timeline", when:"4d", snippet:"At $2k/mo MRR from Biskin Studio, 11 months to clear the $22k. First pilot booked = first month." },
-    { tag:"PROJECT", title:"Meteora /v1/quotes shipped", when:"5d", snippet:"Yahoo Finance v7 primary, Stooq fallback (CSV, +-separator gotcha). 60s cache, 50-symbol limit per call." },
-    { tag:"NOTE",    title:"HERA — voice over webRTC", when:"6d", snippet:"ElevenLabs latency too high for natural turn-taking. Switching to OpenAI realtime API for the listen path." },
-    { tag:"DECISION",title:"Stop chasing OOS edge", when:"1w", snippet:"April 16 model results: features don't predict target. Don't trust ML signal alone. Insider + momentum is the real edge." },
-    { tag:"LEARN",   title:"Vercel deploy = git push", when:"1w", snippet:"`vercel --prod --yes` works on first try if vercel.json sits at root. Auto-aliases to <name>-plum.vercel.app." },
+    { tag:"PROJECT", title:"Atlas landing — v1 shipped", when:"2h", snippet:"Hero, features, pricing, footer all live. Final pass on copy went smooth. Two minor mobile-layout tickets opened." },
+    { tag:"TRADE",   title:"Demo signal: ABCD", when:"6h", snippet:"Synthetic ticker fired on the test channel. Confidence 0.74. Added to the 7-day observation list." },
+    { tag:"NOTE",    title:"Cold outreach template — v3", when:"1d", snippet:"Switched the opener to a single specific compliment. A/B reply rate beat v2 by ~3×. Worth keeping the new shape." },
+    { tag:"PROJECT", title:"Billing service refactor", when:"1d", snippet:"Pulled the duplicate enum out of three call sites, added a typed wrapper. CI is green, ready for staging." },
+    { tag:"DECISION",title:"Drop the carousel pattern", when:"2d", snippet:"Click-through data showed almost no one rotates past slide one. Replacing with a static three-up grid." },
+    { tag:"LEARN",   title:"Type-on-image best practice", when:"3d", snippet:"For copy on top of imagery, dark-overlay scrim at 35-45% opacity reads better than text-shadow. Tested on six sample images." },
+    { tag:"TRADE",   title:"Paper portfolio MTD: +3.1%", when:"3d", snippet:"61% win rate over 38 demo trades. Drawdown shallow, two strong outliers carrying the month." },
+    { tag:"NOTE",    title:"Reading list — autumn", when:"4d", snippet:"Three short books and one long. Started the long one. Two more queued for after." },
+    { tag:"PROJECT", title:"Mobile app v2 — wireframes", when:"5d", snippet:"Onboarding flow simplified to three screens. Tab bar restored. Reviewed by the design team, two iteration notes." },
+    { tag:"NOTE",    title:"Voice latency benchmarks", when:"6d", snippet:"Tested four TTS providers end-to-end. Two were under 800ms first-byte, the other two were noticeably slow." },
+    { tag:"DECISION",title:"Pause feature X", when:"1w", snippet:"Usage data after the beta wasn't there. Better to learn from the few who did use it than ship to everyone." },
+    { tag:"LEARN",   title:"Static deploy basics", when:"1w", snippet:"Single push to main triggers a fresh build. Aliases auto-update if the project name is stable." },
   ];
   const memGrid = document.getElementById("memoryGrid");
   const renderMemory = (filter = "") => {
@@ -1100,14 +1105,14 @@
   // HISTORY VIEW
   // ═══════════════════════════════════════════════════════════════
   const sessions = [
-    { date:"Apr 18", time:"19:42", title:"Ship Biskin Studio landing page", sub:"deployed to vercel · 4 turns · 8 tools used", stat:"$0.42" },
-    { date:"Apr 18", time:"15:18", title:"Build Xeneon channel + dark mode", sub:"painted lime → cyan → black across 5 commits", stat:"$0.31" },
-    { date:"Apr 18", time:"11:02", title:"Meteora /v1/quotes endpoint", sub:"Yahoo + Stooq fallback, 60s cache", stat:"$0.18" },
-    { date:"Apr 17", time:"22:14", title:"Form-4 signal review for next week", sub:"3 names flagged, 2 added to watch", stat:"$0.07" },
-    { date:"Apr 17", time:"14:55", title:"Xeneon widgets v0.2 — five new", sub:"clock, pomo, hn, crypto, stocks", stat:"$0.55" },
-    { date:"Apr 16", time:"21:08", title:"Trading model post-mortem", sub:"OOS results don't generalize, pivoting", stat:"$0.21" },
+    { date:"Apr 18", time:"19:42", title:"Ship Atlas landing page", sub:"deployed to staging · 4 turns · 8 tools used", stat:"$0.42" },
+    { date:"Apr 18", time:"15:18", title:"Refactor billing service enum", sub:"3 call sites updated, CI green", stat:"$0.31" },
+    { date:"Apr 18", time:"11:02", title:"Quotes endpoint hardening", sub:"primary upstream + fallback, 60s cache", stat:"$0.18" },
+    { date:"Apr 17", time:"22:14", title:"Signal review for next week", sub:"3 candidates flagged, 2 added to watch", stat:"$0.07" },
+    { date:"Apr 17", time:"14:55", title:"Mobile widgets — five new", sub:"clock, pomo, news, market, calendar", stat:"$0.55" },
+    { date:"Apr 16", time:"21:08", title:"Model post-mortem", sub:"out-of-sample didn't generalize, pivoting", stat:"$0.21" },
     { date:"Apr 16", time:"09:30", title:"Daily morning brief", sub:"weather + news + market open + 1 todo", stat:"$0.04" },
-    { date:"Apr 15", time:"19:50", title:"Cold-outreach copy v3 draft", sub:"4 reply variants, A/B notes", stat:"$0.12" },
+    { date:"Apr 15", time:"19:50", title:"Outreach copy v3 draft", sub:"4 reply variants, A/B notes", stat:"$0.12" },
   ];
   const histList = document.getElementById("historyList");
   sessions.forEach(s => {
