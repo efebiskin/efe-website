@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "biskin-site",
+      "runtimeExecutable": "py",
+      "runtimeArgs": ["-3", "-m", "http.server", "7801"],
+      "port": 7801
+    }
+  ]
+}

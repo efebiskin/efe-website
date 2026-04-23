@@ -1,0 +1,1153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Biskin Creative — Websites that make your neighbors ask who made it</title>
+<meta name="description" content="Premium animated one-page websites for restaurants, med spas, boutique fitness, and tasting rooms. No templates, no agency markup. California studio, serious craft.">
+<meta name="theme-color" content="#0A0A0A">
+
+<meta property="og:title" content="Biskin Creative">
+<meta property="og:description" content="Websites that make your neighbors stop and ask who made it. California studio.">
+<meta property="og:type" content="website">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  /* ============================================
+     TOKENS (mirror the hub)
+     ============================================ */
+  :root{
+    --c-bg: #0A0A0A;
+    --c-bg-rgb: 10,10,10;
+    --c-surface: #141414;
+    --c-text: #F5F1E8;
+    --c-text-rgb: 245,241,232;
+    --c-lime: #C8FF00;
+    --c-lime-rgb: 200,255,0;
+    --c-red: #FF4F36;
+    --c-dim: #666;
+    --c-line: rgba(var(--c-text-rgb), 0.08);
+    --c-line-strong: rgba(var(--c-text-rgb), 0.16);
+
+    --f-display: 'Archivo', system-ui, sans-serif;
+    --f-serif: 'Instrument Serif', Georgia, serif;
+    --f-mono: 'JetBrains Mono', ui-monospace, monospace;
+    --f-body: 'Inter', system-ui, sans-serif;
+
+    --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+    --pad: clamp(4rem, 10vh, 7rem);
+    --gut: clamp(1.5rem, 5vw, 4rem);
+  }
+
+  *{ margin: 0; padding: 0; box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    font-family: var(--f-body);
+    background: var(--c-bg);
+    color: var(--c-text);
+    line-height: 1.55;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  a{ color: inherit; text-decoration: none; }
+  em{ font-family: var(--f-serif); font-style: italic; font-weight: 400; color: var(--c-lime); }
+  strong{ color: var(--c-text); font-weight: 600; }
+
+  .wrap{ max-width: 1240px; margin: 0 auto; padding: 0 var(--gut); }
+  .pad{ padding: var(--pad) var(--gut); }
+
+  /* ============================================
+     NAV
+     ============================================ */
+  nav{
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 1.2rem var(--gut);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(var(--c-bg-rgb), 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--c-line);
+  }
+  .nav-logo{
+    font-family: var(--f-display);
+    font-weight: 800;
+    font-size: 1rem;
+    letter-spacing: 0.02em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .nav-logo em{
+    font-family: var(--f-serif);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--c-text);
+  }
+  .nav-logo .dot{
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--c-lime);
+    box-shadow: 0 0 8px var(--c-lime);
+  }
+  .nav-links{
+    list-style: none;
+    display: flex;
+    gap: 2rem;
+    font-family: var(--f-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .nav-links a{
+    opacity: 0.65;
+    transition: opacity 0.3s, color 0.3s;
+  }
+  .nav-links a:hover, .nav-links a.active{
+    opacity: 1;
+    color: var(--c-lime);
+  }
+  .nav-cta{
+    font-family: var(--f-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.6rem 1rem;
+    border: 1px solid var(--c-lime);
+    color: var(--c-lime);
+    transition: background 0.3s, color 0.3s;
+  }
+  .nav-cta:hover{
+    background: var(--c-lime);
+    color: var(--c-bg);
+  }
+
+  @media (max-width: 900px){
+    .nav-links{ display: none; }
+  }
+
+  /* ============================================
+     HERO
+     ============================================ */
+  .hero{
+    min-height: 90vh;
+    padding: 10rem var(--gut) 4rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before{
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 15% 100%, rgba(var(--c-lime-rgb), 0.08), transparent 55%),
+      radial-gradient(ellipse at 85% 0%, rgba(var(--c-red-rgb), 0.05), transparent 55%);
+    pointer-events: none;
+  }
+  .hero-inner{ position: relative; z-index: 1; max-width: 1000px; margin: 0 auto; width: 100%; }
+
+  .kicker{
+    font-family: var(--f-mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--c-lime);
+    margin-bottom: 2rem;
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    border: 1px solid rgba(var(--c-lime-rgb), 0.3);
+  }
+  h1.hero-title{
+    font-family: var(--f-display);
+    font-weight: 800;
+    font-size: clamp(2.4rem, 6.5vw, 5.2rem);
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+    margin-bottom: 1.8rem;
+  }
+  .hero-sub{
+    font-family: var(--f-serif);
+    font-size: clamp(1.15rem, 1.8vw, 1.5rem);
+    line-height: 1.45;
+    color: rgba(var(--c-text-rgb), 0.75);
+    max-width: 680px;
+    margin-bottom: 3rem;
+  }
+  .hero-cta{ display: flex; gap: 1rem; flex-wrap: wrap; }
+  .btn{
+    font-family: var(--f-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 1rem 1.4rem;
+    border: 1px solid var(--c-line-strong);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    transition: border-color 0.3s, background 0.3s, color 0.3s;
+    cursor: pointer;
+  }
+  .btn:hover{ border-color: var(--c-lime); color: var(--c-lime); }
+  .btn.primary{
+    background: var(--c-lime);
+    color: var(--c-bg);
+    border-color: var(--c-lime);
+  }
+  .btn.primary:hover{
+    background: var(--c-bg);
+    color: var(--c-lime);
+  }
+
+  .hero-meta{
+    margin-top: 4rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1.25rem;
+    font-family: var(--f-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding-top: 2rem;
+    border-top: 1px solid var(--c-line);
+    color: rgba(var(--c-text-rgb), 0.55);
+  }
+  .hero-meta strong{
+    display: block;
+    font-family: var(--f-display);
+    font-size: 2rem;
+    color: var(--c-text);
+    margin-bottom: 0.35rem;
+    letter-spacing: -0.02em;
+  }
+  .hero-meta strong em{ color: var(--c-lime); font-family: var(--f-serif); font-style: italic; }
+
+  /* ============================================
+     SECTION HEADING
+     ============================================ */
+  .section-label{
+    font-family: var(--f-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--c-dim);
+    margin-bottom: 1.5rem;
+  }
+  .section-label .num{ color: var(--c-lime); margin-right: 0.5rem; }
+  .section-title{
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: clamp(1.9rem, 4.5vw, 3.6rem);
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+    margin-bottom: 3.5rem;
+    max-width: 880px;
+  }
+
+  /* ============================================
+     WHO — types of businesses
+     ============================================ */
+  .who-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 0.75rem;
+    margin-top: 2rem;
+  }
+  .who-cell{
+    padding: 1.8rem 1.4rem;
+    border: 1px solid var(--c-line-strong);
+    min-height: 140px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: border-color 0.35s, background 0.35s;
+  }
+  .who-cell:hover{
+    border-color: var(--c-lime);
+    background: rgba(var(--c-lime-rgb), 0.04);
+  }
+  .who-cell .who-tag{
+    font-family: var(--f-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--c-dim);
+  }
+  .who-cell .who-name{
+    font-family: var(--f-display);
+    font-weight: 600;
+    font-size: 1.25rem;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+  .who-cell .who-name em{ color: var(--c-lime); }
+  .who-cell .who-note{
+    font-size: 0.85rem;
+    color: rgba(var(--c-text-rgb), 0.6);
+    line-height: 1.5;
+  }
+
+  /* ============================================
+     CASE STUDY — Mythpoint
+     ============================================ */
+  .case{
+    background: var(--c-text);
+    color: var(--c-bg);
+    margin-top: 4rem;
+    padding: var(--pad) var(--gut);
+    border-top: 1px solid var(--c-line);
+    border-bottom: 1px solid var(--c-line);
+  }
+  .case em{ color: #7a8a00; /* lime darkened for cream bg */ }
+  .case .section-label{ color: rgba(10,10,10, 0.5); }
+  .case .section-label .num{ color: #7a8a00; }
+  .case-grid{
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+  }
+  @media (max-width: 900px){ .case-grid{ grid-template-columns: 1fr; } }
+  .case-title{
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    margin-bottom: 1.5rem;
+  }
+  .case-lede{
+    font-family: var(--f-serif);
+    font-size: 1.3rem;
+    line-height: 1.45;
+    color: rgba(10,10,10, 0.75);
+    margin-bottom: 2rem;
+  }
+  .case p{ margin-bottom: 1rem; color: rgba(10,10,10, 0.78); }
+  .case-stats{
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(10,10,10, 0.12);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+  .case-stats strong{
+    display: block;
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: 2rem;
+    letter-spacing: -0.02em;
+    color: var(--c-bg);
+    margin-bottom: 0.2rem;
+  }
+  .case-stats span{
+    font-family: var(--f-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(10,10,10, 0.5);
+  }
+  .case-visual{
+    aspect-ratio: 4/3;
+    background: var(--c-bg);
+    color: var(--c-text);
+    border: 1px solid rgba(10,10,10, 0.15);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .case-visual::before{
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 30% 30%, rgba(var(--c-lime-rgb), 0.2), transparent 50%),
+      radial-gradient(circle at 70% 70%, rgba(var(--c-red-rgb), 0.12), transparent 50%);
+  }
+  .case-visual-inner{
+    position: relative;
+    text-align: center;
+    padding: 2rem;
+  }
+  .case-visual-inner .mono-line{
+    font-family: var(--f-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--c-lime);
+    margin-bottom: 1.2rem;
+  }
+  .case-visual-inner .big{
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.5rem;
+  }
+  .case-visual-inner .big em{ color: var(--c-lime); }
+  .case-visual-inner .tag{
+    font-family: var(--f-serif);
+    font-style: italic;
+    font-size: 1.1rem;
+    color: rgba(var(--c-text-rgb), 0.6);
+  }
+  .case-visual-inner .visit{
+    margin-top: 1.8rem;
+    display: inline-block;
+    font-family: var(--f-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.6rem 1rem;
+    border: 1px solid var(--c-lime);
+    color: var(--c-lime);
+    transition: background 0.3s, color 0.3s;
+  }
+  .case-visual-inner .visit:hover{ background: var(--c-lime); color: var(--c-bg); }
+
+  /* ============================================
+     SERVICES — 3 tiers
+     ============================================ */
+  .tiers{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+  @media (max-width: 900px){ .tiers{ grid-template-columns: 1fr; } }
+  .tier{
+    padding: 2.2rem;
+    border: 1px solid var(--c-line-strong);
+    background: linear-gradient(180deg, rgba(var(--c-text-rgb), 0.015), rgba(var(--c-text-rgb), 0.005));
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.35s;
+    min-height: 520px;
+  }
+  .tier:hover{ border-color: var(--c-lime); }
+  .tier.featured{
+    background: linear-gradient(180deg, rgba(var(--c-lime-rgb), 0.07), rgba(var(--c-text-rgb), 0.005));
+    border-color: rgba(var(--c-lime-rgb), 0.4);
+  }
+  .tier-tag{
+    font-family: var(--f-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--c-lime);
+    margin-bottom: 0.8rem;
+  }
+  .tier-name{
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: 1.8rem;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+  }
+  .tier-name em{ color: var(--c-lime); font-family: var(--f-serif); font-style: italic; font-weight: 400; }
+  .tier-price{
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: 2.5rem;
+    letter-spacing: -0.03em;
+    margin: 1rem 0 0.3rem;
+  }
+  .tier-price em{
+    font-family: var(--f-serif);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--c-lime);
+    font-size: 0.7em;
+  }
+  .tier-unit{
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--c-dim);
+    margin-bottom: 1.5rem;
+  }
+  .tier-desc{
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: rgba(var(--c-text-rgb), 0.72);
+    margin-bottom: 1.5rem;
+  }
+  .tier-list{
+    list-style: none;
+    margin-bottom: 2rem;
+    flex-grow: 1;
+  }
+  .tier-list li{
+    padding: 0.55rem 0;
+    padding-left: 1.5rem;
+    position: relative;
+    font-size: 0.9rem;
+    color: rgba(var(--c-text-rgb), 0.82);
+    border-top: 1px dashed var(--c-line);
+  }
+  .tier-list li:first-child{ border-top: none; }
+  .tier-list li::before{
+    content: '→';
+    position: absolute;
+    left: 0; top: 0.55rem;
+    color: var(--c-lime);
+    font-family: var(--f-mono);
+  }
+  .tier-cta{
+    font-family: var(--f-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 1rem;
+    text-align: center;
+    border: 1px solid var(--c-line-strong);
+    transition: border-color 0.3s, background 0.3s, color 0.3s;
+  }
+  .tier-cta:hover{ border-color: var(--c-lime); color: var(--c-lime); }
+  .tier.featured .tier-cta{
+    background: var(--c-lime);
+    color: var(--c-bg);
+    border-color: var(--c-lime);
+  }
+  .tier.featured .tier-cta:hover{ background: var(--c-bg); color: var(--c-lime); }
+
+  /* ============================================
+     PROCESS
+     ============================================ */
+  .steps{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+  @media (max-width: 900px){ .steps{ grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px){ .steps{ grid-template-columns: 1fr; } }
+  .step{
+    padding: 1.8rem 1.4rem;
+    border: 1px solid var(--c-line-strong);
+    min-height: 180px;
+  }
+  .step-num{
+    font-family: var(--f-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    color: var(--c-dim);
+    margin-bottom: 1rem;
+  }
+  .step-num strong{ color: var(--c-lime); }
+  .step-name{
+    font-family: var(--f-display);
+    font-weight: 600;
+    font-size: 1.2rem;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.7rem;
+  }
+  .step-name em{ color: var(--c-lime); font-family: var(--f-serif); font-style: italic; }
+  .step-desc{
+    font-size: 0.88rem;
+    color: rgba(var(--c-text-rgb), 0.68);
+    line-height: 1.5;
+  }
+
+  /* ============================================
+     FAQ
+     ============================================ */
+  .faq{ margin-top: 2rem; max-width: 900px; }
+  .faq-item{
+    border-top: 1px solid var(--c-line);
+    padding: 1.5rem 0;
+  }
+  .faq-item:last-child{ border-bottom: 1px solid var(--c-line); }
+  .faq-q{
+    font-family: var(--f-display);
+    font-weight: 600;
+    font-size: 1.2rem;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.6rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .faq-q em{ color: var(--c-lime); font-family: var(--f-serif); font-style: italic; }
+  .faq-q::after{
+    content: '+';
+    font-family: var(--f-mono);
+    font-size: 1.6rem;
+    color: var(--c-lime);
+    transition: transform 0.3s;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  .faq-item.open .faq-q::after{ transform: rotate(45deg); }
+  .faq-a{
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s var(--ease-out-expo), padding 0.3s;
+    color: rgba(var(--c-text-rgb), 0.72);
+    line-height: 1.6;
+    padding-right: 3rem;
+  }
+  .faq-item.open .faq-a{
+    max-height: 400px;
+    padding-top: 0.5rem;
+  }
+
+  /* ============================================
+     CONTACT
+     ============================================ */
+  .contact-wrap{
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: 4rem;
+    align-items: start;
+  }
+  @media (max-width: 900px){ .contact-wrap{ grid-template-columns: 1fr; } }
+  .contact-title{
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    margin-bottom: 1.5rem;
+  }
+  .contact-title em{ color: var(--c-lime); font-family: var(--f-serif); font-style: italic; }
+  .contact-copy{
+    font-family: var(--f-serif);
+    font-size: 1.15rem;
+    line-height: 1.5;
+    color: rgba(var(--c-text-rgb), 0.72);
+    margin-bottom: 2rem;
+  }
+  .contact-meta{
+    font-family: var(--f-mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(var(--c-text-rgb), 0.55);
+  }
+  .contact-meta a{ color: var(--c-lime); }
+  .contact-meta div{ padding: 0.35rem 0; }
+
+  form{ display: flex; flex-direction: column; gap: 1.2rem; }
+  form label{
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(var(--c-text-rgb), 0.6);
+    margin-bottom: 0.35rem;
+    display: block;
+  }
+  form input, form textarea, form select{
+    width: 100%;
+    padding: 0.9rem 1rem;
+    background: transparent;
+    border: 1px solid var(--c-line-strong);
+    color: var(--c-text);
+    font-family: var(--f-body);
+    font-size: 1rem;
+    transition: border-color 0.3s;
+  }
+  form input:focus, form textarea:focus, form select:focus{
+    outline: none;
+    border-color: var(--c-lime);
+  }
+  form textarea{ min-height: 120px; resize: vertical; }
+  form select{ appearance: none; -webkit-appearance: none; cursor: pointer; background-image: linear-gradient(45deg, transparent 50%, var(--c-lime) 50%), linear-gradient(135deg, var(--c-lime) 50%, transparent 50%); background-position: calc(100% - 20px) 55%, calc(100% - 14px) 55%; background-size: 6px 6px; background-repeat: no-repeat; padding-right: 2.2rem; }
+  form button{
+    align-self: flex-start;
+    margin-top: 0.5rem;
+  }
+
+  /* ============================================
+     FOOTER
+     ============================================ */
+  footer{
+    padding: 4rem var(--gut) 2rem;
+    border-top: 1px solid var(--c-line);
+  }
+  .footer-grid{
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 3rem;
+    padding-bottom: 3rem;
+    border-bottom: 1px solid var(--c-line);
+  }
+  @media (max-width: 900px){ .footer-grid{ grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 560px){ .footer-grid{ grid-template-columns: 1fr; } }
+  .footer-mark{
+    font-family: var(--f-display);
+    font-weight: 800;
+    font-size: 1.8rem;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.8rem;
+  }
+  .footer-mark em{
+    font-family: var(--f-serif);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--c-lime);
+  }
+  .footer-tag{
+    font-family: var(--f-serif);
+    color: rgba(var(--c-text-rgb), 0.6);
+    max-width: 320px;
+    font-size: 0.95rem;
+  }
+  .footer-col h5{
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--c-dim);
+    margin-bottom: 1rem;
+  }
+  .footer-col ul{ list-style: none; }
+  .footer-col li{
+    padding: 0.25rem 0;
+    font-size: 0.9rem;
+  }
+  .footer-col a{
+    opacity: 0.75;
+    transition: opacity 0.3s, color 0.3s;
+  }
+  .footer-col a:hover{ opacity: 1; color: var(--c-lime); }
+  .footer-sig{
+    padding-top: 2rem;
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--c-dim);
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">BISKIN<span class="dot"></span><em>studio</em></a>
+  <ul class="nav-links">
+    <li><a href="/#agents">Agents</a></li>
+    <li><a href="/creative.html" class="active">Creative</a></li>
+    <li><a href="/#brain">Brain</a></li>
+    <li><a href="/#quant">Quant</a></li>
+    <li><a href="/#games">Games</a></li>
+    <li><a href="/#research">Research</a></li>
+  </ul>
+  <a href="#contact" class="nav-cta">Get a free audit →</a>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-inner">
+    <div class="kicker">BISKIN CREATIVE · CALIFORNIA</div>
+    <h1 class="hero-title">Websites that make your neighbors stop and ask <em>who made it</em>.</h1>
+    <p class="hero-sub">
+      Premium animated one-page sites for restaurants, med spas, boutique fitness studios, and tasting rooms. Built in 2–3 weeks. No templates, no agency markup, no cookie-cutter anything — a local studio, serious craft, fixed price.
+    </p>
+    <div class="hero-cta">
+      <a href="#contact" class="btn primary">Get a free site audit <span>→</span></a>
+      <a href="#case" class="btn">See Mythpoint Bistro <span>↗</span></a>
+    </div>
+    <div class="hero-meta">
+      <div><strong>2–3 <em>wks</em></strong>to launch</div>
+      <div><strong>100%</strong>custom built</div>
+      <div><strong>$1.5K<em>+</em></strong>flagship site</div>
+      <div><strong>1</strong>local studio</div>
+    </div>
+  </div>
+</header>
+
+<!-- WHO -->
+<section id="who" class="pad">
+  <div class="wrap">
+    <div class="section-label"><span class="num">01</span> · WHO WE WORK WITH</div>
+    <h2 class="section-title">Built for owner-operators who care about <em>first impressions</em>.</h2>
+
+    <div class="who-grid">
+
+      <div class="who-cell">
+        <div class="who-tag">01 · HOSPITALITY</div>
+        <div>
+          <div class="who-name">Restaurants &amp; <em>bistros</em></div>
+          <div class="who-note">Menu, reservations, mood. The site should make them hungry before they walk in.</div>
+        </div>
+      </div>
+
+      <div class="who-cell">
+        <div class="who-tag">02 · WELLNESS</div>
+        <div>
+          <div class="who-name">Med spas &amp; <em>aesthetics</em></div>
+          <div class="who-note">High-ticket, image-driven. Your site has to match the care in the clinic.</div>
+        </div>
+      </div>
+
+      <div class="who-cell">
+        <div class="who-tag">03 · FITNESS</div>
+        <div>
+          <div class="who-name">Pilates, yoga, <em>barre</em></div>
+          <div class="who-note">Your Instagram is great. Your website shouldn't embarrass it.</div>
+        </div>
+      </div>
+
+      <div class="who-cell">
+        <div class="who-tag">04 · BEVERAGE</div>
+        <div>
+          <div class="who-name">Wine bars &amp; <em>tasting rooms</em></div>
+          <div class="who-note">The room is the product. The site is how new guests find it.</div>
+        </div>
+      </div>
+
+      <div class="who-cell">
+        <div class="who-tag">05 · REAL ESTATE</div>
+        <div>
+          <div class="who-name">Boutique <em>brokerages</em></div>
+          <div class="who-note">Indie shops that don't want to look like the big franchises.</div>
+        </div>
+      </div>
+
+      <div class="who-cell">
+        <div class="who-tag">06 · RETAIL</div>
+        <div>
+          <div class="who-name">Boutiques &amp; <em>shops</em></div>
+          <div class="who-note">Local retail that earns walk-ins by looking unmistakable online.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- CASE STUDY -->
+<section id="case" class="case">
+  <div class="wrap">
+    <div class="section-label"><span class="num">02</span> · CASE STUDY</div>
+    <div class="case-grid">
+      <div>
+        <h2 class="case-title">Mythpoint Bistro, <em>Westlake Village</em>.</h2>
+        <p class="case-lede">A neighborhood bistro got a site that guests keep mentioning at the door. No stock photos, no generic template — a one-page animated flagship shipped in two weeks.</p>
+        <p>Old site: a free builder template, 2019 vintage, photos of food that wasn't theirs, broken mobile menu. First impression of a place that otherwise looks beautiful in person.</p>
+        <p>New site: bespoke GSAP scroll animations, their actual kitchen and room photographed for the site, reservation CTA where it belongs, menu that loads instantly on any phone. Same domain. Same content. Different league.</p>
+        <div class="case-stats">
+          <div><strong>2 wks</strong><span>ship time</span></div>
+          <div><strong>1-pg</strong><span>animated flagship</span></div>
+          <div><strong>&lt; 0.8s</strong><span>mobile load</span></div>
+        </div>
+      </div>
+      <div class="case-visual">
+        <div class="case-visual-inner">
+          <div class="mono-line">[:: LIVE · WESTLAKE VILLAGE ::]</div>
+          <div class="big">Myth<em>point</em></div>
+          <div class="tag">bistro &amp; bar</div>
+          <a href="https://mythpointbistro.com" target="_blank" class="visit">Visit site →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section id="services" class="pad">
+  <div class="wrap">
+    <div class="section-label"><span class="num">03</span> · SERVICES &amp; PRICING</div>
+    <h2 class="section-title">Three ways to work together. <em>No retainers</em> unless you want one.</h2>
+
+    <div class="tiers">
+
+      <article class="tier">
+        <div class="tier-tag">01 · LAUNCH</div>
+        <div class="tier-name">Flagship <em>Site</em></div>
+        <div class="tier-price">$1.5K<em>+</em></div>
+        <div class="tier-unit">One-time · 2–3 weeks</div>
+        <p class="tier-desc">A one-page custom site, animated, mobile-first, fast. Built for you, not from a template.</p>
+        <ul class="tier-list">
+          <li>Custom design, no templates</li>
+          <li>GSAP scroll animations</li>
+          <li>Mobile-first responsive</li>
+          <li>Menu / services / gallery blocks</li>
+          <li>Reservation / booking CTA wired</li>
+          <li>Contact form with email routing</li>
+          <li>Page speed under 1 second</li>
+          <li>Deploy on Vercel, domain connected</li>
+        </ul>
+        <a href="#contact" class="tier-cta">Start a flagship →</a>
+      </article>
+
+      <article class="tier featured">
+        <div class="tier-tag">02 · KEEP IT SHARP</div>
+        <div class="tier-name">Site <em>Care</em></div>
+        <div class="tier-price">$150<em>–$300</em></div>
+        <div class="tier-unit">Per month · cancel anytime</div>
+        <p class="tier-desc">After launch, the site stays alive. Small changes, content swaps, menu updates, seasonal tweaks — handled.</p>
+        <ul class="tier-list">
+          <li>Monthly backups &amp; uptime monitoring</li>
+          <li>Content updates &amp; copy swaps</li>
+          <li>Menu / pricing / service edits</li>
+          <li>Seasonal hero / graphics refreshes</li>
+          <li>Minor feature additions</li>
+          <li>Speed &amp; SEO health checks</li>
+          <li>Priority bug fixes (same-day)</li>
+          <li>No surprise invoices</li>
+        </ul>
+        <a href="#contact" class="tier-cta">Add site care →</a>
+      </article>
+
+      <article class="tier">
+        <div class="tier-tag">03 · GET FOUND</div>
+        <div class="tier-name">Local <em>SEO Sprint</em></div>
+        <div class="tier-price">$400</div>
+        <div class="tier-unit">One-time · 2 weeks</div>
+        <p class="tier-desc">The search-presence work most small businesses skip. One focused sprint to put you on the Google map.</p>
+        <ul class="tier-list">
+          <li>Google Business Profile optimized</li>
+          <li>Yelp / Apple Maps / Bing listings</li>
+          <li>15+ local directory citations</li>
+          <li>3 local-intent blog posts written</li>
+          <li>Schema markup for local business</li>
+          <li>Review-request flow set up</li>
+          <li>Competitor keyword snapshot</li>
+          <li>30-day ranking report</li>
+        </ul>
+        <a href="#contact" class="tier-cta">Start an SEO sprint →</a>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section id="process" class="pad" style="background: rgba(var(--c-text-rgb), 0.02); border-top: 1px solid var(--c-line); border-bottom: 1px solid var(--c-line);">
+  <div class="wrap">
+    <div class="section-label"><span class="num">04</span> · THE PROCESS</div>
+    <h2 class="section-title">Four weeks from "hi" to <em>launched</em>.</h2>
+
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-num">STEP <strong>01</strong></div>
+        <div class="step-name">Free <em>audit</em></div>
+        <div class="step-desc">15-minute call. Look at your current site together. Tell you what's working, what's costing you customers, whether it's worth a rebuild.</div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">STEP <strong>02</strong></div>
+        <div class="step-name">Scope &amp; <em>quote</em></div>
+        <div class="step-desc">One-page proposal. Fixed price, fixed timeline, exactly what you get. If it doesn't fit, we'll say so.</div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">STEP <strong>03</strong></div>
+        <div class="step-name">Design &amp; <em>build</em></div>
+        <div class="step-desc">Week 1 design review. Week 2 build. You see progress live on a staging URL — no "big reveal" surprises at the end.</div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">STEP <strong>04</strong></div>
+        <div class="step-name">Launch &amp; <em>teach</em></div>
+        <div class="step-desc">Site goes live on your domain. 30-minute handoff call on how to edit it yourself, or you stay on Site Care and we handle it.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq" class="pad">
+  <div class="wrap">
+    <div class="section-label"><span class="num">05</span> · FAQ</div>
+    <h2 class="section-title">The questions every owner <em>actually asks</em>.</h2>
+
+    <div class="faq">
+
+      <div class="faq-item">
+        <div class="faq-q">How long until the site is live? <span></span></div>
+        <div class="faq-a">A flagship site typically launches 2–3 weeks after you sign. Week 1 is design review; week 2 is build; the third week (when needed) absorbs revisions and DNS switchover. If you're in a hurry we can compress to 10 days — ask.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">What do I actually need to give you? <span></span></div>
+        <div class="faq-a">Logo if you have one (we can refine if it's rough). Photos — real photos of your space, food, or team. Copy, or notes toward copy. Access to your domain registrar when it's time to switch DNS. Everything else we handle.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">Do I own the site when it's done? <span></span></div>
+        <div class="faq-a">Yes. You own the domain, the code, the deployment. If you ever leave Site Care, the site keeps running and you keep every login. No lock-in, no platform tax.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">What's the difference between Flagship and Site Care? <span></span></div>
+        <div class="faq-a">Flagship is the one-time build to launch you. Site Care is the optional monthly retainer to keep the site fresh — menu updates, seasonal graphics, new photos, minor feature adds. Most clients start with Flagship only, then add Care after they see how often they'll actually want changes.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">Do you do multi-page sites / full e-commerce? <span></span></div>
+        <div class="faq-a">Not as our default. 95% of local businesses convert better on a single well-crafted page than on a 12-page architecture. If you truly need an online ordering or storefront add-on, we can scope that separately — $1.5K range.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">Why should I hire you instead of a local agency? <span></span></div>
+        <div class="faq-a">Agencies subcontract their local small-business work to juniors, bill you for 6 people showing up to a call, and hand you a template-driven build. We're one person. We're local. Every pixel is ours. The Mythpoint Bistro site took two weeks. An agency would have quoted six.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">What if I don't love the design? <span></span></div>
+        <div class="faq-a">Two rounds of revisions are built in — one at design review, one before launch. If after both rounds we're not aligned, you get your deposit back minus time spent. We haven't had to use that clause yet.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" class="pad" style="background: linear-gradient(180deg, transparent, rgba(var(--c-lime-rgb),0.03));">
+  <div class="wrap">
+    <div class="section-label"><span class="num">06</span> · GET A FREE AUDIT</div>
+    <div class="contact-wrap">
+      <div>
+        <h2 class="contact-title">Tell me about your <em>site</em>.</h2>
+        <p class="contact-copy">
+          Send a few lines about your business and what you're stuck on. I'll reply within 24h with a quick read on your current site — what's working, what's costing you customers, and whether we'd be a fit.
+        </p>
+        <div class="contact-meta">
+          <div>Or email directly:</div>
+          <div><a href="mailto:creative@biskin.studio">creative@biskin.studio</a></div>
+          <div style="margin-top:0.6rem;">Usually replies within 24h · California</div>
+        </div>
+      </div>
+
+      <form onsubmit="handleContact(event)">
+        <div>
+          <label>Your name</label>
+          <input type="text" name="name" placeholder="Jane Owner" required>
+        </div>
+        <div>
+          <label>Business name</label>
+          <input type="text" name="business" placeholder="Mythpoint Bistro" required>
+        </div>
+        <div>
+          <label>Business type</label>
+          <select name="type" required>
+            <option value="">Choose one…</option>
+            <option>Restaurant / bistro</option>
+            <option>Med spa / aesthetics</option>
+            <option>Boutique fitness</option>
+            <option>Wine bar / tasting room</option>
+            <option>Boutique real estate</option>
+            <option>Retail / boutique shop</option>
+            <option>Other (tell me below)</option>
+          </select>
+        </div>
+        <div>
+          <label>Current website (if any)</label>
+          <input type="text" name="site" placeholder="yourbusiness.com or 'don't have one yet'">
+        </div>
+        <div>
+          <label>Email</label>
+          <input type="email" name="email" placeholder="you@business.com" required>
+        </div>
+        <div>
+          <label>What are you stuck on?</label>
+          <textarea name="notes" placeholder="Current site looks dated / not mobile-friendly / no one books from it / we're launching and need a site, etc." required></textarea>
+        </div>
+        <button type="submit" class="btn primary">Send it → <span>↗</span></button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-mark">BISKIN<em>studio</em></div>
+        <p class="footer-tag">Products built in public, shipped alone. A solo studio out of California making things for people who ship.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Products</h5>
+        <ul>
+          <li><a href="https://agents.biskin.studio">Biskin Agents</a></li>
+          <li><a href="/creative.html">Biskin Creative</a></li>
+          <li><a href="/#brain">Biskin Brain</a></li>
+          <li><a href="/#quant">Biskin Quant</a></li>
+          <li><a href="/#games">Biskin Games</a></li>
+          <li><a href="/#research">Biskin Research</a></li>
+          <li><a href="/lab.html">Biskin Lab</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Creative</h5>
+        <ul>
+          <li><a href="#who">Who we work with</a></li>
+          <li><a href="#case">Mythpoint case</a></li>
+          <li><a href="#services">Services</a></li>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="#contact">Get an audit</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Social</h5>
+        <ul>
+          <li><a href="https://x.com/efebiskin">Twitter / X</a></li>
+          <li><a href="https://github.com/efebiskin">GitHub</a></li>
+          <li><a href="mailto:creative@biskin.studio">Email</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-sig">
+      <span>BISKIN CREATIVE · MADE IN CALIFORNIA</span>
+      <span>© EFE BISKIN · ALL RIGHTS RESERVED</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // FAQ accordion
+  document.querySelectorAll('.faq-item').forEach(item => {
+    item.querySelector('.faq-q').addEventListener('click', () => {
+      item.classList.toggle('open');
+    });
+  });
+
+  function handleContact(e){
+    e.preventDefault();
+    const f = e.target;
+    const body = `New Biskin Creative lead
+
+Name: ${f.name.value}
+Business: ${f.business.value}
+Type: ${f.type.value}
+Current site: ${f.site.value || '(none)'}
+Email: ${f.email.value}
+
+Notes:
+${f.notes.value}`;
+    const mailto = `mailto:creative@biskin.studio?subject=${encodeURIComponent('Creative audit: ' + f.business.value)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailto;
+  }
+</script>
+
+</body>
+</html>

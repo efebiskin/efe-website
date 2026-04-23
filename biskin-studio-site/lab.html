@@ -1,0 +1,1843 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FIELD NOTES / 001 — BISKIN LAB</title>
+<meta name="description" content="Eight experiments. Motion, physics, disassembling effects. Everything I learned this week, compressed into one page.">
+<meta name="theme-color" content="#080808">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+
+<style>
+  /* ============================================
+     PALETTE — with -rgb twins (string-tune pattern)
+     ============================================ */
+  :root{
+    --c-black: #080808;
+    --c-black-rgb: 8,8,8;
+    --c-white: #fafafa;
+    --c-white-rgb: 250,250,250;
+    --c-lime: #C8FF00;
+    --c-lime-rgb: 200,255,0;
+    --c-red: #FF4F36;
+    --c-red-rgb: 255,79,54;
+    --c-dim: #666;
+    --c-dim-rgb: 102,102,102;
+    --c-line: rgba(var(--c-white-rgb), 0.08);
+    --c-line-strong: rgba(var(--c-white-rgb), 0.18);
+
+    --f-display: 'Space Grotesk', system-ui, sans-serif;
+    --f-mono: 'JetBrains Mono', ui-monospace, monospace;
+    --f-serif: 'Instrument Serif', Georgia, serif;
+
+    --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-spring-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+    --grid-gutter: clamp(1rem, 2.5vw, 2rem);
+    --section-pad: clamp(6rem, 12vw, 14rem);
+  }
+
+  *,*::before,*::after{ box-sizing:border-box; margin:0; padding:0; }
+
+  html{ scroll-behavior: auto; }
+  body{
+    background: var(--c-black);
+    color: var(--c-white);
+    font-family: var(--f-display);
+    font-weight: 400;
+    line-height: 1.3;
+    overflow-x: hidden;
+    min-height: 100vh;
+    cursor: none; /* custom cursor */
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  img, svg { display: block; max-width: 100%; }
+  a { color: inherit; text-decoration: none; }
+  button { cursor: none; background: none; border: 0; color: inherit; font: inherit; }
+
+  ::selection { background: var(--c-lime); color: var(--c-black); }
+
+  /* ============================================
+     GLOBAL GRAIN/DITHER OVERLAY (astrodither vibe)
+     ============================================ */
+  body::before{
+    content:'';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.35 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    opacity: 0.18;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    z-index: 200;
+  }
+  /* scanlines */
+  body::after{
+    content:'';
+    position: fixed; inset:0;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(var(--c-white-rgb), 0.015) 0px,
+      rgba(var(--c-white-rgb), 0.015) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    pointer-events: none;
+    z-index: 199;
+  }
+
+  /* ============================================
+     ENTRY GATE (astrodither pattern)
+     ============================================ */
+  .gate{
+    position: fixed; inset: 0;
+    background: var(--c-black);
+    z-index: 1000;
+    display: grid; place-items: center;
+    transition: opacity 0.8s var(--ease-out-quart), visibility 0.8s;
+  }
+  .gate.hidden{ opacity:0; visibility:hidden; pointer-events:none; }
+  .gate-inner{
+    text-align:center;
+    font-family: var(--f-mono);
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+  }
+  .gate-title{
+    font-family: var(--f-display);
+    font-size: clamp(2.5rem, 8vw, 6rem);
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    line-height: 0.95;
+    margin-bottom: 2rem;
+  }
+  .gate-title em{
+    font-family: var(--f-serif);
+    font-style: italic;
+    color: var(--c-lime);
+    font-weight: 400;
+  }
+  .gate-cta{
+    display:inline-block;
+    padding: 0.8rem 1.4rem;
+    border: 1px solid var(--c-line-strong);
+    background: rgba(var(--c-white-rgb), 0.03);
+    cursor: none;
+    transition: all 0.3s var(--ease-out-quart);
+  }
+  .gate-cta:hover{
+    background: var(--c-lime);
+    color: var(--c-black);
+    border-color: var(--c-lime);
+  }
+  .gate-blink{ animation: blink 1.2s infinite; }
+  @keyframes blink { 0%,50%{opacity:1} 51%,100%{opacity:0} }
+
+  /* ============================================
+     CUSTOM CURSOR (smooothy pattern)
+     ============================================ */
+  .cursor{
+    position: fixed;
+    top:0; left:0;
+    width: 24px; height: 24px;
+    border: 1px solid var(--c-white);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 2000; /* above gate */
+    transform: translate(-200px, -200px);
+    mix-blend-mode: difference;
+    transition:
+      width 0.3s var(--ease-spring-soft),
+      height 0.3s var(--ease-spring-soft),
+      background 0.25s var(--ease-out-quart);
+    will-change: transform;
+  }
+  .cursor.grow{
+    width: 60px; height: 60px;
+    background: var(--c-white);
+  }
+  .cursor.tiny{
+    width: 4px; height: 4px;
+    background: var(--c-white);
+  }
+  .cursor-dot{
+    position: fixed;
+    top:0; left:0;
+    width: 4px; height:4px;
+    background: var(--c-white);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 2001; /* above gate */
+    transform: translate(-200px, -200px);
+    mix-blend-mode: difference;
+  }
+
+  /* ============================================
+     HUD (astrodither overlay grid)
+     ============================================ */
+  .hud{
+    position: fixed; inset: 0;
+    padding: 1.4rem clamp(1rem, 3vw, 2.5rem);
+    pointer-events: none;
+    z-index: 100;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: rgba(var(--c-white-rgb), 0.7);
+  }
+  .hud-top, .hud-bot{
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 2rem;
+  }
+  .hud-logo{
+    color: var(--c-white);
+    font-weight: 600;
+  }
+  .hud-logo .sep{
+    color: var(--c-lime);
+    margin: 0 0.5rem;
+  }
+  .hud-timer{
+    font-variant-numeric: tabular-nums;
+    color: var(--c-lime);
+  }
+  .hud-bot{ align-items: flex-end; font-size: 0.65rem; }
+  .hud-bracket{
+    color: rgba(var(--c-white-rgb), 0.5);
+  }
+
+  /* ============================================
+     SECTION LAYOUT
+     ============================================ */
+  main{ position: relative; z-index: 10; }
+  section{
+    padding: var(--section-pad) var(--grid-gutter);
+    position: relative;
+    border-top: 1px solid var(--c-line);
+  }
+  .section-label{
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--c-dim);
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .section-label::before{
+    content:'';
+    width: 40px;
+    height: 1px;
+    background: var(--c-lime);
+  }
+  .section-num{
+    color: var(--c-lime);
+    font-weight: 500;
+  }
+  .section-title{
+    font-size: clamp(2rem, 5vw, 4rem);
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin-bottom: 3rem;
+    max-width: 20ch;
+  }
+  .section-title em{
+    font-family: var(--f-serif);
+    font-style: italic;
+    color: var(--c-lime);
+    font-weight: 400;
+  }
+  .section-foot{
+    display: flex;
+    justify-content: space-between;
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px dashed var(--c-line);
+    font-family: var(--f-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--c-dim);
+  }
+
+  /* ============================================
+     SECTION 00 — HERO w/ char-split reveal
+     (smooothy data-module="text" data-type="chars")
+     ============================================ */
+  #hero{
+    min-height: 100vh;
+    padding-top: 10rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-top: 0;
+  }
+  .hero-massive{
+    font-size: clamp(3rem, 12vw, 12rem);
+    font-weight: 500;
+    letter-spacing: -0.05em;
+    line-height: 0.88;
+    max-width: 14ch;
+  }
+  .hero-massive em{
+    font-family: var(--f-serif);
+    font-style: italic;
+    color: var(--c-lime);
+    font-weight: 400;
+  }
+  .char{
+    display: inline-block;
+    transform: translateY(100%);
+    opacity: 0;
+    transition:
+      transform 0.9s var(--ease-spring-soft),
+      opacity 0.6s ease;
+    transition-delay: calc(var(--i, 0) * 0.025s);
+  }
+  .char.space{ width: 0.4ch; }
+  .reveal.in .char{
+    transform: translateY(0);
+    opacity: 1;
+  }
+  .hero-meta{
+    margin-top: 4rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.5rem;
+    font-family: var(--f-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--c-dim);
+  }
+  .hero-meta strong{
+    display: block;
+    color: var(--c-white);
+    font-weight: 500;
+    margin-bottom: 0.3rem;
+  }
+  .scroll-hint{
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--f-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: var(--c-dim);
+    text-transform: uppercase;
+    animation: bob 2s var(--ease-out-quart) infinite;
+  }
+  @keyframes bob {
+    0%,100% { transform: translate(-50%, 0); }
+    50%     { transform: translate(-50%, 8px); }
+  }
+
+  /* ============================================
+     SECTION 01 — COUNTERS (number-flow vibe)
+     ============================================ */
+  .counters{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1px;
+    background: var(--c-line);
+    border: 1px solid var(--c-line);
+  }
+  .counter{
+    background: var(--c-black);
+    padding: 2.5rem 2rem;
+    position: relative;
+  }
+  .counter-label{
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--c-dim);
+    margin-bottom: 1rem;
+  }
+  .counter-value{
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    display: flex;
+    align-items: baseline;
+    gap: 0.25rem;
+  }
+  .counter-unit{
+    font-size: 0.9rem;
+    color: var(--c-lime);
+    font-family: var(--f-mono);
+    font-weight: 400;
+    letter-spacing: 0.04em;
+  }
+  .counter-bar{
+    margin-top: 1rem;
+    height: 2px;
+    background: var(--c-line);
+    overflow: hidden;
+  }
+  .counter-bar::after{
+    content:'';
+    display: block;
+    height: 100%;
+    width: var(--p, 0%);
+    background: var(--c-lime);
+    transition: width 1.5s var(--ease-out-quart);
+  }
+
+  /* number-flow digit mechanics */
+  .digit{
+    display: inline-block;
+    height: 1em;
+    overflow: hidden;
+    vertical-align: baseline;
+  }
+  .digit-inner{
+    display: block;
+    transition: transform 0.8s var(--ease-spring-soft);
+  }
+  .digit-inner span{
+    display: block;
+    height: 1em;
+    line-height: 1;
+  }
+
+  /* ============================================
+     SECTION 02 — SCROLL PROGRESS (string-tune)
+     ============================================ */
+  .scroll-demo{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: start;
+  }
+  @media (max-width: 760px){ .scroll-demo{ grid-template-columns: 1fr; } }
+  .scroll-col p{
+    font-size: 1rem;
+    color: rgba(var(--c-white-rgb), 0.7);
+    max-width: 40ch;
+    margin-bottom: 1rem;
+  }
+  .scroll-col code{
+    display: block;
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    background: rgba(var(--c-white-rgb), 0.03);
+    border: 1px solid var(--c-line);
+    padding: 1rem;
+    color: var(--c-lime);
+    white-space: pre;
+    overflow-x: auto;
+    line-height: 1.6;
+  }
+  .scroll-stage{
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border: 1px solid var(--c-line-strong);
+    overflow: hidden;
+    background: rgba(var(--c-white-rgb), 0.02);
+  }
+  .scroll-shape{
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 40%; height: 40%;
+    /* --p is set by JS (0→1 as it scrolls through viewport) */
+    --p: 0;
+    transform:
+      translate(-50%, -50%)
+      rotate(calc(var(--p) * 720deg))
+      scale(calc(0.3 + var(--p) * 0.9));
+    background: var(--c-lime);
+    filter: hue-rotate(calc(var(--p) * 360deg));
+    transition: transform 0.05s linear;
+  }
+  .scroll-shape::before{
+    content: attr(data-p);
+    position: absolute; inset: 0;
+    display: grid; place-items: center;
+    color: var(--c-black);
+    font-family: var(--f-mono);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    font-size: 1.2rem;
+  }
+  .scroll-track{
+    position: absolute;
+    left: 1rem; right: 1rem; bottom: 1rem;
+    height: 2px; background: var(--c-line);
+  }
+  .scroll-track::after{
+    content:'';
+    display: block; height: 100%;
+    width: calc(var(--p) * 100%);
+    background: var(--c-lime);
+  }
+
+  /* ============================================
+     SECTION 03 — INERTIA SLIDER (smooothy)
+     ============================================ */
+  .slider-wrap{
+    position: relative;
+    overflow: hidden;
+    margin-left: calc(var(--grid-gutter) * -1);
+    margin-right: calc(var(--grid-gutter) * -1);
+    padding: 0 var(--grid-gutter);
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .slider-track{
+    display: flex;
+    gap: 1rem;
+    will-change: transform;
+    cursor: grab;
+  }
+  .slider-track:active{ cursor: grabbing; }
+  .slide{
+    flex: 0 0 auto;
+    width: clamp(14rem, 22vw, 22rem);
+    aspect-ratio: 3 / 4;
+    border: 1px solid var(--c-line-strong);
+    background: linear-gradient(140deg,
+      rgba(var(--c-white-rgb), 0.04) 0%,
+      rgba(var(--c-white-rgb), 0.01) 100%);
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+  .slide:hover{ border-color: var(--c-lime); }
+  .slide-num{
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    color: var(--c-dim);
+  }
+  .slide-vis{
+    flex: 1;
+    display: grid;
+    place-items: center;
+    margin: 1rem 0;
+    position: relative;
+  }
+  .slide-vis svg{ width: 70%; height: auto; color: var(--c-lime); }
+  .slide-title{
+    font-size: 1.1rem;
+    letter-spacing: -0.01em;
+  }
+  .slide-title em{
+    font-family: var(--f-serif);
+    font-style: italic;
+    color: var(--c-lime);
+  }
+  .slider-hint{
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1.5rem;
+    font-family: var(--f-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    color: var(--c-dim);
+    text-transform: uppercase;
+  }
+
+  /* ============================================
+     SECTION 04 — PARTICLES
+     ============================================ */
+  .particle-stage{
+    position: relative;
+    aspect-ratio: 16 / 9;
+    border: 1px solid var(--c-line-strong);
+    overflow: hidden;
+    background: #000;
+  }
+  .particle-stage canvas{
+    width: 100%; height: 100%;
+    display: block;
+  }
+  .particle-overlay{
+    position: absolute; inset: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 1.5rem;
+    pointer-events: none;
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--c-lime);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ============================================
+     SECTION 05 — MAGNETIC HOVER
+     ============================================ */
+  .magnet-stage{
+    min-height: 50vh;
+    display: grid;
+    place-items: center;
+    padding: 4rem 0;
+    position: relative;
+  }
+  .magnet-btn{
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 240px; height: 240px;
+    border: 1px solid var(--c-white);
+    border-radius: 50%;
+    font-family: var(--f-mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    transition: transform 0.4s var(--ease-spring-soft), background 0.3s, color 0.3s, border-color 0.3s;
+    will-change: transform;
+    cursor: none;
+  }
+  .magnet-btn::before{
+    content:'';
+    position: absolute;
+    inset: -40px;
+    border: 1px dashed var(--c-line);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .magnet-btn:hover{
+    background: var(--c-lime);
+    color: var(--c-black);
+    border-color: var(--c-lime);
+  }
+  .magnet-label{
+    pointer-events: none;
+    will-change: transform;
+    transition: transform 0.4s var(--ease-spring-soft);
+  }
+
+  /* ============================================
+     SECTION 06 — SPRING / BOUNCY TEXT
+     ============================================ */
+  .bouncy-wrap{
+    padding: 3rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40vh;
+  }
+  .bouncy{
+    font-size: clamp(3rem, 10vw, 9rem);
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    display: flex;
+    gap: 0.02em;
+  }
+  .bouncy .letter{
+    display: inline-block;
+    transition: transform 0.5s var(--ease-spring);
+    will-change: transform;
+  }
+  .bouncy .letter:hover{
+    transform: translateY(-0.18em) scale(1.05);
+    color: var(--c-lime);
+  }
+
+  /* ============================================
+     SECTION 07 — ABERRATION + DITHER
+     ============================================ */
+  .abr-wrap{
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: 50vh;
+    padding: 4rem 0;
+  }
+  .abr-text{
+    font-size: clamp(2.5rem, 8vw, 7rem);
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    position: relative;
+    cursor: none;
+  }
+  .abr-layer{
+    position: absolute;
+    top:0; left:0;
+    transition: transform 0.4s var(--ease-out-quart), opacity 0.4s;
+    mix-blend-mode: screen;
+    pointer-events: none;
+    opacity: 0;
+  }
+  .abr-wrap:hover .abr-layer{ opacity: 1; }
+  .abr-layer.r{ color: var(--c-red); }
+  .abr-layer.b{ color: #33ffff; }
+  .abr-wrap:hover .abr-layer.r{ transform: translate(var(--dx, 6px), var(--dy, 0)); }
+  .abr-wrap:hover .abr-layer.b{ transform: translate(calc(var(--dx, 6px) * -1), calc(var(--dy, 0) * -1)); }
+
+  /* ============================================
+     SECTION 08 — EXPLODED VIEW / TECH DISASSEMBLE
+     ============================================ */
+  .exploded-outer{
+    position: relative;
+    height: 350vh; /* tall scroll track for the sticky stage */
+  }
+  .exploded-sticky{
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr minmax(260px, 28%);
+    gap: 2rem;
+    padding: 2rem var(--grid-gutter);
+    align-items: center;
+    overflow: hidden;
+    border-top: 1px solid var(--c-line);
+  }
+  @media (max-width: 900px){
+    .exploded-sticky{ grid-template-columns: 1fr; }
+  }
+
+  /* Specimen nameplate — top left of sticky stage */
+  .spec-nameplate{
+    position: absolute;
+    top: 1.2rem; left: var(--grid-gutter);
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--c-dim);
+    display: flex;
+    gap: 1.5rem;
+    z-index: 3;
+  }
+  .spec-nameplate strong{
+    color: var(--c-lime);
+    font-weight: 500;
+  }
+  .spec-progressbar{
+    position: absolute;
+    top: 1.5rem; right: var(--grid-gutter);
+    width: 120px;
+    height: 2px;
+    background: var(--c-line);
+    z-index: 3;
+  }
+  .spec-progressbar::after{
+    content:'';
+    display: block;
+    height: 100%;
+    width: calc(var(--p) * 100%);
+    background: var(--c-lime);
+    transition: width 0.1s linear;
+  }
+
+  /* 3D stage */
+  .stage-wrap{
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    perspective: 2200px;
+  }
+  .stage{
+    --p: 0;
+    position: relative;
+    width: clamp(220px, 36vw, 420px);
+    height: clamp(220px, 36vw, 420px);
+    transform-style: preserve-3d;
+    /* subtle auto-rotate for the whole assembly */
+    transform:
+      rotateX(55deg)
+      rotateZ(calc(-20deg + var(--p) * 8deg));
+    transition: transform 0.4s var(--ease-out-quart);
+  }
+  .part{
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    transform-style: preserve-3d;
+    --offset: calc(var(--i) - 3.5);       /* center around index 3.5 (for 8 parts) */
+    --spread: 80px;                        /* spacing at full explode */
+    transform: translateZ(calc(var(--offset) * var(--spread) * var(--p)));
+    transition: transform 0.15s linear;
+  }
+  .part-shape{
+    width: 100%;
+    height: 100%;
+    position: relative;
+  }
+  .part-shape svg{
+    width: 100%;
+    height: 100%;
+    display: block;
+    overflow: visible;
+  }
+
+  /* Individual part styling — each layer has its own look */
+  .p-housing-top .part-shape{
+    background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+    border: 1px solid #444;
+    border-radius: 6px;
+    box-shadow: 0 2px 0 #555 inset, 0 -2px 0 #111 inset;
+  }
+  .p-thermal .part-shape{
+    background: repeating-linear-gradient(90deg, #888 0 2px, #666 2px 4px);
+    border: 1px solid #aaa;
+    border-radius: 3px;
+    height: 92%;
+    width: 88%;
+    margin: auto;
+    position: absolute; inset: 0;
+  }
+  .p-shield .part-shape{
+    background: linear-gradient(135deg, #aaa, #555);
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    width: 82%; height: 86%;
+    margin: auto;
+    position: absolute; inset: 0;
+    box-shadow: inset 0 0 0 3px #333;
+  }
+  .p-pcb .part-shape{
+    background:
+      radial-gradient(circle at 20% 30%, var(--c-lime) 0 3px, transparent 3.5px),
+      radial-gradient(circle at 80% 70%, var(--c-lime) 0 3px, transparent 3.5px),
+      linear-gradient(135deg, #0a3d2e, #072018);
+    border: 1px solid #0b5a40;
+    border-radius: 4px;
+    width: 78%; height: 82%;
+    margin: auto;
+    position: absolute; inset: 0;
+  }
+  .p-chip-nand .part-shape,
+  .p-chip-ctrl .part-shape{
+    background: linear-gradient(145deg, #111, #000);
+    border: 1px solid #333;
+    border-radius: 2px;
+  }
+  .p-chip-nand .part-shape{
+    width: 60%; height: 40%;
+    margin: auto;
+    position: absolute; top: 18%; left: 20%;
+  }
+  .p-chip-ctrl .part-shape{
+    width: 30%; height: 30%;
+    margin: auto;
+    position: absolute; top: 60%; left: 35%;
+  }
+  .p-chip-nand .part-shape::after,
+  .p-chip-ctrl .part-shape::after{
+    content: '';
+    position: absolute;
+    inset: 12%;
+    border: 1px solid rgba(var(--c-white-rgb), 0.08);
+  }
+  .p-chip-nand .part-shape::before{
+    content: 'NAND · 2TB';
+    position: absolute;
+    inset: 0;
+    display: grid; place-items: center;
+    font-family: var(--f-mono);
+    font-size: 8px;
+    letter-spacing: 0.2em;
+    color: rgba(var(--c-white-rgb), 0.3);
+  }
+  .p-chip-ctrl .part-shape::before{
+    content: 'CTRL';
+    position: absolute;
+    inset: 0;
+    display: grid; place-items: center;
+    font-family: var(--f-mono);
+    font-size: 7px;
+    letter-spacing: 0.2em;
+    color: rgba(var(--c-white-rgb), 0.35);
+  }
+  .p-connector .part-shape{
+    background: linear-gradient(180deg, #c8a464 0%, #8b6d3e 50%, #5a4527 100%);
+    width: 40%; height: 10%;
+    margin: auto;
+    position: absolute;
+    bottom: 5%; left: 30%;
+    border-radius: 1px;
+    box-shadow: 0 0 0 1px #000;
+  }
+  .p-connector .part-shape::after{
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      90deg,
+      transparent 0 3px,
+      rgba(0,0,0,0.4) 3px 4px
+    );
+  }
+  .p-housing-bot .part-shape{
+    background: linear-gradient(145deg, #1a1a1a, #2a2a2a);
+    border: 1px solid #444;
+    border-radius: 6px;
+    box-shadow: 0 2px 0 #555 inset, 0 -2px 0 #111 inset;
+  }
+
+  /* Callout/leader lines — drawn with pseudo-element */
+  .part::after{
+    content: '';
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    width: calc(var(--p) * 40px);
+    height: 1px;
+    background: var(--c-lime);
+    opacity: calc(var(--p) * 0.6);
+    transform: translateX(calc(var(--offset) * -10px));
+    pointer-events: none;
+  }
+
+  /* Labels panel — the right column */
+  .spec-labels{
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    z-index: 2;
+  }
+  .spec-heading{
+    font-family: var(--f-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--c-dim);
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--c-line);
+  }
+  .spec-row{
+    display: grid;
+    grid-template-columns: 2rem 1fr auto;
+    gap: 0.8rem;
+    align-items: baseline;
+    font-family: var(--f-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.6rem 0;
+    border-bottom: 1px dashed var(--c-line);
+    opacity: calc(0.15 + var(--p, 0) * 0.85);
+    transform: translateX(calc((1 - var(--p, 0)) * 20px));
+    transition: opacity 0.2s linear, transform 0.2s linear;
+  }
+  .spec-row.active{
+    color: var(--c-lime);
+    border-bottom-color: var(--c-lime);
+  }
+  .spec-row .num{ color: var(--c-lime); font-weight: 500; }
+  .spec-row .name{ color: var(--c-white); }
+  .spec-row .val{ color: var(--c-dim); font-size: 0.65rem; }
+
+  /* Bottom hint */
+  .exploded-hint{
+    position: absolute;
+    bottom: 1rem; left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--f-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--c-dim);
+    z-index: 3;
+    display: flex; gap: 1rem; align-items: center;
+  }
+  .exploded-hint .bar{
+    display: inline-block;
+    width: 80px; height: 1px; background: var(--c-line-strong);
+    position: relative;
+  }
+  .exploded-hint .bar::after{
+    content:''; position: absolute; left:0; top:0; bottom:0;
+    width: calc(var(--p, 0) * 100%);
+    background: var(--c-lime);
+  }
+
+  /* ============================================
+     FOOTER
+     ============================================ */
+  footer{
+    padding: 6rem var(--grid-gutter) 3rem;
+    border-top: 1px solid var(--c-line);
+    position: relative;
+    z-index: 10;
+  }
+  .footer-grid{
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 4rem;
+  }
+  @media (max-width: 760px){ .footer-grid{ grid-template-columns: 1fr; } }
+  .footer-big{
+    font-size: clamp(2rem, 6vw, 5rem);
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    line-height: 0.9;
+  }
+  .footer-big em{
+    font-family: var(--f-serif);
+    font-style: italic;
+    color: var(--c-lime);
+    font-weight: 400;
+  }
+  .footer-col h4{
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--c-dim);
+    margin-bottom: 1rem;
+    font-weight: 400;
+  }
+  .footer-col ul{ list-style: none; }
+  .footer-col li{
+    font-size: 0.85rem;
+    margin-bottom: 0.4rem;
+    color: rgba(var(--c-white-rgb), 0.75);
+  }
+  .footer-sig{
+    display: flex;
+    justify-content: space-between;
+    padding-top: 2rem;
+    border-top: 1px solid var(--c-line);
+    font-family: var(--f-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--c-dim);
+  }
+  .footer-sig .dot{ color: var(--c-lime); }
+
+  /* hover-y interactive elements signal to cursor */
+  a, button, .slide, .magnet-btn, .bouncy .letter, .abr-wrap { cursor: none; }
+
+  /* reduce motion */
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{ animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================
+     ENTRY GATE
+     ============================================ -->
+<div class="gate" id="gate">
+  <div class="gate-inner">
+    <h1 class="gate-title">FIELD <em>NOTES</em></h1>
+    <div style="margin-bottom: 2rem; color: var(--c-dim);">
+      BISKIN LAB / 001 / APR 2026
+    </div>
+    <button class="gate-cta" id="gateBtn">
+      [:: CLICK TO ENTER <span class="gate-blink">_</span> ::]
+    </button>
+    <div style="margin-top: 2rem; color: var(--c-dim); font-size: 0.7rem;">
+      9 EXPERIMENTS · MOTION · PHYSICS · EXPLODED VIEW
+    </div>
+  </div>
+</div>
+
+<!-- ============================================
+     CUSTOM CURSOR
+     ============================================ -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-dot" id="cursorDot"></div>
+
+<!-- ============================================
+     HUD (fixed overlay)
+     ============================================ -->
+<div class="hud" aria-hidden="true">
+  <div class="hud-top">
+    <div class="hud-logo">BISKIN <span class="sep">/</span> LAB <span class="sep">/</span> 001</div>
+    <div class="hud-timer" id="hudTimer">00:00:00.000</div>
+  </div>
+  <div></div>
+  <div class="hud-bot">
+    <div class="hud-bracket">[:: ALL SYSTEMS NOMINAL ::]</div>
+    <div id="hudCoords">X 000 Y 000</div>
+  </div>
+</div>
+
+<!-- ============================================
+     MAIN
+     ============================================ -->
+<main>
+
+  <!-- 00 · HERO ================================= -->
+  <section id="hero">
+    <div class="section-label"><span class="section-num">00</span> · OPENING SEQUENCE</div>
+    <h2 class="hero-massive reveal" data-split="chars">
+      Everything I learned this week, <em>compressed</em> into one page.
+    </h2>
+    <div class="hero-meta">
+      <div><strong>STACK</strong>Vanilla · HTML · CSS · JS</div>
+      <div><strong>DEPS</strong>Zero</div>
+      <div><strong>RUNTIME</strong>Double-click, done</div>
+      <div><strong>SOURCES</strong>4 sites · 1 repo · 13k★</div>
+    </div>
+    <div class="scroll-hint">↓ &nbsp; SCROLL &nbsp; ↓</div>
+  </section>
+
+  <!-- 01 · COUNTERS ============================= -->
+  <section>
+    <div class="section-label"><span class="section-num">01</span> · NUMBER FLOW / TABULAR NUMS</div>
+    <h3 class="section-title">Live counters that don't <em>jitter</em>.</h3>
+    <div class="counters" id="counters">
+      <div class="counter">
+        <div class="counter-label">Sites studied</div>
+        <div class="counter-value"><span class="counter-digits" data-target="4">0</span></div>
+        <div class="counter-bar" style="--p: 80%"></div>
+      </div>
+      <div class="counter">
+        <div class="counter-label">Patterns extracted</div>
+        <div class="counter-value"><span class="counter-digits" data-target="27">0</span></div>
+        <div class="counter-bar" style="--p: 92%"></div>
+      </div>
+      <div class="counter">
+        <div class="counter-label">GitHub stars (pascal)</div>
+        <div class="counter-value"><span class="counter-digits" data-target="13437">0</span></div>
+        <div class="counter-bar" style="--p: 100%"></div>
+      </div>
+      <div class="counter">
+        <div class="counter-label">CSS vars used here</div>
+        <div class="counter-value"><span class="counter-digits" data-target="18">0</span><span class="counter-unit">tokens</span></div>
+        <div class="counter-bar" style="--p: 62%"></div>
+      </div>
+    </div>
+    <div class="section-foot">
+      <span>SOURCE — @number-flow/react · string-tune palette</span>
+      <span>FONT-VARIANT-NUMERIC: TABULAR-NUMS</span>
+    </div>
+  </section>
+
+  <!-- 02 · SCROLL PROGRESS ====================== -->
+  <section>
+    <div class="section-label"><span class="section-num">02</span> · SCROLL PROGRESS AS CSS VAR</div>
+    <h3 class="section-title">Drive animation with <em>math</em>, not keyframes.</h3>
+    <div class="scroll-demo">
+      <div class="scroll-col">
+        <p>A rAF loop writes <code style="display:inline; padding: 0.1rem 0.3rem; background:rgba(var(--c-white-rgb),0.06); color:var(--c-lime);">--p</code> (0 → 1) to each tracked element as it passes through the viewport. The element expresses rotation, scale, and hue as pure CSS math on that single variable. No GSAP. No ScrollTrigger.</p>
+        <code>.shape {
+  --p: 0;
+  transform:
+    rotate(calc(var(--p) * 720deg))
+    scale(calc(0.3 + var(--p) * 0.9));
+  filter: hue-rotate(calc(var(--p) * 360deg));
+}</code>
+      </div>
+      <div class="scroll-stage">
+        <div class="scroll-shape" id="scrollShape" data-scroll-progress data-p="0.00"></div>
+        <div class="scroll-track" id="scrollTrack" data-scroll-progress></div>
+      </div>
+    </div>
+    <div class="section-foot">
+      <span>SOURCE — string-tune.fiddle.digital</span>
+      <span>rAF · IntersectionObserver · 0 DEPS</span>
+    </div>
+  </section>
+
+  <!-- 03 · INERTIA SLIDER ======================= -->
+  <section>
+    <div class="section-label"><span class="section-num">03</span> · INERTIA / DRAG / MOMENTUM</div>
+    <h3 class="section-title">Drag it. Let it <em>keep going</em>.</h3>
+    <div class="slider-wrap" id="slider">
+      <div class="slider-track" id="sliderTrack">
+        <!-- slides injected by JS -->
+      </div>
+    </div>
+    <div class="slider-hint">
+      <span>← CLICK & DRAG →</span>
+      <span>VELOCITY-DECAYED MOMENTUM</span>
+      <span>8 CARDS</span>
+    </div>
+    <div class="section-foot">
+      <span>SOURCE — smooothy.federic.ooo</span>
+      <span>POINTER EVENTS · rAF DECAY · CLAMP</span>
+    </div>
+  </section>
+
+  <!-- 04 · PARTICLES ============================ -->
+  <section>
+    <div class="section-label"><span class="section-num">04</span> · PARTICLE FIELD / MOUSE REPEL</div>
+    <h3 class="section-title">800 particles. One <em>attractor</em>.</h3>
+    <div class="particle-stage">
+      <canvas id="particles"></canvas>
+      <div class="particle-overlay">
+        <span id="pStatus">[:: IDLE ::]</span>
+        <span><span id="pFps">60</span> FPS</span>
+      </div>
+    </div>
+    <div class="section-foot">
+      <span>SOURCE — particles.casberry.in (simplified)</span>
+      <span>2D CANVAS · VELOCITY · FRICTION</span>
+    </div>
+  </section>
+
+  <!-- 05 · MAGNETIC ============================= -->
+  <section>
+    <div class="section-label"><span class="section-num">05</span> · MAGNETIC HOVER / POINTER PULL</div>
+    <h3 class="section-title">Click me. <em>Try.</em></h3>
+    <div class="magnet-stage">
+      <button class="magnet-btn" id="magnet">
+        <span class="magnet-label">LAUNCH →</span>
+      </button>
+    </div>
+    <div class="section-foot">
+      <span>SOURCE — classic motion (smooothy cursor + bouncy)</span>
+      <span>DELTA × 0.35 · SPRING RELEASE</span>
+    </div>
+  </section>
+
+  <!-- 06 · BOUNCY TEXT ========================== -->
+  <section>
+    <div class="section-label"><span class="section-num">06</span> · SPRING / BOUNCY / DATA-MODULE</div>
+    <h3 class="section-title">Hover each <em>letter</em>.</h3>
+    <div class="bouncy-wrap">
+      <div class="bouncy" id="bouncy">DISASSEMBLE</div>
+    </div>
+    <div class="section-foot">
+      <span>SOURCE — smooothy data-module="bouncy"</span>
+      <span>CUBIC-BEZIER(0.34, 1.56, 0.64, 1)</span>
+    </div>
+  </section>
+
+  <!-- 08 · EXPLODED VIEW / TECH DISASSEMBLE ===== -->
+  <section style="padding: 0; border-top: 0;">
+    <div style="padding: var(--section-pad) var(--grid-gutter) 0;">
+      <div class="section-label"><span class="section-num">08</span> · EXPLODED VIEW / TECH DISASSEMBLE</div>
+      <h3 class="section-title">Every component. <em>Pulled apart.</em></h3>
+    </div>
+
+    <div class="exploded-outer" id="explodedOuter">
+      <div class="exploded-sticky">
+
+        <div class="spec-nameplate">
+          <span>SPECIMEN <strong>001</strong></span>
+          <span>DRIVE_X · NVMe M.2</span>
+          <span>REV <strong>A.4</strong></span>
+        </div>
+        <div class="spec-progressbar" id="specProgress"></div>
+
+        <!-- 3D assembly stage -->
+        <div class="stage-wrap">
+          <div class="stage" id="stage">
+            <div class="part p-housing-top"  style="--i:0"><div class="part-shape"></div></div>
+            <div class="part p-thermal"      style="--i:1"><div class="part-shape"></div></div>
+            <div class="part p-shield"       style="--i:2"><div class="part-shape"></div></div>
+            <div class="part p-chip-nand"    style="--i:3"><div class="part-shape"></div></div>
+            <div class="part p-chip-ctrl"    style="--i:4"><div class="part-shape"></div></div>
+            <div class="part p-pcb"          style="--i:5"><div class="part-shape"></div></div>
+            <div class="part p-connector"    style="--i:6"><div class="part-shape"></div></div>
+            <div class="part p-housing-bot"  style="--i:7"><div class="part-shape"></div></div>
+          </div>
+        </div>
+
+        <!-- Labels panel -->
+        <div class="spec-labels" id="specLabels">
+          <div class="spec-heading">[:: COMPONENT MANIFEST — 08 PARTS ::]</div>
+          <div class="spec-row" data-part="0"><span class="num">01</span><span class="name">Housing · Top</span><span class="val">Al 7075 · 1.8mm</span></div>
+          <div class="spec-row" data-part="1"><span class="num">02</span><span class="name">Thermal Pad</span><span class="val">12 W/m·K</span></div>
+          <div class="spec-row" data-part="2"><span class="num">03</span><span class="name">EMI Shield</span><span class="val">Nickel · 0.15mm</span></div>
+          <div class="spec-row" data-part="3"><span class="num">04</span><span class="name">NAND Memory</span><span class="val">3D TLC · 2TB</span></div>
+          <div class="spec-row" data-part="4"><span class="num">05</span><span class="name">Controller</span><span class="val">Phison E26 · 8ch</span></div>
+          <div class="spec-row" data-part="5"><span class="num">06</span><span class="name">PCB Substrate</span><span class="val">4-layer · FR-4</span></div>
+          <div class="spec-row" data-part="6"><span class="num">07</span><span class="name">Connector</span><span class="val">M.2 · PCIe 5.0</span></div>
+          <div class="spec-row" data-part="7"><span class="num">08</span><span class="name">Housing · Bottom</span><span class="val">Al 7075 · 1.8mm</span></div>
+        </div>
+
+        <div class="exploded-hint">
+          <span>EXPLODE</span>
+          <span class="bar" id="specHintBar"></span>
+          <span>SCROLL ↓</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding: 3rem var(--grid-gutter) var(--section-pad);">
+      <div class="section-foot">
+        <span>SOURCE — iFixit teardowns · Apple product explosions · Dieter Rams</span>
+        <span>CSS 3D TRANSFORM · SCROLL-LINKED Z-OFFSET · STICKY STAGE</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 · ABERRATION =========================== -->
+  <section>
+    <div class="section-label"><span class="section-num">07</span> · CHROMATIC ABERRATION / DITHER</div>
+    <h3 class="section-title">Hover. Signal <em>lost</em>.</h3>
+    <div class="abr-wrap" id="abr">
+      <div class="abr-text" data-text="[SIGNAL. FOUND.]">
+        <span class="abr-layer r">[SIGNAL. FOUND.]</span>
+        <span class="abr-layer b">[SIGNAL. FOUND.]</span>
+        [SIGNAL. FOUND.]
+      </div>
+    </div>
+    <div class="section-foot">
+      <span>SOURCE — astrodither.robertborghesi.is</span>
+      <span>RGB CHANNEL SPLIT · MIX-BLEND-MODE: SCREEN</span>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============================================
+     FOOTER
+     ============================================ -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-big">
+      Eight experiments.<br>
+      One file. <em>Zero build.</em>
+    </div>
+    <div class="footer-col">
+      <h4>Sources studied</h4>
+      <ul>
+        <li>smooothy.federic.ooo</li>
+        <li>astrodither.robertborghesi.is</li>
+        <li>particles.casberry.in</li>
+        <li>string-tune.fiddle.digital</li>
+        <li>github.com/pascalorg/editor</li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Patterns shipped</h4>
+      <ul>
+        <li>Char-split reveal</li>
+        <li>CSS-var scroll progress</li>
+        <li>Inertia slider</li>
+        <li>Canvas particles</li>
+        <li>Magnetic hover</li>
+        <li>Spring letters</li>
+        <li>Chromatic aberration</li>
+        <li>Dither grain overlay</li>
+        <li>Exploded view / teardown</li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-sig">
+    <span>FIELD NOTES <span class="dot">·</span> 001 <span class="dot">·</span> BISKIN LAB</span>
+    <span id="footTimer" style="font-variant-numeric: tabular-nums;">ACTIVE FOR 00:00:00</span>
+    <span>APR 2026 <span class="dot">·</span> EFE BISKIN</span>
+  </div>
+</footer>
+
+<script>
+/* ============================================
+   UTILS
+   ============================================ */
+const qs  = (s, r=document) => r.querySelector(s);
+const qsa = (s, r=document) => [...r.querySelectorAll(s)];
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+const lerp  = (a, b, t) => a + (b - a) * t;
+
+/* ============================================
+   ENTRY GATE
+   ============================================ */
+const gate = qs('#gate');
+const gateBtn = qs('#gateBtn');
+let bootTime = null;
+
+function bootLab(){
+  if(bootTime) return;
+  bootTime = performance.now();
+  gate.classList.add('hidden');
+  // unlock audio context (pattern — even if we don't use it)
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if(Ctx) new Ctx();
+  } catch(e){}
+  // trigger hero reveal
+  setTimeout(() => {
+    qsa('.reveal').forEach(el => el.classList.add('in'));
+  }, 300);
+  runCounters();
+}
+gateBtn.addEventListener('click', bootLab);
+// also boot on any key / click anywhere after a moment
+document.addEventListener('keydown', (e) => { if(!bootTime) bootLab(); });
+
+/* ============================================
+   HUD TIMER
+   ============================================ */
+const hudTimer = qs('#hudTimer');
+const footTimer = qs('#footTimer');
+function tickTimer(){
+  if(bootTime){
+    const elapsed = performance.now() - bootTime;
+    const ms = Math.floor(elapsed % 1000).toString().padStart(3,'0');
+    const s  = Math.floor(elapsed/1000) % 60;
+    const m  = Math.floor(elapsed/60000) % 60;
+    const h  = Math.floor(elapsed/3600000);
+    const pad = (n) => n.toString().padStart(2,'0');
+    hudTimer.textContent = `${pad(h)}:${pad(m)}:${pad(s)}.${ms}`;
+    footTimer.textContent = `ACTIVE FOR ${pad(h)}:${pad(m)}:${pad(s)}`;
+  }
+  requestAnimationFrame(tickTimer);
+}
+tickTimer();
+
+/* ============================================
+   CUSTOM CURSOR (lag via lerp)
+   ============================================ */
+const cursor   = qs('#cursor');
+const cursorD  = qs('#cursorDot');
+const hudCoord = qs('#hudCoords');
+let mx = window.innerWidth/2, my = window.innerHeight/2;
+let cx = mx, cy = my;
+let dx = mx, dy = my;
+
+window.addEventListener('pointermove', (e) => {
+  mx = e.clientX; my = e.clientY;
+  hudCoord.textContent = `X ${String(Math.round(mx)).padStart(3,'0')} Y ${String(Math.round(my)).padStart(3,'0')}`;
+});
+
+function tickCursor(){
+  cx = lerp(cx, mx, 0.18);
+  cy = lerp(cy, my, 0.18);
+  dx = lerp(dx, mx, 0.6);
+  dy = lerp(dy, my, 0.6);
+  cursor.style.transform  = `translate(${cx}px, ${cy}px) translate(-50%, -50%)`;
+  cursorD.style.transform = `translate(${dx}px, ${dy}px) translate(-50%, -50%)`;
+  requestAnimationFrame(tickCursor);
+}
+tickCursor();
+
+// cursor state triggers
+const growTargets = 'a, button, .slide, .magnet-btn, .bouncy .letter, [data-cursor="grow"]';
+document.addEventListener('pointerover', (e) => {
+  if(e.target.closest(growTargets)) cursor.classList.add('grow');
+});
+document.addEventListener('pointerout', (e) => {
+  if(e.target.closest(growTargets)) cursor.classList.remove('grow');
+});
+
+/* ============================================
+   CHAR-SPLIT (smooothy data-module="text" data-type="chars")
+   ============================================ */
+qsa('[data-split="chars"]').forEach(el => {
+  const walk = (node) => {
+    const frag = document.createDocumentFragment();
+    [...node.childNodes].forEach(child => {
+      if(child.nodeType === 3){ // text node
+        [...child.textContent].forEach((ch, i) => {
+          const span = document.createElement('span');
+          span.className = 'char' + (ch === ' ' ? ' space' : '');
+          span.textContent = ch;
+          frag.appendChild(span);
+        });
+      } else if(child.nodeType === 1){
+        const clone = child.cloneNode(false);
+        walk(child);
+        while(child.firstChild) clone.appendChild(child.firstChild);
+        frag.appendChild(clone);
+      }
+    });
+    node.innerHTML = '';
+    node.appendChild(frag);
+  };
+  walk(el);
+  // re-index chars with --i
+  qsa('.char', el).forEach((c, i) => c.style.setProperty('--i', i));
+});
+
+/* Reveal on intersection */
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(ent => {
+    if(ent.isIntersecting) ent.target.classList.add('in');
+  });
+}, { threshold: 0.2 });
+qsa('.reveal').forEach(el => io.observe(el));
+
+/* ============================================
+   COUNTERS (number flow — vanilla)
+   ============================================ */
+function runCounters(){
+  qsa('.counter-digits').forEach(el => {
+    const target = +el.dataset.target;
+    const dur = 1800;
+    const start = performance.now();
+    const startVal = 0;
+    const step = (t) => {
+      const p = clamp((t - start) / dur, 0, 1);
+      // ease out quart
+      const e = 1 - Math.pow(1 - p, 4);
+      const v = Math.round(startVal + (target - startVal) * e);
+      el.textContent = v.toLocaleString('en-US');
+      if(p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  });
+}
+
+/* ============================================
+   SCROLL PROGRESS (string-tune)
+   ============================================ */
+const progressEls = qsa('[data-scroll-progress]');
+function updateScrollProgress(){
+  const vh = window.innerHeight;
+  progressEls.forEach(el => {
+    const r = el.getBoundingClientRect();
+    const total = r.height + vh;
+    const traveled = vh - r.top;
+    const p = clamp(traveled / total, 0, 1);
+    el.style.setProperty('--p', p.toFixed(3));
+    if(el.dataset.p !== undefined){
+      el.dataset.p = p.toFixed(2);
+    }
+  });
+  requestAnimationFrame(updateScrollProgress);
+}
+requestAnimationFrame(updateScrollProgress);
+
+/* ============================================
+   INERTIA SLIDER (smooothy)
+   ============================================ */
+const sliderTrack = qs('#sliderTrack');
+const slideData = [
+  { n: '00', t: 'Char split',      emw: 'reveal' },
+  { n: '01', t: 'Number flow',     emw: 'digits' },
+  { n: '02', t: 'Scroll CSS var',  emw: 'progress' },
+  { n: '03', t: 'Inertia drag',    emw: 'momentum' },
+  { n: '04', t: 'Particles',       emw: 'field' },
+  { n: '05', t: 'Magnetic',        emw: 'pull' },
+  { n: '06', t: 'Spring text',     emw: 'bounce' },
+  { n: '07', t: 'Aberration',      emw: 'split' },
+];
+slideData.forEach(s => {
+  const card = document.createElement('div');
+  card.className = 'slide';
+  card.innerHTML = `
+    <div>
+      <div class="slide-num">NO ${s.n}</div>
+    </div>
+    <div class="slide-vis">
+      <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1">
+        <circle cx="50" cy="50" r="${20 + +s.n * 3.5}" />
+        <circle cx="50" cy="50" r="${8 + +s.n * 2}" />
+        <line x1="0" y1="50" x2="100" y2="50" opacity="0.3"/>
+        <line x1="50" y1="0" x2="50" y2="100" opacity="0.3"/>
+      </svg>
+    </div>
+    <div>
+      <div class="slide-title">${s.t} <em>/ ${s.emw}</em></div>
+    </div>
+  `;
+  sliderTrack.appendChild(card);
+});
+
+/* inertia engine */
+(function initSlider(){
+  let isDown = false;
+  let startX = 0, startOffset = 0;
+  let offset = 0;
+  let velocity = 0;
+  let lastX = 0;
+  let lastT = performance.now();
+  let rafId = null;
+
+  const sliderWrap = qs('#slider');
+  const bound = () => {
+    const trackW = sliderTrack.scrollWidth;
+    const wrapW = sliderWrap.clientWidth;
+    return { min: -(trackW - wrapW + parseFloat(getComputedStyle(sliderWrap).paddingLeft) * 2), max: 0 };
+  };
+
+  function apply(){
+    sliderTrack.style.transform = `translate3d(${offset}px, 0, 0)`;
+  }
+
+  function decay(){
+    velocity *= 0.92;
+    offset += velocity;
+    const {min, max} = bound();
+    if(offset > max){ offset = lerp(offset, max, 0.2); velocity *= 0.4; }
+    if(offset < min){ offset = lerp(offset, min, 0.2); velocity *= 0.4; }
+    apply();
+    if(Math.abs(velocity) > 0.2 || offset > max + 0.5 || offset < min - 0.5){
+      rafId = requestAnimationFrame(decay);
+    }
+  }
+
+  sliderWrap.addEventListener('pointerdown', (e) => {
+    isDown = true;
+    startX = e.clientX;
+    lastX = e.clientX;
+    startOffset = offset;
+    velocity = 0;
+    cancelAnimationFrame(rafId);
+    sliderWrap.setPointerCapture(e.pointerId);
+  });
+  sliderWrap.addEventListener('pointermove', (e) => {
+    if(!isDown) return;
+    const dx = e.clientX - startX;
+    offset = startOffset + dx;
+    const now = performance.now();
+    const dt = Math.max(1, now - lastT);
+    velocity = (e.clientX - lastX) / dt * 16; // scale to per-frame
+    lastX = e.clientX;
+    lastT = now;
+    apply();
+  });
+  const end = () => {
+    if(!isDown) return;
+    isDown = false;
+    cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(decay);
+  };
+  sliderWrap.addEventListener('pointerup', end);
+  sliderWrap.addEventListener('pointercancel', end);
+  sliderWrap.addEventListener('pointerleave', end);
+
+  // wheel hijack
+  sliderWrap.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    velocity -= e.deltaY * 0.4;
+    cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(decay);
+  }, { passive: false });
+})();
+
+/* ============================================
+   PARTICLES (canvas)
+   ============================================ */
+(function initParticles(){
+  const canvas = qs('#particles');
+  const ctx = canvas.getContext('2d');
+  const status = qs('#pStatus');
+  const fpsEl = qs('#pFps');
+  let w, h, dpr;
+  const particles = [];
+  const COUNT = 800;
+  let mouseX = -1000, mouseY = -1000;
+  let mouseIn = false;
+
+  function resize(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const rect = canvas.getBoundingClientRect();
+    w = rect.width; h = rect.height;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  for(let i = 0; i < COUNT; i++){
+    particles.push({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      r: Math.random() * 1.2 + 0.3,
+    });
+  }
+
+  canvas.addEventListener('pointermove', (e) => {
+    const r = canvas.getBoundingClientRect();
+    mouseX = e.clientX - r.left;
+    mouseY = e.clientY - r.top;
+    mouseIn = true;
+    status.textContent = '[:: ATTRACTOR ACTIVE ::]';
+  });
+  canvas.addEventListener('pointerleave', () => {
+    mouseIn = false;
+    status.textContent = '[:: IDLE ::]';
+  });
+
+  let lastFpsT = performance.now();
+  let frames = 0;
+
+  function tick(){
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.fillRect(0,0,w,h);
+
+    for(const p of particles){
+      // mouse repel
+      if(mouseIn){
+        const dx = p.x - mouseX, dy = p.y - mouseY;
+        const d2 = dx*dx + dy*dy;
+        if(d2 < 14400){ // 120px
+          const d = Math.sqrt(d2) || 1;
+          const f = (120 - d) / 120;
+          p.vx += (dx / d) * f * 0.4;
+          p.vy += (dy / d) * f * 0.4;
+        }
+      }
+      // friction
+      p.vx *= 0.97; p.vy *= 0.97;
+      p.x += p.vx; p.y += p.vy;
+
+      // wrap
+      if(p.x < 0) p.x += w;
+      if(p.x > w) p.x -= w;
+      if(p.y < 0) p.y += h;
+      if(p.y > h) p.y -= h;
+
+      // draw
+      const speed = Math.sqrt(p.vx*p.vx + p.vy*p.vy);
+      const alpha = clamp(0.3 + speed * 2, 0.3, 1);
+      ctx.fillStyle = speed > 0.8 ? `rgba(200,255,0,${alpha})` : `rgba(250,250,250,${alpha})`;
+      ctx.fillRect(p.x, p.y, p.r, p.r);
+    }
+
+    frames++;
+    const now = performance.now();
+    if(now - lastFpsT > 500){
+      fpsEl.textContent = Math.round(frames * 1000 / (now - lastFpsT));
+      frames = 0;
+      lastFpsT = now;
+    }
+    requestAnimationFrame(tick);
+  }
+  tick();
+})();
+
+/* ============================================
+   MAGNETIC BUTTON
+   ============================================ */
+(function initMagnet(){
+  const btn = qs('#magnet');
+  const label = qs('.magnet-label', btn);
+  const strength = 0.35;
+  const labelStrength = 0.55;
+  const radius = 160;
+
+  btn.addEventListener('pointermove', (e) => {
+    const r = btn.getBoundingClientRect();
+    const cx = r.left + r.width/2;
+    const cy = r.top + r.height/2;
+    const dx = e.clientX - cx;
+    const dy = e.clientY - cy;
+    const d = Math.sqrt(dx*dx + dy*dy);
+    if(d > radius) return;
+    btn.style.transform   = `translate(${dx*strength}px, ${dy*strength}px)`;
+    label.style.transform = `translate(${dx*labelStrength}px, ${dy*labelStrength}px)`;
+  });
+  btn.addEventListener('pointerleave', () => {
+    btn.style.transform = '';
+    label.style.transform = '';
+  });
+})();
+
+/* ============================================
+   BOUNCY LETTERS
+   ============================================ */
+(function initBouncy(){
+  const el = qs('#bouncy');
+  const text = el.textContent;
+  el.innerHTML = '';
+  [...text].forEach(ch => {
+    const span = document.createElement('span');
+    span.className = 'letter';
+    span.textContent = ch;
+    el.appendChild(span);
+  });
+})();
+
+/* ============================================
+   ABERRATION (driven by mouse dx/dy)
+   ============================================ */
+(function initAbr(){
+  const wrap = qs('#abr');
+  wrap.addEventListener('pointermove', (e) => {
+    const r = wrap.getBoundingClientRect();
+    const cx = r.left + r.width/2;
+    const cy = r.top + r.height/2;
+    const dx = (e.clientX - cx) / r.width  * 20;
+    const dy = (e.clientY - cy) / r.height * 20;
+    wrap.style.setProperty('--dx', dx.toFixed(1) + 'px');
+    wrap.style.setProperty('--dy', dy.toFixed(1) + 'px');
+  });
+})();
+
+/* ============================================
+   EXPLODED VIEW — scroll-linked tech disassemble
+   ============================================ */
+(function initExploded(){
+  const outer    = qs('#explodedOuter');
+  const stage    = qs('#stage');
+  const progress = qs('#specProgress');
+  const labels   = qs('#specLabels');
+  const hintBar  = qs('#specHintBar');
+  if(!outer || !stage) return;
+
+  const specRows = qsa('.spec-row', labels);
+  const parts    = qsa('.part', stage);
+  const partCount = parts.length;
+
+  function tick(){
+    const r = outer.getBoundingClientRect();
+    const vh = window.innerHeight;
+    // The usable scroll range = (outer.height - vh). p = 0 at start, 1 at end.
+    const total = r.height - vh;
+    const scrolled = -r.top;
+    const raw = clamp(scrolled / total, 0, 1);
+
+    // Ease slightly so midpoint explodes more linearly
+    const p = raw; // keep linear for direct scroll feel
+
+    stage.style.setProperty('--p', p.toFixed(3));
+    labels.style.setProperty('--p', p.toFixed(3));
+    progress.style.setProperty('--p', p.toFixed(3));
+    hintBar.style.setProperty('--p', p.toFixed(3));
+
+    // Highlight the part "currently being focused" — index = floor(p * partCount)
+    const focusIdx = Math.min(partCount - 1, Math.floor(p * partCount * 1.05));
+    specRows.forEach((row, i) => {
+      row.classList.toggle('active', i === focusIdx && p > 0.02);
+    });
+
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+
+/* ============================================
+   KONAMI easter egg — invert palette
+   ============================================ */
+(function konami(){
+  const seq = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+  let i = 0;
+  document.addEventListener('keydown', (e) => {
+    if(e.key === seq[i]){
+      i++;
+      if(i === seq.length){
+        document.documentElement.style.filter = 'invert(1) hue-rotate(180deg)';
+        i = 0;
+      }
+    } else {
+      i = 0;
+    }
+  });
+})();
+
+console.log('%cFIELD NOTES / 001 / BISKIN LAB', 'background:#C8FF00;color:#080808;padding:4px 10px;font-weight:bold;letter-spacing:0.1em');
+console.log('%c8 experiments loaded. Try the Konami code.', 'color:#C8FF00');
+</script>
+
+</body>
+</html>

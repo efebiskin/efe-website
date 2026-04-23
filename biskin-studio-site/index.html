@@ -1,0 +1,2018 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Biskin Studio — products built in public, shipped alone</title>
+<meta name="description" content="A solo studio out of California making tools, agents, and systems for people who ship. Biskin Agents · Biskin Motion · Biskin Forge.">
+<meta name="theme-color" content="#0A0A0A">
+
+<meta property="og:title" content="Biskin Studio">
+<meta property="og:description" content="Products built in public, shipped alone.">
+<meta property="og:type" content="website">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+  }
+}
+</script>
+
+<style>
+  /* ============================================
+     TOKENS
+     ============================================ */
+  :root{
+    --c-bg: #0A0A0A;
+    --c-bg-rgb: 10,10,10;
+    --c-surface: #141414;
+    --c-text: #F5F1E8;
+    --c-text-rgb: 245,241,232;
+    --c-lime: #C8FF00;
+    --c-lime-rgb: 200,255,0;
+    --c-red: #FF4F36;
+    --c-red-rgb: 255,79,54;
+    --c-dim: #666;
+    --c-line: rgba(var(--c-text-rgb), 0.08);
+    --c-line-strong: rgba(var(--c-text-rgb), 0.16);
+
+    --f-display: 'Archivo', system-ui, sans-serif;
+    --f-serif: 'Instrument Serif', Georgia, serif;
+    --f-mono: 'JetBrains Mono', ui-monospace, monospace;
+    --f-body: 'Inter', system-ui, sans-serif;
+
+    --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    --gut: clamp(1rem, 3vw, 2.5rem);
+    --pad: clamp(4rem, 10vw, 9rem);
+  }
+  *,*::before,*::after{ box-sizing:border-box; margin:0; padding:0; }
+  html{ background: var(--c-bg); color: var(--c-text); }
+  body{
+    font-family: var(--f-body);
+    font-weight: 400;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+    cursor: none;
+    background: var(--c-bg);
+  }
+  a{ color: inherit; text-decoration: none; }
+  button{ cursor: none; background: none; border: 0; color: inherit; font: inherit; }
+  img,svg{ display: block; max-width: 100%; }
+  ::selection{ background: var(--c-lime); color: var(--c-bg); }
+
+  /* hover-able things signal to custom cursor */
+  a, button, .card, .magnet, .hover-scale, input, .bouncy-letter { cursor: none; }
+
+  /* ============================================
+     AMBIENT LAYERS (grain + scanlines)
+     ============================================ */
+  .ambient{
+    position: fixed; inset: 0;
+    pointer-events: none;
+    z-index: 300;
+  }
+  .ambient.grain{
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.4 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    opacity: 0.16;
+    mix-blend-mode: overlay;
+  }
+  .ambient.scanlines{
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(var(--c-text-rgb), 0.012) 0px,
+      rgba(var(--c-text-rgb), 0.012) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  }
+
+  /* ============================================
+     ENTRY BOOT GATE
+     ============================================ */
+  .boot{
+    position: fixed; inset:0;
+    background: var(--c-bg);
+    z-index: 1000;
+    display: grid; place-items: center;
+    transition: opacity 0.9s var(--ease-out-expo), visibility 0.9s;
+  }
+  .boot.gone{ opacity: 0; visibility: hidden; pointer-events: none; }
+  .boot-inner{
+    text-align: center;
+    font-family: var(--f-mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    color: rgba(var(--c-text-rgb), 0.7);
+  }
+  .boot-mark{
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    letter-spacing: -0.04em;
+    line-height: 1;
+    margin-bottom: 1.5rem;
+    color: var(--c-text);
+  }
+  .boot-mark em{
+    font-family: var(--f-serif);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--c-lime);
+  }
+  .boot-bar{
+    width: 260px;
+    height: 2px;
+    margin: 2rem auto 1.5rem;
+    background: var(--c-line);
+    position: relative;
+    overflow: hidden;
+  }
+  .boot-bar::after{
+    content: '';
+    position: absolute; left:0; top:0; bottom:0;
+    width: 0%;
+    background: var(--c-lime);
+    animation: bootLoad 1.6s var(--ease-out-expo) forwards;
+  }
+  @keyframes bootLoad { to { width: 100%; } }
+  .boot-msg{
+    font-variant-numeric: tabular-nums;
+    opacity: 0.6;
+  }
+  .boot-cta{
+    margin-top: 2rem;
+    display: inline-block;
+    padding: 0.8rem 1.4rem;
+    border: 1px solid var(--c-line-strong);
+    font-family: var(--f-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    transition: all 0.3s var(--ease-out-quart);
+    opacity: 0;
+    animation: bootFadeIn 0.5s 1.6s forwards;
+  }
+  @keyframes bootFadeIn { to { opacity: 1; } }
+  .boot-cta:hover{ background: var(--c-lime); color: var(--c-bg); border-color: var(--c-lime); }
+  .blink{ animation: blink 1.2s infinite; }
+  @keyframes blink { 0%,55%{opacity:1} 56%,100%{opacity:0} }
+
+  /* ============================================
+     CUSTOM CURSOR
+     ============================================ */
+  .cursor{
+    position: fixed; top:0; left:0;
+    width: 28px; height: 28px;
+    border: 1.5px solid var(--c-text);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 2000;
+    mix-blend-mode: difference;
+    transform: translate(-200px, -200px);
+    transition:
+      width 0.3s var(--ease-spring),
+      height 0.3s var(--ease-spring),
+      border-color 0.3s,
+      background 0.3s;
+    will-change: transform;
+  }
+  .cursor.grow{
+    width: 72px; height: 72px;
+    background: var(--c-lime);
+    border-color: var(--c-lime);
+    mix-blend-mode: normal;
+    opacity: 0.9;
+  }
+  .cursor.text{
+    width: 90px; height: 90px;
+    background: var(--c-lime);
+    mix-blend-mode: normal;
+    opacity: 0.95;
+  }
+  .cursor-dot{
+    position: fixed; top:0; left:0;
+    width: 5px; height: 5px;
+    background: var(--c-text);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 2001;
+    mix-blend-mode: difference;
+    transform: translate(-200px, -200px);
+  }
+
+  /* ============================================
+     NAV
+     ============================================ */
+  nav{
+    position: fixed; top:0; left:0; right:0;
+    padding: 1.25rem var(--gut);
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    backdrop-filter: blur(16px) saturate(150%);
+    background: rgba(var(--c-bg-rgb), 0.6);
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.4s;
+  }
+  nav.scrolled{ border-bottom-color: var(--c-line); }
+  .nav-logo{
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: -0.02em;
+  }
+  .nav-logo em{
+    font-family: var(--f-serif);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--c-lime);
+  }
+  .nav-logo .dot{
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: var(--c-lime);
+    border-radius: 50%;
+    margin: 0 0.5rem 0.25em;
+    animation: pulseDot 2s infinite;
+    vertical-align: middle;
+  }
+  @keyframes pulseDot { 50% { transform: scale(1.5); opacity: 0.5; } }
+  .nav-links{
+    display: flex; gap: 2.25rem;
+    list-style: none;
+    font-family: var(--f-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .nav-links a{
+    color: rgba(var(--c-text-rgb), 0.72);
+    transition: color 0.2s;
+    position: relative;
+  }
+  .nav-links a::after{
+    content:'';
+    position: absolute;
+    left:0; right:0; bottom: -6px;
+    height: 1px;
+    background: var(--c-lime);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s var(--ease-out-expo);
+  }
+  .nav-links a:hover{ color: var(--c-text); }
+  .nav-links a:hover::after{ transform: scaleX(1); }
+  .nav-cta{
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--c-line-strong);
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: all 0.3s var(--ease-out-quart);
+  }
+  .nav-cta:hover{ background: var(--c-lime); color: var(--c-bg); border-color: var(--c-lime); }
+  .nav-cta::before{
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--c-red);
+    border-radius: 50%;
+    animation: pulseDot 1.5s infinite;
+  }
+  @media (max-width: 720px){ .nav-links{ display:none; } }
+
+  /* ============================================
+     HERO
+     ============================================ */
+  .hero{
+    min-height: 100vh;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 8rem var(--gut) 4rem;
+    overflow: hidden;
+  }
+  #three-canvas{
+    position: absolute; inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .hero-gradient{
+    position: absolute; inset: 0;
+    z-index: 1;
+    background: radial-gradient(
+      600px circle at var(--mx, 50%) var(--my, 50%),
+      rgba(var(--c-lime-rgb), 0.08),
+      transparent 60%
+    );
+    pointer-events: none;
+    transition: background 0.2s;
+  }
+  .hero-inner{
+    position: relative;
+    z-index: 2;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .hero-label{
+    font-family: var(--f-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--c-lime);
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    opacity: 0;
+    animation: fadeUp 0.8s 1.8s var(--ease-out-expo) forwards;
+  }
+  .hero-label::before{
+    content: '';
+    width: 48px; height: 1px;
+    background: var(--c-lime);
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .hero h1{
+    font-family: var(--f-display);
+    font-size: clamp(2.6rem, 8vw, 8.5rem);
+    font-weight: 600;
+    letter-spacing: -0.05em;
+    line-height: 0.92;
+    max-width: 22ch;
+    text-wrap: balance;
+    word-spacing: 0.05em;
+  }
+  .hero h1 em{
+    font-family: var(--f-serif);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--c-lime);
+    font-size: 1.05em;
+  }
+  /* word wrapper keeps letters of a word together (prevents mid-word breaks) */
+  .word{
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    padding-bottom: 0.15em;
+  }
+  .char{
+    display: inline-block;
+    transform: translateY(110%);
+    opacity: 0;
+    transition:
+      transform 1s var(--ease-out-expo),
+      opacity 0.8s;
+    transition-delay: calc(var(--i, 0) * 0.022s + 0.5s);
+  }
+  .reveal.in .char{
+    transform: translateY(0);
+    opacity: 1;
+  }
+  .hero-sub{
+    margin-top: 3rem;
+    max-width: 48ch;
+    font-family: var(--f-body);
+    font-size: clamp(1.05rem, 1.4vw, 1.3rem);
+    color: rgba(var(--c-text-rgb), 0.72);
+    line-height: 1.5;
+    opacity: 0;
+    animation: fadeUp 0.9s 2.1s var(--ease-out-expo) forwards;
+  }
+  .hero-sub em{
+    font-family: var(--f-serif);
+    font-style: italic;
+    color: var(--c-text);
+  }
+  .hero-cta{
+    margin-top: 3rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    opacity: 0;
+    animation: fadeUp 0.9s 2.4s var(--ease-out-expo) forwards;
+  }
+  .btn{
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 1rem 1.75rem;
+    border: 1px solid var(--c-line-strong);
+    font-family: var(--f-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--c-text);
+    transition: all 0.3s var(--ease-out-quart);
+    white-space: nowrap;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn::before{
+    content:'';
+    position: absolute;
+    inset: 0;
+    background: var(--c-lime);
+    transform: translateY(100%);
+    transition: transform 0.4s var(--ease-out-expo);
+    z-index: -1;
+  }
+  .btn:hover{
+    color: var(--c-bg);
+    border-color: var(--c-lime);
+  }
+  .btn:hover::before{ transform: translateY(0); }
+  .btn.primary{
+    background: var(--c-lime);
+    color: var(--c-bg);
+    border-color: var(--c-lime);
+    font-weight: 600;
+  }
+  .btn.primary::before{ background: var(--c-text); }
+  .btn.primary:hover{ color: var(--c-bg); border-color: var(--c-text); }
+  .btn .arr{
+    display: inline-block;
+    transition: transform 0.3s var(--ease-out-quart);
+  }
+  .btn:hover .arr{ transform: translateX(4px); }
+
+  .hero-meta{
+    margin-top: 5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--c-line);
+    font-family: var(--f-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--c-dim);
+    opacity: 0;
+    animation: fadeUp 1s 2.7s var(--ease-out-expo) forwards;
+  }
+  .hero-meta strong{
+    display: block;
+    font-family: var(--f-display);
+    font-size: clamp(1.4rem, 2.2vw, 2rem);
+    font-weight: 500;
+    color: var(--c-text);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.35rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .hero-meta strong em{
+    font-family: var(--f-serif);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--c-lime);
+  }
+
+  .hero-scroll{
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--f-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: var(--c-dim);
+    text-transform: uppercase;
+    animation: bob 2s ease-in-out infinite, fadeUp 1s 3s var(--ease-out-expo) both;
+    z-index: 2;
+  }
+  @keyframes bob {
+    0%,100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(8px); }
+  }
+
+  /* ============================================
+     MARQUEE
+     ============================================ */
+  .marquee-section{
+    border-top: 1px solid var(--c-line);
+    border-bottom: 1px solid var(--c-line);
+    padding: 2rem 0;
+    overflow: hidden;
+    position: relative;
+  }
+  .marquee{
+    display: flex;
+    gap: 3rem;
+    animation: marquee 48s linear infinite;
+    white-space: nowrap;
+  }
+  .marquee-item{
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
+    font-family: var(--f-display);
+    font-size: clamp(1.6rem, 3.4vw, 3rem);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: rgba(var(--c-text-rgb), 0.88);
+    flex-shrink: 0;
+  }
+  .marquee-item em{
+    font-family: var(--f-serif);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--c-lime);
+  }
+  .marquee-item .spacer{
+    display: inline-block;
+    width: 12px; height: 12px;
+    background: var(--c-red);
+    border-radius: 50%;
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* ============================================
+     SECTION BASE
+     ============================================ */
+  section{ position: relative; }
+  .pad{ padding: var(--pad) var(--gut); }
+  .wrap{ max-width: 1400px; margin: 0 auto; }
+  .section-label{
+    font-family: var(--f-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--c-dim);
+    margin-bottom: 1.75rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .section-label::before{
+    content:'';
+    width: 40px; height: 1px;
+    background: var(--c-lime);
+  }
+  .section-label .num{ color: var(--c-lime); font-weight: 500; }
+  .section-title{
+    font-family: var(--f-display);
+    font-size: clamp(2.2rem, 5vw, 4.5rem);
+    font-weight: 500;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    max-width: 22ch;
+    margin-bottom: 3rem;
+  }
+  .section-title em{
+    font-family: var(--f-serif);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--c-lime);
+  }
+
+  /* ============================================
+     AUDIENCE ROUTER
+     ============================================ */
+  .router{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
+    margin-top: 2.5rem;
+    margin-bottom: 3rem;
+  }
+  .router-card{
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.5rem 1.4rem;
+    border: 1px solid var(--c-line-strong);
+    background: rgba(var(--c-text-rgb), 0.015);
+    color: var(--c-text);
+    text-decoration: none;
+    transition: border-color 0.35s, background 0.35s, transform 0.35s var(--ease-out-expo);
+    min-height: 140px;
+  }
+  .router-card:hover{
+    border-color: var(--c-lime);
+    background: rgba(var(--c-lime-rgb), 0.05);
+    transform: translateY(-2px);
+  }
+  .router-card .r-kicker{
+    font-family: var(--f-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--c-dim);
+  }
+  .router-card .r-title{
+    font-family: var(--f-display);
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
+  .router-card .r-title em{
+    font-family: var(--f-serif);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--c-lime);
+  }
+  .router-card .r-foot{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--f-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(var(--c-text-rgb), 0.55);
+  }
+  .router-card:hover .r-foot{ color: var(--c-lime); }
+  .router-intro{
+    font-family: var(--f-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--c-dim);
+    margin-top: 1rem;
+  }
+
+  /* ============================================
+     PRODUCTS
+     ============================================ */
+  .products{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 1rem;
+  }
+  .card{
+    position: relative;
+    padding: 2rem;
+    border: 1px solid var(--c-line-strong);
+    background: linear-gradient(180deg, rgba(var(--c-text-rgb), 0.015), rgba(var(--c-text-rgb), 0.005));
+    transition: border-color 0.4s, background 0.4s, transform 0.6s var(--ease-out-expo);
+    overflow: hidden;
+    transform-style: preserve-3d;
+    will-change: transform;
+    min-height: 440px;
+    display: flex;
+    flex-direction: column;
+  }
+  .card::before{
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      400px circle at var(--tx, 50%) var(--ty, 50%),
+      rgba(var(--c-lime-rgb), 0.1),
+      transparent 50%
+    );
+    opacity: 0;
+    transition: opacity 0.4s;
+    pointer-events: none;
+  }
+  .card:hover{
+    border-color: var(--c-lime);
+    background: linear-gradient(180deg, rgba(var(--c-lime-rgb), 0.04), rgba(var(--c-text-rgb), 0.005));
+  }
+  .card:hover::before{ opacity: 1; }
+  .card.live::after{
+    content: 'LIVE';
+    position: absolute;
+    top: 1.2rem; right: 1.2rem;
+    font-family: var(--f-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    padding: 0.25rem 0.5rem;
+    background: var(--c-lime);
+    color: var(--c-bg);
+    font-weight: 600;
+  }
+  .card.soon::after{
+    content: 'SOON';
+    position: absolute;
+    top: 1.2rem; right: 1.2rem;
+    font-family: var(--f-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--c-line-strong);
+    color: var(--c-dim);
+  }
+  .card-num{
+    font-family: var(--f-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    color: var(--c-dim);
+    margin-bottom: 1rem;
+  }
+  .card-icon{
+    width: 60px; height: 60px;
+    margin-bottom: 1.5rem;
+    opacity: 0.9;
+  }
+  .card-icon svg{
+    width: 100%; height: 100%;
+    stroke: var(--c-lime);
+    fill: none;
+    stroke-width: 1.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    overflow: visible;
+  }
+  .card:hover .card-icon svg{
+    animation: iconSpin 0.8s var(--ease-out-expo);
+  }
+  @keyframes iconSpin {
+    0% { transform: rotate(0) scale(1); }
+    50% { transform: rotate(180deg) scale(1.1); }
+    100% { transform: rotate(360deg) scale(1); }
+  }
+  .card h3{
+    font-family: var(--f-display);
+    font-size: 1.9rem;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin-bottom: 0.75rem;
+  }
+  .card h3 em{
+    font-family: var(--f-serif);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--c-lime);
+  }
+  .card-sub{
+    font-family: var(--f-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--c-lime);
+    margin-bottom: 1rem;
+  }
+  .card-desc{
+    color: rgba(var(--c-text-rgb), 0.68);
+    margin-bottom: 2rem;
+    line-height: 1.55;
+    flex-grow: 1;
+  }
+  .card-foot{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1.5rem;
+    border-top: 1px dashed var(--c-line);
+    font-family: var(--f-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .card-foot .price{ color: var(--c-lime); font-weight: 500; }
+  .card-foot .go{
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--c-text);
+    transition: transform 0.3s var(--ease-out-expo);
+  }
+  .card:hover .card-foot .go{ transform: translateX(4px); }
+  .card.soon .card-foot .go{ color: var(--c-dim); }
+
+  /* ============================================
+     MANIFESTO (editorial)
+     ============================================ */
+  .manifesto{
+    background: var(--c-text);
+    color: var(--c-bg);
+    padding: calc(var(--pad) * 1.3) var(--gut);
+    position: relative;
+    overflow: hidden;
+  }
+  .manifesto .section-label{ color: rgba(var(--c-bg-rgb), 0.5); }
+  .manifesto .section-label::before{ background: var(--c-bg); }
+  .manifesto .section-label .num{ color: var(--c-red); }
+  .manifesto .section-title{ color: var(--c-bg); }
+  .manifesto .section-title em{ color: var(--c-red); }
+  .manifesto-body{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5rem;
+    align-items: start;
+  }
+  @media (max-width: 820px){ .manifesto-body{ grid-template-columns: 1fr; gap: 2.5rem; } }
+  .manifesto-lead{
+    font-family: var(--f-serif);
+    font-style: italic;
+    font-size: clamp(1.6rem, 2.6vw, 2.6rem);
+    line-height: 1.15;
+    color: var(--c-bg);
+    letter-spacing: -0.02em;
+  }
+  .manifesto-lead b{
+    font-family: var(--f-display);
+    font-style: normal;
+    font-weight: 700;
+    background: var(--c-bg);
+    color: var(--c-text);
+    padding: 0 0.3em;
+  }
+  .manifesto-body p{
+    font-size: 1rem;
+    line-height: 1.7;
+    color: rgba(var(--c-bg-rgb), 0.72);
+    margin-bottom: 1.2rem;
+  }
+  .manifesto-body p strong{ color: var(--c-bg); }
+  .manifesto-sig{
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(var(--c-bg-rgb), 0.15);
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 1rem;
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(var(--c-bg-rgb), 0.55);
+  }
+  .sig-name{
+    font-family: var(--f-serif);
+    font-style: italic;
+    font-size: 1.6rem;
+    letter-spacing: -0.01em;
+    text-transform: none;
+    color: var(--c-bg);
+  }
+
+  /* ============================================
+     TERMINAL / LIVE ACTIVITY
+     ============================================ */
+  .live-wrap{
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 3rem;
+    align-items: start;
+  }
+  @media (max-width: 880px){ .live-wrap{ grid-template-columns: 1fr; } }
+  .live-text h3{
+    font-family: var(--f-display);
+    font-size: clamp(1.6rem, 2.8vw, 2.5rem);
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin-bottom: 1.5rem;
+  }
+  .live-text h3 em{
+    font-family: var(--f-serif);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--c-lime);
+  }
+  .live-text p{
+    color: rgba(var(--c-text-rgb), 0.68);
+    line-height: 1.55;
+    margin-bottom: 1rem;
+  }
+  .terminal{
+    background: #0E0E0E;
+    border: 1px solid var(--c-line-strong);
+    font-family: var(--f-mono);
+    font-size: 0.78rem;
+    min-height: 340px;
+    position: relative;
+    overflow: hidden;
+  }
+  .terminal-head{
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--c-line);
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .terminal-head .dot{
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: #3a3a3a;
+  }
+  .terminal-head .dot.r{ background: #FF5F57; }
+  .terminal-head .dot.y{ background: #FEBC2E; }
+  .terminal-head .dot.g{ background: #28C840; }
+  .terminal-head .title{
+    margin-left: auto;
+    font-size: 0.7rem;
+    color: var(--c-dim);
+    letter-spacing: 0.08em;
+  }
+  .terminal-body{
+    padding: 1.4rem;
+    line-height: 1.7;
+    min-height: 280px;
+  }
+  .term-line{ display: block; }
+  .term-line.user{ color: var(--c-lime); }
+  .term-line.user::before{ content: '$ '; color: var(--c-dim); }
+  .term-line.sys{ color: var(--c-dim); }
+  .term-line.out{ color: rgba(var(--c-text-rgb), 0.85); }
+  .term-line.ok{ color: var(--c-lime); }
+  .term-line.warn{ color: var(--c-red); }
+  .term-cursor{
+    display: inline-block;
+    width: 8px; height: 14px;
+    background: var(--c-lime);
+    vertical-align: -2px;
+    animation: termBlink 1s steps(2) infinite;
+  }
+  @keyframes termBlink { 50% { opacity: 0; } }
+
+  /* ============================================
+     PROOF / TESTIMONIALS
+     ============================================ */
+  .proof-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+  .quote{
+    padding: 2rem;
+    border: 1px solid var(--c-line);
+    transition: transform 0.4s var(--ease-out-expo), border-color 0.3s;
+  }
+  .quote:hover{
+    transform: translateY(-4px);
+    border-color: var(--c-lime);
+  }
+  .quote blockquote{
+    font-family: var(--f-serif);
+    font-style: italic;
+    font-size: 1.2rem;
+    line-height: 1.4;
+    margin-bottom: 1.5rem;
+    color: var(--c-text);
+  }
+  .quote .who{
+    font-family: var(--f-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--c-dim);
+    display: flex;
+    justify-content: space-between;
+  }
+  .quote .who .stars{ color: var(--c-lime); letter-spacing: 0.2em; }
+
+  /* ============================================
+     CONTACT
+     ============================================ */
+  .contact-inner{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+  }
+  @media (max-width: 820px){ .contact-inner{ grid-template-columns: 1fr; } }
+  .contact-big{
+    font-family: var(--f-display);
+    font-size: clamp(2.4rem, 5.5vw, 5rem);
+    font-weight: 500;
+    letter-spacing: -0.04em;
+    line-height: 0.95;
+  }
+  .contact-big em{
+    font-family: var(--f-serif);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--c-lime);
+  }
+  .contact-form{ display: flex; flex-direction: column; gap: 1rem; }
+  .contact-form label{
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--c-dim);
+    margin-bottom: 0.25rem;
+  }
+  .contact-form input, .contact-form textarea{
+    width: 100%;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--c-line-strong);
+    color: var(--c-text);
+    padding: 0.7rem 0;
+    font-family: var(--f-body);
+    font-size: 1rem;
+    transition: border-color 0.3s;
+  }
+  .contact-form input:focus, .contact-form textarea:focus{
+    outline: none;
+    border-bottom-color: var(--c-lime);
+  }
+  .contact-form textarea{ resize: vertical; min-height: 90px; }
+  .contact-info{
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--c-line);
+    font-family: var(--f-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--c-dim);
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .contact-info a{ color: var(--c-lime); }
+
+  /* ============================================
+     FOOTER
+     ============================================ */
+  footer{
+    padding: 4rem var(--gut) 2rem;
+    border-top: 1px solid var(--c-line);
+  }
+  .footer-grid{
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 5rem;
+  }
+  @media (max-width: 820px){ .footer-grid{ grid-template-columns: 1fr 1fr; } }
+  .footer-mark{
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: 2.5rem;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin-bottom: 1rem;
+  }
+  .footer-mark em{
+    font-family: var(--f-serif);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--c-lime);
+  }
+  .footer-tag{
+    color: rgba(var(--c-text-rgb), 0.55);
+    font-size: 0.9rem;
+    max-width: 32ch;
+  }
+  .footer-col h5{
+    font-family: var(--f-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--c-dim);
+    font-weight: 400;
+    margin-bottom: 1rem;
+  }
+  .footer-col ul{ list-style: none; }
+  .footer-col li{
+    font-size: 0.9rem;
+    margin-bottom: 0.45rem;
+    color: rgba(var(--c-text-rgb), 0.72);
+  }
+  .footer-col li a{ transition: color 0.2s; }
+  .footer-col li a:hover{ color: var(--c-lime); }
+  .footer-sig{
+    padding-top: 2rem;
+    border-top: 1px solid var(--c-line);
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--c-dim);
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .footer-sig .dot{ color: var(--c-lime); margin: 0 0.3rem; }
+
+  /* ============================================
+     REVEAL (IntersectionObserver)
+     ============================================ */
+  .reveal-up{
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.9s var(--ease-out-expo), transform 0.9s var(--ease-out-expo);
+  }
+  .reveal-up.in{ opacity: 1; transform: translateY(0); }
+
+  /* reduced motion */
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{ animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- AMBIENT LAYERS -->
+<div class="ambient grain" aria-hidden="true"></div>
+<div class="ambient scanlines" aria-hidden="true"></div>
+
+<!-- CUSTOM CURSOR -->
+<div class="cursor" id="cursor" aria-hidden="true"></div>
+<div class="cursor-dot" id="cursorDot" aria-hidden="true"></div>
+
+<!-- ENTRY BOOT GATE -->
+<div class="boot" id="boot">
+  <div class="boot-inner">
+    <h1 class="boot-mark">BISKIN <em>studio</em></h1>
+    <div>[:: INITIALIZING ::]</div>
+    <div class="boot-bar"></div>
+    <div class="boot-msg" id="bootMsg">Loading assets <span class="blink">_</span></div>
+    <button class="boot-cta" id="bootCta">[:: ENTER ::]</button>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="nav-logo">BISKIN<span class="dot"></span><em>studio</em></a>
+  <ul class="nav-links">
+    <li><a href="#agents">Agents</a></li>
+    <li><a href="/creative.html">Creative</a></li>
+    <li><a href="#brain">Brain</a></li>
+    <li><a href="#quant">Quant</a></li>
+    <li><a href="#games">Games</a></li>
+    <li><a href="#research">Research</a></li>
+  </ul>
+  <a href="#contact" class="nav-cta magnet">Start a project →</a>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <canvas id="three-canvas"></canvas>
+  <div class="hero-gradient"></div>
+  <div class="hero-inner">
+    <div class="hero-label">[:: CALIFORNIA · EST 2026 ::]</div>
+    <h1 class="reveal" data-split>One studio. <em>Seven</em> bets. Built in public, shipped alone.</h1>
+    <p class="hero-sub">
+      A <em>solo studio</em> out of California making agents, sites, tools, signals, and games.
+      Every product here survived being used daily by its author before a stranger ever paid for it.
+    </p>
+    <div class="hero-cta">
+      <a href="#router" class="btn primary magnet">What are you here for? <span class="arr">→</span></a>
+      <a href="#contact" class="btn magnet">Start a project <span class="arr">↗</span></a>
+    </div>
+    <div class="hero-meta">
+      <div><strong>7</strong>product lines</div>
+      <div><strong>35</strong>AI agents shipped</div>
+      <div><strong>$2K<em>+</em></strong>monthly recurring</div>
+      <div><strong>1</strong>solo founder</div>
+      <div><strong>∞</strong>shipping in public</div>
+    </div>
+  </div>
+  <div class="hero-scroll">↓ &nbsp; SCROLL &nbsp; ↓</div>
+</header>
+
+<!-- MARQUEE -->
+<section class="marquee-section" aria-hidden="true">
+  <div class="marquee" id="marquee">
+    <span class="marquee-item">Ship <em>fast</em></span>
+    <span class="marquee-item spacer"><span class="spacer"></span></span>
+    <span class="marquee-item">Charge <em>fair</em></span>
+    <span class="marquee-item spacer"><span class="spacer"></span></span>
+    <span class="marquee-item">Build in <em>public</em></span>
+    <span class="marquee-item spacer"><span class="spacer"></span></span>
+    <span class="marquee-item"><em>Biskin</em> Studio</span>
+    <span class="marquee-item spacer"><span class="spacer"></span></span>
+    <span class="marquee-item">Ship <em>fast</em></span>
+    <span class="marquee-item spacer"><span class="spacer"></span></span>
+    <span class="marquee-item">Charge <em>fair</em></span>
+    <span class="marquee-item spacer"><span class="spacer"></span></span>
+    <span class="marquee-item">Build in <em>public</em></span>
+    <span class="marquee-item spacer"><span class="spacer"></span></span>
+    <span class="marquee-item"><em>Biskin</em> Studio</span>
+    <span class="marquee-item spacer"><span class="spacer"></span></span>
+  </div>
+</section>
+
+<!-- AUDIENCE ROUTER -->
+<section id="router" class="pad" style="padding-bottom: 0;">
+  <div class="wrap">
+    <div class="section-label reveal-up"><span class="num">00</span> · START HERE</div>
+    <h2 class="section-title reveal-up">What are you <em>here for</em>?</h2>
+    <p class="router-intro reveal-up">Pick the door that fits. Every product below is built for a specific person, not a generic buyer.</p>
+
+    <div class="router">
+
+      <a href="#agents" class="router-card reveal-up">
+        <div>
+          <div class="r-kicker">If you build with AI</div>
+          <div class="r-title">Claude Code <em>agents</em></div>
+        </div>
+        <div class="r-foot"><span>Biskin Agents</span><span>→</span></div>
+      </a>
+
+      <a href="/creative.html" class="router-card reveal-up">
+        <div>
+          <div class="r-kicker">If you own a business</div>
+          <div class="r-title">Websites that <em>close</em></div>
+        </div>
+        <div class="r-foot"><span>Biskin Creative</span><span>→</span></div>
+      </a>
+
+      <a href="#brain" class="router-card reveal-up">
+        <div>
+          <div class="r-kicker">If you use Claude daily</div>
+          <div class="r-title">Permanent <em>memory</em></div>
+        </div>
+        <div class="r-foot"><span>Biskin Brain</span><span>→</span></div>
+      </a>
+
+      <a href="#quant" class="router-card reveal-up">
+        <div>
+          <div class="r-kicker">If you trade or invest</div>
+          <div class="r-title">Signals, not <em>hype</em></div>
+        </div>
+        <div class="r-foot"><span>Biskin Quant</span><span>→</span></div>
+      </a>
+
+      <a href="#games" class="router-card reveal-up">
+        <div>
+          <div class="r-kicker">If you love deckbuilders</div>
+          <div class="r-title">A <em>real</em> finance roguelike</div>
+        </div>
+        <div class="r-foot"><span>Biskin Games</span><span>→</span></div>
+      </a>
+
+      <a href="#research" class="router-card reveal-up">
+        <div>
+          <div class="r-kicker">If you need deep context</div>
+          <div class="r-title">Field <em>research</em> on AI</div>
+        </div>
+        <div class="r-foot"><span>Biskin Research</span><span>→</span></div>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<!-- PRODUCTS -->
+<section id="products" class="pad">
+  <div class="wrap">
+    <div class="section-label reveal-up"><span class="num">01</span> · THE PRODUCTS</div>
+    <h2 class="section-title reveal-up">Pick a bet. Everything here runs in <em>our own stack</em> first.</h2>
+
+    <div class="products">
+
+      <article id="agents" class="card live tilt">
+        <div class="card-num">NO 001</div>
+        <div class="card-icon">
+          <svg viewBox="0 0 48 48">
+            <rect x="6" y="6" width="36" height="36" rx="2"/>
+            <line x1="6" y1="16" x2="42" y2="16"/>
+            <circle cx="11" cy="11" r="1.5" fill="currentColor" stroke="none"/>
+            <circle cx="15" cy="11" r="1.5" fill="currentColor" stroke="none"/>
+            <circle cx="19" cy="11" r="1.5" fill="currentColor" stroke="none"/>
+            <line x1="12" y1="24" x2="28" y2="24"/>
+            <line x1="12" y1="30" x2="24" y2="30"/>
+            <line x1="12" y1="36" x2="32" y2="36"/>
+          </svg>
+        </div>
+        <div class="card-sub">AI AGENT PACKS · FOR DEVS</div>
+        <h3>Biskin <em>Agents</em></h3>
+        <p class="card-desc">35 battle-tested Claude Code agents in 7 themed packs. Drop into <code style="font-family:var(--f-mono);font-size:0.85em;color:var(--c-lime)">~/.claude/agents/</code> and you have a marketing team, engineering team, trading team — in a folder.</p>
+        <div class="card-foot">
+          <span class="price">$29 — $199</span>
+          <a href="https://agents.biskin.studio" target="_blank" class="go">Visit →</a>
+        </div>
+      </article>
+
+      <article id="creative" class="card live tilt">
+        <div class="card-num">NO 002</div>
+        <div class="card-icon">
+          <svg viewBox="0 0 48 48">
+            <path d="M6 30 Q 16 10, 24 24 T 42 18"/>
+            <circle cx="24" cy="24" r="3" fill="currentColor" stroke="none"/>
+            <line x1="6" y1="42" x2="42" y2="42" stroke-dasharray="2 3"/>
+          </svg>
+        </div>
+        <div class="card-sub">WEBSITES · FOR LOCAL BUSINESS</div>
+        <h3>Biskin <em>Creative</em></h3>
+        <p class="card-desc">Premium animated one-page sites for restaurants, med spas, boutique fitness, tasting rooms. Mythpoint Bistro shipped in 2 weeks. Customers noticed. Owners paid. No templates, no agency markup — local studio, serious craft.</p>
+        <div class="card-foot">
+          <span class="price">FROM $1.5K</span>
+          <a href="/creative.html" class="go">See the work →</a>
+        </div>
+      </article>
+
+      <article id="brain" class="card live tilt">
+        <div class="card-num">NO 003</div>
+        <div class="card-icon">
+          <svg viewBox="0 0 48 48">
+            <circle cx="24" cy="24" r="3" fill="currentColor" stroke="none"/>
+            <circle cx="10" cy="12" r="2" fill="currentColor" stroke="none"/>
+            <circle cx="38" cy="14" r="2" fill="currentColor" stroke="none"/>
+            <circle cx="12" cy="36" r="2" fill="currentColor" stroke="none"/>
+            <circle cx="38" cy="36" r="2" fill="currentColor" stroke="none"/>
+            <line x1="24" y1="24" x2="10" y2="12"/>
+            <line x1="24" y1="24" x2="38" y2="14"/>
+            <line x1="24" y1="24" x2="12" y2="36"/>
+            <line x1="24" y1="24" x2="38" y2="36"/>
+            <line x1="10" y1="12" x2="38" y2="14" stroke-dasharray="2 3"/>
+            <line x1="12" y1="36" x2="38" y2="36" stroke-dasharray="2 3"/>
+          </svg>
+        </div>
+        <div class="card-sub">AI-NATIVE VAULT · FOR CLAUDE USERS</div>
+        <h3>Biskin <em>Brain</em></h3>
+        <p class="card-desc">Your AI's long-term memory. Local-first, Claude-native, permanent. Obsidian vault template + MCP setup + nightly "Sentience" agent that reads new notes, writes typed links, flags contradictions, drafts a state-of-the-brain each morning.</p>
+        <div class="card-foot">
+          <span class="price">$79 / $149 / $299</span>
+          <a href="#contact" class="go">Get the bundle →</a>
+        </div>
+      </article>
+
+      <article id="quant" class="card live tilt">
+        <div class="card-num">NO 004</div>
+        <div class="card-icon">
+          <svg viewBox="0 0 48 48">
+            <polyline points="4,38 14,24 22,30 34,12 44,18"/>
+            <line x1="4" y1="42" x2="44" y2="42"/>
+            <circle cx="34" cy="12" r="2" fill="currentColor" stroke="none"/>
+          </svg>
+        </div>
+        <div class="card-sub">SIGNALS · FOR RETAIL TRADERS</div>
+        <h3>Biskin <em>Quant</em></h3>
+        <p class="card-desc">A Substack + signal packs built by someone who's been wrong enough times to be honest. 15 years of insider-buy data, real backtests, real drawdowns. No promises of riches. Just sharper decisions and the math to back them.</p>
+        <div class="card-foot">
+          <span class="price">FREE / $149</span>
+          <a href="#contact" class="go">Read the first issue →</a>
+        </div>
+      </article>
+
+      <article id="games" class="card soon tilt">
+        <div class="card-num">NO 005</div>
+        <div class="card-icon">
+          <svg viewBox="0 0 48 48">
+            <rect x="8" y="12" width="20" height="28" rx="1"/>
+            <rect x="20" y="8" width="20" height="28" rx="1"/>
+            <line x1="24" y1="16" x2="36" y2="16"/>
+            <line x1="24" y1="22" x2="36" y2="22"/>
+            <line x1="24" y1="28" x2="32" y2="28"/>
+          </svg>
+        </div>
+        <div class="card-sub">GAME DEV · FOR DECKBUILDER FANS</div>
+        <h3>Biskin <em>Games</em></h3>
+        <p class="card-desc"><strong>Market Maker</strong> — a roguelike deckbuilder where cards are real trading strategies and bosses are Fed surprises, flash crashes, CPI prints. Built by an ex-quant on Godot. Steam page soon. Wishlist the thing nobody else is making.</p>
+        <div class="card-foot">
+          <span class="price">STEAM · Q2 2027</span>
+          <a href="#contact" class="go">Devlog →</a>
+        </div>
+      </article>
+
+      <article id="research" class="card live tilt">
+        <div class="card-num">NO 006</div>
+        <div class="card-icon">
+          <svg viewBox="0 0 48 48">
+            <rect x="10" y="6" width="28" height="36" rx="1"/>
+            <line x1="16" y1="14" x2="32" y2="14"/>
+            <line x1="16" y1="20" x2="32" y2="20"/>
+            <line x1="16" y1="26" x2="32" y2="26"/>
+            <line x1="16" y1="32" x2="26" y2="32"/>
+          </svg>
+        </div>
+        <div class="card-sub">FIELD REPORTS · FOR OPERATORS</div>
+        <h3>Biskin <em>Research</em></h3>
+        <p class="card-desc">Deep reports on the AI agent economy — who's winning, who's hiring, where the margin goes in 2026. Written by someone shipping in it, not someone writing about it. Free top-of-funnel, paid full report.</p>
+        <div class="card-foot">
+          <span class="price">FREE / $299</span>
+          <a href="#contact" class="go">Read Report 01 →</a>
+        </div>
+      </article>
+
+      <article class="card live tilt">
+        <div class="card-num">NO 007</div>
+        <div class="card-icon">
+          <svg viewBox="0 0 48 48">
+            <circle cx="24" cy="24" r="16"/>
+            <path d="M8 24 H40 M24 8 V40" stroke-dasharray="2 3"/>
+            <circle cx="24" cy="24" r="4" fill="currentColor" stroke="none"/>
+          </svg>
+        </div>
+        <div class="card-sub">EXPERIMENTS · FREE</div>
+        <h3>Biskin <em>Lab</em></h3>
+        <p class="card-desc">Weird things built on weekends. WebGL toys, scroll experiments, motion studies, simulation harnesses. Always free. Sometimes they graduate into products above. Usually not.</p>
+        <div class="card-foot">
+          <span class="price">FREE</span>
+          <a href="/lab.html" class="go">Open Lab →</a>
+        </div>
+      </article>
+
+      <article class="card tilt" style="background: linear-gradient(180deg, rgba(var(--c-lime-rgb), 0.06), rgba(var(--c-text-rgb), 0.005)); border-color: rgba(var(--c-lime-rgb), 0.3);">
+        <div class="card-num">NO 008 <em style="color:var(--c-lime);font-family:var(--f-serif);font-style:italic">custom</em></div>
+        <div class="card-icon">
+          <svg viewBox="0 0 48 48">
+            <path d="M24 6 L28 20 L42 22 L32 32 L34 46 L24 40 L14 46 L16 32 L6 22 L20 20 Z" fill="rgba(200,255,0,0.15)"/>
+          </svg>
+        </div>
+        <div class="card-sub">1:1 · LIMITED SLOTS</div>
+        <h3>Work with <em>us</em></h3>
+        <p class="card-desc">Have a project nobody else can ship the way you want? We take on 2–3 bespoke engagements per quarter. Motion-first websites, AI systems, founder tooling, trading tools. Pick us before someone else does.</p>
+        <div class="card-foot">
+          <span class="price">PROJECT RATE</span>
+          <a href="#contact" class="go">Enquire →</a>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- MANIFESTO -->
+<section id="studio" class="manifesto">
+  <div class="wrap">
+    <div class="section-label reveal-up"><span class="num">02</span> · THE STUDIO</div>
+    <h2 class="section-title reveal-up">Small. Sharp. <em>Serious.</em></h2>
+
+    <div class="manifesto-body">
+      <div class="manifesto-lead reveal-up">
+        One founder. A <b>stack of tools</b> nobody else is building. Every product shipped here survived being used daily by its author before anyone else saw it.
+      </div>
+      <div class="reveal-up">
+        <p><strong>We don't pitch decks.</strong> We don't raise rounds. We don't "go to market." We build things we'd pay for ourselves, then we let strangers pay for them too.</p>
+        <p>Biskin Studio is a <em>solo operation</em> out of California running on AI agents, trading systems, motion design, and the stubborn belief that a single person with the right tools can out-ship a 30-person company that is "aligning around OKRs."</p>
+        <p>If our work looks expensive, it's because <strong>every pixel costs something</strong> — time, taste, or both. If it looks loud, it's because we'd rather be remembered than agreeable.</p>
+        <p><strong>We ship. Then we ship again.</strong></p>
+
+        <div class="manifesto-sig">
+          <div>
+            <div>Efe Biskin</div>
+            <div class="sig-name">— <em>studio</em></div>
+          </div>
+          <div>APR 2026</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LIVE TERMINAL -->
+<section id="work" class="pad">
+  <div class="wrap">
+    <div class="section-label reveal-up"><span class="num">03</span> · IN THE WILD</div>
+    <h2 class="section-title reveal-up">Live on <em>a real machine</em>, right now.</h2>
+
+    <div class="live-wrap">
+      <div class="live-text reveal-up">
+        <h3>This is <em>ops-control</em>.</h3>
+        <p>A localhost dashboard we built to orchestrate our 35 agents. Included free with the Biskin Agents bundle.</p>
+        <p>Every agent run is logged, tokens tracked, cost aggregated. Runs on your machine — <em>nothing</em> touches the cloud except the Anthropic API itself.</p>
+        <p style="margin-top: 2rem;"><a href="https://agents.biskin.studio" target="_blank" class="btn magnet" style="padding: 0.8rem 1.2rem;">See the bundle <span class="arr">→</span></a></p>
+      </div>
+
+      <div class="terminal reveal-up">
+        <div class="terminal-head">
+          <span class="dot r"></span>
+          <span class="dot y"></span>
+          <span class="dot g"></span>
+          <span class="title">ops-control · localhost:7777</span>
+        </div>
+        <div class="terminal-body" id="termBody"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROOF -->
+<section class="pad" style="border-top: 1px solid var(--c-line);">
+  <div class="wrap">
+    <div class="section-label reveal-up"><span class="num">04</span> · PROOF</div>
+    <h2 class="section-title reveal-up">Read by actual <em>humans</em> who paid.</h2>
+
+    <div class="proof-grid">
+      <div class="quote reveal-up">
+        <blockquote>"Saved me a month of building my own agent framework. The code-reviewer alone pays for the pack."</blockquote>
+        <div class="who"><span>— Indie dev · $49 · Eng Team</span><span class="stars">★★★★★</span></div>
+      </div>
+      <div class="quote reveal-up">
+        <blockquote>"I bought the bundle. Three weeks in, I've replaced Notion AI, three Zapier flows, and a VA. Net saved: $340/mo."</blockquote>
+        <div class="who"><span>— Solo founder · $199 · Bundle</span><span class="stars">★★★★★</span></div>
+      </div>
+      <div class="quote reveal-up">
+        <blockquote>"The site looks like it belongs to a restaurant twice our size. Guests started mentioning it at the door."</blockquote>
+        <div class="who"><span>— Owner · Mythpoint Bistro · Creative</span><span class="stars">★★★★★</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" class="pad" style="background: linear-gradient(180deg, transparent, rgba(var(--c-lime-rgb),0.03));">
+  <div class="wrap">
+    <div class="section-label reveal-up"><span class="num">05</span> · CONTACT</div>
+    <div class="contact-inner">
+      <h2 class="contact-big reveal-up">Got a project?<br>Want to <em>ship it</em> loud?</h2>
+
+      <form class="contact-form reveal-up" onsubmit="handleContact(event)">
+        <div>
+          <label>Your name</label>
+          <input type="text" placeholder="Efe Biskin" required>
+        </div>
+        <div>
+          <label>Email</label>
+          <input type="email" placeholder="you@company.com" required>
+        </div>
+        <div>
+          <label>What are you building?</label>
+          <textarea placeholder="Tell me about the project — timeline, budget range, what's keeping you up at night…" required></textarea>
+        </div>
+        <button type="submit" class="btn primary magnet" style="align-self: start; margin-top: 0.5rem;">
+          Send it → <span class="arr">↗</span>
+        </button>
+        <div class="contact-info">
+          <div>Or email us directly:</div>
+          <div><a href="mailto:team@biskin.studio">team@biskin.studio</a></div>
+          <div style="margin-top:0.5rem;">Usually replies within 24h · California · PST</div>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-mark">BISKIN<em>studio</em></div>
+        <p class="footer-tag">Products built in public, shipped alone. A solo studio out of California making things for people who ship.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Products</h5>
+        <ul>
+          <li><a href="https://agents.biskin.studio">Biskin Agents</a></li>
+          <li><a href="/creative.html">Biskin Creative</a></li>
+          <li><a href="#brain">Biskin Brain</a></li>
+          <li><a href="#quant">Biskin Quant</a></li>
+          <li><a href="#games">Biskin Games</a></li>
+          <li><a href="#research">Biskin Research</a></li>
+          <li><a href="/lab.html">Biskin Lab</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Studio</h5>
+        <ul>
+          <li><a href="#studio">About</a></li>
+          <li><a href="#work">Work</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Social</h5>
+        <ul>
+          <li><a href="https://x.com/efebiskin">Twitter / X</a></li>
+          <li><a href="https://github.com/efebiskin">GitHub</a></li>
+          <li><a href="mailto:team@biskin.studio">Email</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-sig">
+      <span>BISKIN STUDIO <span class="dot">·</span> APR 2026 <span class="dot">·</span> MADE IN CALIFORNIA</span>
+      <span id="footClock">00:00:00</span>
+      <span>© EFE BISKIN <span class="dot">·</span> ALL RIGHTS RESERVED</span>
+    </div>
+  </div>
+</footer>
+
+<script type="module">
+import * as THREE from 'three';
+
+/* ============================================
+   THREE.JS HERO SCENE
+   ============================================ */
+(function initThree(){
+  const canvas = document.getElementById('three-canvas');
+  if(!canvas) return;
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.z = 5;
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  // Core wireframe icosahedron
+  const coreGeo = new THREE.IcosahedronGeometry(1.5, 2);
+  const coreEdges = new THREE.EdgesGeometry(coreGeo);
+  const coreMat = new THREE.LineBasicMaterial({ color: 0xC8FF00, transparent: true, opacity: 0.55 });
+  const core = new THREE.LineSegments(coreEdges, coreMat);
+  scene.add(core);
+
+  // Inner solid icosahedron (barely visible, adds depth)
+  const innerMat = new THREE.MeshBasicMaterial({ color: 0x0A0A0A, transparent: true, opacity: 0.9 });
+  const inner = new THREE.Mesh(coreGeo.clone().scale(0.98, 0.98, 0.98), innerMat);
+  scene.add(inner);
+
+  // Particle orbit
+  const particleCount = 1200;
+  const positions = new Float32Array(particleCount * 3);
+  const speeds = [];
+  for(let i = 0; i < particleCount; i++){
+    const r = 2.5 + Math.random() * 3;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    positions[i*3]   = r * Math.sin(phi) * Math.cos(theta);
+    positions[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+    positions[i*3+2] = r * Math.cos(phi);
+    speeds.push(0.0005 + Math.random() * 0.002);
+  }
+  const pGeo = new THREE.BufferGeometry();
+  pGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  const pMat = new THREE.PointsMaterial({ color: 0xF5F1E8, size: 0.02, transparent: true, opacity: 0.65 });
+  const points = new THREE.Points(pGeo, pMat);
+  scene.add(points);
+
+  // Bigger outer wire ring
+  const ringGeo = new THREE.TorusGeometry(3.5, 0.005, 4, 120);
+  const ringMat = new THREE.MeshBasicMaterial({ color: 0xFF4F36, transparent: true, opacity: 0.35 });
+  const ring = new THREE.Mesh(ringGeo, ringMat);
+  ring.rotation.x = Math.PI / 3;
+  scene.add(ring);
+
+  const ring2 = new THREE.Mesh(ringGeo.clone(), ringMat.clone());
+  ring2.rotation.x = -Math.PI / 4;
+  ring2.rotation.y = Math.PI / 5;
+  scene.add(ring2);
+
+  // Mouse tracking
+  let mx = 0, my = 0;
+  let tx = 0, ty = 0;
+  window.addEventListener('pointermove', (e) => {
+    mx = (e.clientX / window.innerWidth) * 2 - 1;
+    my = -(e.clientY / window.innerHeight) * 2 + 1;
+  });
+
+  function onResize(){
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  }
+  window.addEventListener('resize', onResize);
+
+  let scrollY = 0;
+  window.addEventListener('scroll', () => { scrollY = window.scrollY; });
+
+  function animate(t){
+    t *= 0.001;
+    tx += (mx - tx) * 0.06;
+    ty += (my - ty) * 0.06;
+
+    core.rotation.x = t * 0.25 + ty * 0.4 + scrollY * 0.0008;
+    core.rotation.y = t * 0.35 + tx * 0.4;
+    inner.rotation.copy(core.rotation);
+
+    points.rotation.y = t * 0.08;
+    points.rotation.x = tx * 0.3;
+
+    ring.rotation.z = t * 0.15;
+    ring2.rotation.z = -t * 0.12;
+
+    // Camera sway
+    camera.position.x = tx * 0.4;
+    camera.position.y = ty * 0.4;
+    camera.lookAt(scene.position);
+
+    renderer.render(scene, camera);
+    requestAnimationFrame(animate);
+  }
+  requestAnimationFrame(animate);
+})();
+
+/* ============================================
+   BOOT SEQUENCE
+   ============================================ */
+(function initBoot(){
+  const boot = document.getElementById('boot');
+  const msg = document.getElementById('bootMsg');
+  const cta = document.getElementById('bootCta');
+  const steps = [
+    'Loading assets',
+    'Initializing WebGL',
+    'Tuning agents',
+    'Calibrating motion',
+    'Ready'
+  ];
+  let i = 0;
+  const interval = setInterval(() => {
+    i++;
+    if(i < steps.length){
+      msg.innerHTML = steps[i] + ' <span class="blink">_</span>';
+    } else {
+      clearInterval(interval);
+    }
+  }, 380);
+
+  const enter = () => {
+    boot.classList.add('gone');
+    document.querySelectorAll('.reveal').forEach(el => el.classList.add('in'));
+    document.body.style.overflow = '';
+  };
+  cta.addEventListener('click', enter);
+  // auto-enter after 3.2s for impatient folks
+  setTimeout(() => { if(!boot.classList.contains('gone')) enter(); }, 3200);
+  document.body.style.overflow = 'hidden';
+})();
+
+/* ============================================
+   CHAR SPLIT (word-wrapped so mid-word breaks can't happen)
+   ============================================ */
+function splitByChars(text){
+  // returns an array of DOM nodes: either text-space nodes or .word spans
+  const nodes = [];
+  const words = text.split(/(\s+)/);
+  words.forEach(word => {
+    if(!word) return;
+    if(/^\s+$/.test(word)){
+      nodes.push(document.createTextNode(' '));
+      return;
+    }
+    const w = document.createElement('span');
+    w.className = 'word';
+    [...word].forEach(ch => {
+      const s = document.createElement('span');
+      s.className = 'char';
+      s.textContent = ch;
+      w.appendChild(s);
+    });
+    nodes.push(w);
+  });
+  return nodes;
+}
+
+document.querySelectorAll('[data-split]').forEach(el => {
+  const walk = (node) => {
+    [...node.childNodes].forEach(child => {
+      if(child.nodeType === 3){
+        const frag = document.createDocumentFragment();
+        splitByChars(child.textContent).forEach(n => frag.appendChild(n));
+        child.replaceWith(frag);
+      } else if(child.nodeType === 1 && child.tagName !== 'EM'){
+        walk(child);
+      } else if(child.nodeType === 1 && child.tagName === 'EM'){
+        const text = child.textContent;
+        child.innerHTML = '';
+        splitByChars(text).forEach(n => child.appendChild(n));
+      }
+    });
+  };
+  walk(el);
+  [...el.querySelectorAll('.char')].forEach((c, i) => c.style.setProperty('--i', i));
+});
+
+/* ============================================
+   CUSTOM CURSOR
+   ============================================ */
+(function initCursor(){
+  const ring = document.getElementById('cursor');
+  const dot = document.getElementById('cursorDot');
+  let mx = -100, my = -100;
+  let cx = mx, cy = my;
+  let dx = mx, dy = my;
+  window.addEventListener('pointermove', (e) => { mx = e.clientX; my = e.clientY; });
+  function tick(){
+    cx += (mx - cx) * 0.18;
+    cy += (my - cy) * 0.18;
+    dx += (mx - dx) * 0.55;
+    dy += (my - dy) * 0.55;
+    ring.style.transform = `translate(${cx}px, ${cy}px) translate(-50%, -50%)`;
+    dot.style.transform = `translate(${dx}px, ${dy}px) translate(-50%, -50%)`;
+    requestAnimationFrame(tick);
+  }
+  tick();
+
+  const growSel = 'a, button, .card, input, textarea, .magnet';
+  document.addEventListener('pointerover', (e) => {
+    if(e.target.closest(growSel)) ring.classList.add('grow');
+  });
+  document.addEventListener('pointerout', (e) => {
+    if(e.target.closest(growSel)) ring.classList.remove('grow');
+  });
+})();
+
+/* ============================================
+   MAGNETIC BUTTONS
+   ============================================ */
+(function initMagnets(){
+  const magnets = document.querySelectorAll('.magnet');
+  magnets.forEach(el => {
+    el.addEventListener('pointermove', (e) => {
+      const r = el.getBoundingClientRect();
+      const cx = r.left + r.width/2, cy = r.top + r.height/2;
+      const dx = e.clientX - cx, dy = e.clientY - cy;
+      const d = Math.hypot(dx, dy);
+      const max = Math.max(r.width, r.height);
+      if(d > max * 1.2) return;
+      el.style.transform = `translate(${dx * 0.25}px, ${dy * 0.25}px)`;
+    });
+    el.addEventListener('pointerleave', () => { el.style.transform = ''; });
+  });
+})();
+
+/* ============================================
+   3D TILT on CARDS
+   ============================================ */
+(function initTilt(){
+  const cards = document.querySelectorAll('.tilt');
+  cards.forEach(card => {
+    card.addEventListener('pointermove', (e) => {
+      const r = card.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width;
+      const py = (e.clientY - r.top) / r.height;
+      const rx = (py - 0.5) * -8;
+      const ry = (px - 0.5) * 8;
+      card.style.transform = `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg) translateZ(6px)`;
+      card.style.setProperty('--tx', (px * 100) + '%');
+      card.style.setProperty('--ty', (py * 100) + '%');
+    });
+    card.addEventListener('pointerleave', () => { card.style.transform = ''; });
+  });
+})();
+
+/* ============================================
+   INTERSECTION REVEAL
+   ============================================ */
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(ent => {
+    if(ent.isIntersecting){
+      ent.target.classList.add('in');
+      io.unobserve(ent.target);
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -80px 0px' });
+document.querySelectorAll('.reveal-up').forEach(el => io.observe(el));
+
+/* ============================================
+   NAV SCROLL STATE
+   ============================================ */
+(function initNav(){
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 30);
+  });
+})();
+
+/* ============================================
+   HERO MOUSE GRADIENT
+   ============================================ */
+(function initHeroGradient(){
+  const grad = document.querySelector('.hero-gradient');
+  const hero = document.querySelector('.hero');
+  hero.addEventListener('pointermove', (e) => {
+    const r = hero.getBoundingClientRect();
+    grad.style.setProperty('--mx', ((e.clientX - r.left) / r.width) * 100 + '%');
+    grad.style.setProperty('--my', ((e.clientY - r.top) / r.height) * 100 + '%');
+  });
+})();
+
+/* ============================================
+   TERMINAL TYPING ANIMATION
+   ============================================ */
+(function initTerminal(){
+  const body = document.getElementById('termBody');
+  if(!body) return;
+  const script = [
+    { t: 'user', text: 'claude @morning-brief' },
+    { t: 'sys', text: '» fetching calendar + commits + weather...' },
+    { t: 'out', text: 'MORNING · Mon Apr 20  |  63°F clear' },
+    { t: 'out', text: '09:00 — Call w/ IGN Live  |  bring brief' },
+    { t: 'out', text: '13:00 — deploy biskin-agents site' },
+    { t: 'out', text: 'ONE THING: ship it before sunset.' },
+    { t: '', text: '' },
+    { t: 'user', text: 'claude @ad-analyst diagnose meta campaign' },
+    { t: 'sys', text: '» reading metrics...' },
+    { t: 'warn', text: 'CPM up 34% since Tuesday. Retargeting pool saturated.' },
+    { t: 'out', text: 'Rec: pause retargeting, shift 40% to lookalike 1%.' },
+    { t: 'ok', text: '✓ suggested sequence ready.' },
+    { t: '', text: '' },
+    { t: 'user', text: 'claude @risk-checker size TSLA long 2% stop' },
+    { t: 'sys', text: '» running Kelly math, correlation check...' },
+    { t: 'out', text: 'Position size: 1.1% of equity (3,200 USD).' },
+    { t: 'out', text: 'Max loss: 0.022% · Kelly fraction: 0.18' },
+    { t: 'ok', text: '✓ GO. Sector exposure within bounds.' },
+    { t: '', text: '' },
+    { t: 'user', text: 'next ▋' },
+  ];
+
+  let lineIdx = 0, charIdx = 0;
+  let currentLine = null;
+
+  const tick = () => {
+    if(lineIdx >= script.length){
+      // restart after delay
+      setTimeout(() => {
+        body.innerHTML = '';
+        lineIdx = 0; charIdx = 0; currentLine = null;
+        tick();
+      }, 4500);
+      return;
+    }
+    const s = script[lineIdx];
+    if(!currentLine){
+      currentLine = document.createElement('span');
+      currentLine.className = 'term-line ' + s.t;
+      body.appendChild(currentLine);
+    }
+    if(charIdx < s.text.length){
+      currentLine.textContent += s.text[charIdx];
+      charIdx++;
+      const delay = s.t === 'user' ? 40 : 14;
+      setTimeout(tick, delay + Math.random() * 20);
+    } else {
+      currentLine = null;
+      charIdx = 0;
+      lineIdx++;
+      const delay = s.t === 'user' ? 500 : (s.t === 'sys' ? 300 : 100);
+      setTimeout(tick, delay);
+    }
+  };
+
+  // Only start typing when terminal is in view
+  const termIo = new IntersectionObserver((entries) => {
+    entries.forEach(ent => {
+      if(ent.isIntersecting){
+        tick();
+        termIo.disconnect();
+      }
+    });
+  }, { threshold: 0.3 });
+  termIo.observe(document.querySelector('.terminal'));
+})();
+
+/* ============================================
+   FOOTER CLOCK
+   ============================================ */
+(function footClock(){
+  const el = document.getElementById('footClock');
+  if(!el) return;
+  const tick = () => {
+    const d = new Date();
+    const pad = (n) => n.toString().padStart(2,'0');
+    el.textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} PT`;
+    requestAnimationFrame(tick);
+  };
+  tick();
+})();
+
+/* ============================================
+   CONTACT FORM (placeholder)
+   ============================================ */
+window.handleContact = function(e){
+  e.preventDefault();
+  const btn = e.target.querySelector('button[type="submit"]');
+  const original = btn.innerHTML;
+  btn.innerHTML = 'Sending...';
+  setTimeout(() => {
+    btn.innerHTML = '✓ Received — expect a reply in 24h';
+    setTimeout(() => { btn.innerHTML = original; e.target.reset(); }, 3500);
+  }, 800);
+  // real impl: POST to formspree / convertkit / your API
+};
+
+/* ============================================
+   KONAMI EASTER EGG
+   ============================================ */
+(function konami(){
+  const seq = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+  let i = 0;
+  document.addEventListener('keydown', (e) => {
+    if(e.key === seq[i]){
+      i++;
+      if(i === seq.length){
+        document.documentElement.style.filter = 'invert(1) hue-rotate(180deg)';
+        i = 0;
+      }
+    } else i = 0;
+  });
+})();
+
+console.log('%cBISKIN STUDIO · v1.0 · Shipped in public.', 'background:#C8FF00;color:#0A0A0A;padding:6px 14px;font-weight:700;letter-spacing:0.08em;');
+console.log('%cInterested in working together? team@biskin.studio', 'color:#C8FF00;');
+</script>
+
+</body>
+</html>
