@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Biskin Games — Market Maker · a roguelike deckbuilder</title>
+<meta name="description" content="Market Maker — a roguelike deckbuilder where every card is a real trading strategy and every boss is a Fed surprise, flash crash, or CPI print. Built by an ex-quant on Godot. Steam · Q2 2027.">
+<meta name="theme-color" content="#0A0A0A">
+
+<meta property="og:title" content="Market Maker — Biskin Games">
+<meta property="og:description" content="A roguelike deckbuilder where cards are real trading strategies. Steam · Q2 2027.">
+<meta property="og:type" content="website">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --c-bg: #0A0A0A;
+  --c-bg-rgb: 10,10,10;
+  --c-surface: #141414;
+  --c-text: #F5F1E8;
+  --c-text-rgb: 245,241,232;
+  --c-lime: #C8FF00;
+  --c-lime-rgb: 200,255,0;
+  --c-red: #FF4F36;
+  --c-dim: #777;
+  --c-line: rgba(var(--c-text-rgb), 0.08);
+  --c-line-strong: rgba(var(--c-text-rgb), 0.16);
+
+  --f-display: 'Archivo', system-ui, sans-serif;
+  --f-serif: 'Instrument Serif', Georgia, serif;
+  --f-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --f-body: 'Inter', system-ui, sans-serif;
+
+  --pad: clamp(4rem, 9vh, 6.5rem);
+  --gut: clamp(1.5rem, 5vw, 4rem);
+}
+*{ margin:0; padding:0; box-sizing:border-box; }
+html{ scroll-behavior: smooth; }
+body{
+  font-family: var(--f-body);
+  background: var(--c-bg);
+  color: var(--c-text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+a{ color: inherit; text-decoration: none; }
+button{ cursor: pointer; background: none; border: 0; color: inherit; font: inherit; }
+
+.wrap{ max-width: 1200px; margin: 0 auto; padding: 0 var(--gut); }
+.pad{ padding: var(--pad) 0; }
+
+/* NAV */
+nav.top{
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(var(--c-bg-rgb), 0.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--c-line);
+}
+nav.top .wrap{ display: flex; align-items: center; justify-content: space-between; padding: 1rem var(--gut); }
+.brand{ font-family: var(--f-display); font-weight: 800; letter-spacing: -0.02em; font-size: 1.05rem; }
+.brand em{ font-family: var(--f-serif); font-style: italic; font-weight: 400; color: var(--c-lime); }
+.brand-dot{ display:inline-block; width:6px; height:6px; border-radius:50%; background: var(--c-lime); margin: 0 0.4rem; vertical-align: middle; }
+nav ul{ display: flex; gap: 2rem; list-style: none; font-size: 0.85rem; letter-spacing: 0.04em; text-transform: uppercase; }
+nav ul a{ color: var(--c-dim); transition: color .2s; }
+nav ul a:hover{ color: var(--c-text); }
+nav ul a.active{ color: var(--c-lime); }
+.nav-cta{
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--c-lime);
+  color: var(--c-lime);
+  font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase;
+  font-weight: 600;
+}
+.nav-cta:hover{ background: var(--c-lime); color: var(--c-bg); }
+
+/* HERO */
+.hero{ padding: 5rem 0 3rem; position: relative; }
+.hero-inner{ max-width: 960px; }
+.kicker{
+  display: inline-block;
+  font-family: var(--f-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  color: var(--c-lime);
+  padding: 0.35rem 0.75rem;
+  border: 1px solid rgba(var(--c-lime-rgb), 0.3);
+  border-radius: 3px;
+  margin-bottom: 2rem;
+  text-transform: uppercase;
+}
+h1.hero-title{
+  font-family: var(--f-display);
+  font-weight: 900;
+  font-size: clamp(2.8rem, 6vw, 5.5rem);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  margin-bottom: 1.8rem;
+}
+h1.hero-title em{ font-family: var(--f-serif); font-style: italic; font-weight: 400; color: var(--c-lime); }
+.hero-sub{
+  font-size: clamp(1.05rem, 1.7vw, 1.3rem);
+  color: rgba(var(--c-text-rgb), 0.75);
+  max-width: 620px;
+  line-height: 1.55;
+  margin-bottom: 2.5rem;
+}
+.hero-ctas{ display: flex; gap: 1rem; flex-wrap: wrap; }
+.btn{
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.9rem 1.4rem;
+  border: 1px solid var(--c-line-strong);
+  font-weight: 600;
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+  transition: all .2s;
+}
+.btn:hover{ border-color: var(--c-text); }
+.btn.primary{ background: var(--c-lime); color: var(--c-bg); border-color: var(--c-lime); }
+.btn.primary:hover{ background: transparent; color: var(--c-lime); }
+.btn.ghost:hover{ background: rgba(var(--c-text-rgb), 0.04); }
+
+.hero-stats{ display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 2rem; padding-top: 3.5rem; margin-top: 3.5rem; border-top: 1px solid var(--c-line); }
+.stat-num{ font-family: var(--f-display); font-weight: 800; font-size: 1.8rem; letter-spacing: -0.02em; }
+.stat-num em{ font-family: var(--f-serif); font-style: italic; font-weight: 400; color: var(--c-lime); }
+.stat-lbl{ font-family: var(--f-mono); font-size: 0.7rem; color: var(--c-dim); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 0.3rem; }
+
+/* SECTION */
+section{ border-top: 1px solid var(--c-line); }
+.section-label{ font-family: var(--f-mono); font-size: 0.72rem; color: var(--c-dim); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2.5rem; }
+.section-label .num{ color: var(--c-lime); }
+h2.section-big{
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin-bottom: 2.5rem;
+}
+h2.section-big em{ font-family: var(--f-serif); font-style: italic; font-weight: 400; color: var(--c-lime); }
+
+/* PITCH GRID */
+.pitch{ display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; }
+.pitch-cell{
+  padding: 2rem 1.75rem;
+  border: 1px solid var(--c-line-strong);
+  background: rgba(var(--c-surface), 0.5);
+}
+.pitch-cell .pc-num{ font-family: var(--f-mono); font-size: 0.7rem; color: var(--c-lime); margin-bottom: 1.5rem; letter-spacing: 0.08em; }
+.pitch-cell h3{ font-family: var(--f-display); font-weight: 700; font-size: 1.2rem; letter-spacing: -0.01em; margin-bottom: 0.7rem; }
+.pitch-cell h3 em{ font-family: var(--f-serif); font-style: italic; font-weight: 400; color: var(--c-lime); }
+.pitch-cell p{ color: rgba(var(--c-text-rgb), 0.65); font-size: 0.92rem; line-height: 1.55; }
+
+/* ARCHETYPES */
+.archetypes{ display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; }
+.arch{
+  padding: 2rem 1.75rem;
+  border: 1px solid var(--c-line-strong);
+  border-left: 3px solid var(--c-lime);
+  background: rgba(var(--c-surface), 0.5);
+}
+.arch-name{ font-family: var(--f-display); font-weight: 800; font-size: 1.3rem; letter-spacing: -0.02em; margin-bottom: 0.3rem; }
+.arch-tag{ font-family: var(--f-mono); font-size: 0.7rem; color: var(--c-lime); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1.2rem; }
+.arch p{ font-size: 0.92rem; line-height: 1.6; color: rgba(var(--c-text-rgb), 0.7); }
+.arch .mech{ margin-top: 1rem; font-family: var(--f-mono); font-size: 0.78rem; color: var(--c-dim); }
+.arch .mech strong{ color: var(--c-text); }
+
+/* BOSSES */
+.bosses{ display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+.boss{
+  padding: 1.5rem 1.4rem;
+  border: 1px solid rgba(var(--c-red), 0.25);
+  background: rgba(var(--c-red), 0.04);
+}
+.boss-name{ font-family: var(--f-display); font-weight: 700; color: var(--c-red); font-size: 1rem; letter-spacing: -0.01em; margin-bottom: 0.4rem; }
+.boss-desc{ font-size: 0.85rem; line-height: 1.5; color: rgba(var(--c-text-rgb), 0.7); }
+
+/* MOAT */
+.moat-inner{ max-width: 760px; }
+.moat-cell{
+  padding: 2.5rem 2.25rem;
+  border: 1px solid var(--c-lime);
+  background: rgba(var(--c-lime-rgb), 0.04);
+  margin-top: 1.5rem;
+}
+.moat-cell h3{ font-family: var(--f-display); font-weight: 700; font-size: 1.4rem; margin-bottom: 1rem; letter-spacing: -0.02em; color: var(--c-lime); }
+.moat-cell h3 em{ font-family: var(--f-serif); font-style: italic; font-weight: 400; }
+.moat-cell p{ color: rgba(var(--c-text-rgb), 0.8); line-height: 1.6; }
+.moat-cell code{ font-family: var(--f-mono); background: rgba(var(--c-bg-rgb), 0.5); padding: 0.15rem 0.4rem; font-size: 0.85em; border-radius: 2px; color: var(--c-lime); }
+
+/* ROADMAP */
+.roadmap{ display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0; border-top: 1px solid var(--c-line-strong); border-left: 1px solid var(--c-line-strong); }
+.road-cell{
+  padding: 1.75rem 1.5rem;
+  border-right: 1px solid var(--c-line-strong);
+  border-bottom: 1px solid var(--c-line-strong);
+}
+.road-date{ font-family: var(--f-mono); font-size: 0.72rem; color: var(--c-lime); letter-spacing: 0.08em; margin-bottom: 0.5rem; text-transform: uppercase; }
+.road-title{ font-family: var(--f-display); font-weight: 700; font-size: 1.05rem; margin-bottom: 0.5rem; letter-spacing: -0.01em; }
+.road-status{ font-family: var(--f-mono); font-size: 0.75rem; color: var(--c-dim); }
+.road-status.done{ color: var(--c-lime); }
+.road-status.now{ color: var(--c-text); }
+.road-status.soon{ color: var(--c-dim); }
+
+/* CTA BOX */
+.cta-box{
+  padding: clamp(2.5rem, 5vw, 4rem);
+  border: 1px solid var(--c-lime);
+  background: rgba(var(--c-lime-rgb), 0.04);
+  margin-top: 3rem;
+}
+.cta-box h2{ font-family: var(--f-display); font-weight: 800; font-size: clamp(1.6rem, 3vw, 2.4rem); line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 1.25rem; max-width: 620px; }
+.cta-box h2 em{ font-family: var(--f-serif); font-style: italic; font-weight: 400; color: var(--c-lime); }
+.cta-box p{ color: rgba(var(--c-text-rgb), 0.75); font-size: 1rem; line-height: 1.55; margin-bottom: 2rem; max-width: 580px; }
+.cta-box form{ display: flex; gap: 0.5rem; flex-wrap: wrap; max-width: 520px; }
+.cta-box input[type="email"]{
+  flex: 1 1 260px;
+  padding: 0.9rem 1rem;
+  background: rgba(var(--c-bg-rgb), 0.5);
+  border: 1px solid var(--c-line-strong);
+  color: var(--c-text);
+  font: inherit;
+}
+.cta-box input[type="email"]:focus{ outline: none; border-color: var(--c-lime); }
+.cta-box .hint{ margin-top: 1rem; font-family: var(--f-mono); font-size: 0.75rem; color: var(--c-dim); }
+
+/* FOOTER */
+footer{ border-top: 1px solid var(--c-line); padding: 3rem 0 2.5rem; }
+.footer-grid{ display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 2.5rem; }
+.footer-mark{ font-family: var(--f-display); font-weight: 800; font-size: 1.2rem; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+.footer-mark em{ font-family: var(--f-serif); font-style: italic; font-weight: 400; color: var(--c-lime); }
+.footer-tag{ font-size: 0.85rem; color: rgba(var(--c-text-rgb), 0.55); line-height: 1.55; max-width: 280px; }
+.footer-col h5{ font-family: var(--f-mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--c-dim); margin-bottom: 0.9rem; font-weight: 500; }
+.footer-col ul{ list-style: none; }
+.footer-col li{ margin-bottom: 0.5rem; font-size: 0.88rem; }
+.footer-col a{ color: rgba(var(--c-text-rgb), 0.7); transition: color .2s; }
+.footer-col a:hover{ color: var(--c-lime); }
+.footer-sig{ padding-top: 2rem; border-top: 1px solid var(--c-line); display: flex; justify-content: space-between; font-family: var(--f-mono); font-size: 0.7rem; color: var(--c-dim); letter-spacing: 0.08em; text-transform: uppercase; flex-wrap: wrap; gap: 1rem; }
+
+@media (max-width: 800px){
+  nav ul{ display: none; }
+  .footer-grid{ grid-template-columns: 1fr 1fr; gap: 2rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="top">
+  <div class="wrap">
+    <div class="brand">BISKIN<span class="brand-dot"></span><em>studio</em></div>
+    <ul>
+      <li><a href="/#agents">Agents</a></li>
+      <li><a href="/creative">Creative</a></li>
+      <li><a href="/#brain">Brain</a></li>
+      <li><a href="/#quant">Quant</a></li>
+      <li><a href="/games" class="active">Games</a></li>
+      <li><a href="/#research">Research</a></li>
+    </ul>
+    <a href="#wishlist" class="nav-cta">Get notified →</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero pad">
+  <div class="wrap">
+    <div class="hero-inner">
+      <div class="kicker">BISKIN GAMES · MARKET MAKER · STEAM Q2 2027</div>
+      <h1 class="hero-title">A roguelike deckbuilder where every card is a <em>real trading strategy</em>.</h1>
+      <p class="hero-sub">
+        Build a desk. Survive the open. Cards are market-making quotes, arbitrage legs, trend follows, vol sells. Bosses are Fed surprises, flash crashes, CPI prints, earnings vol. Win a run, ship a 20-hour campaign, learn actual quant-finance mental models by accident. Built by an ex-quant on Godot 4. Balanced by 100,000 overnight sim runs.
+      </p>
+      <div class="hero-ctas">
+        <a href="#wishlist" class="btn primary">Get notified when it hits Steam → <span>↗</span></a>
+        <a href="#archetypes" class="btn ghost">See the desks ↓</a>
+      </div>
+      <div class="hero-stats">
+        <div><div class="stat-num">4 <em>desks</em></div><div class="stat-lbl">Archetypes</div></div>
+        <div><div class="stat-num">20 <em>hr</em></div><div class="stat-lbl">Campaign</div></div>
+        <div><div class="stat-num">100k</div><div class="stat-lbl">Sim runs / night</div></div>
+        <div><div class="stat-num">$19.99</div><div class="stat-lbl">Steam launch</div></div>
+        <div><div class="stat-num">Q2 <em>2027</em></div><div class="stat-lbl">Target ship</div></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- PITCH -->
+<section class="pad">
+  <div class="wrap">
+    <div class="section-label"><span class="num">01</span> · WHAT IT IS</div>
+    <h2 class="section-big">Slay-the-Spire for people who read <em>market microstructure</em>.</h2>
+    <div class="pitch">
+      <div class="pitch-cell">
+        <div class="pc-num">01 · STRUCTURE</div>
+        <h3>Three-day <em>trading week</em></h3>
+        <p>Each run is a 3-day simulated trading week. Day = act. Morning / mid-day / close = encounters. Close-of-day boss regime. Survive Friday close, you win the run. Most runs end Wednesday.</p>
+      </div>
+      <div class="pitch-cell">
+        <div class="pc-num">02 · CARDS</div>
+        <h3>Every card is a <em>real strategy</em></h3>
+        <p>Limit-order quote, market-taking cross, delta hedge, volatility sell, factor rotation, carry trade, flight-to-quality. Rules are reduced to game mechanics but the intuition is the same a desk uses at an actual bank.</p>
+      </div>
+      <div class="pitch-cell">
+        <div class="pc-num">03 · CAPITAL</div>
+        <h3>Capital is <em>your HP</em></h3>
+        <p>Drawdown past a threshold and you're forced to liquidate — run ends. But capital also gates deck size, position sizing, and access to exotic instruments. The classic deckbuilder tension, re-skinned.</p>
+      </div>
+      <div class="pitch-cell">
+        <div class="pc-num">04 · BOSSES</div>
+        <h3>Bosses are <em>regimes</em></h3>
+        <p>Fed surprise. Flash crash. CPI print. Earnings vol. Liquidity drought. Each regime disables certain strategies and rewards others. Building a deck that handles three regimes is the meta-game.</p>
+      </div>
+      <div class="pitch-cell">
+        <div class="pc-num">05 · META</div>
+        <h3>Unlocks are <em>real tools</em></h3>
+        <p>Finish a run as Market Maker, unlock two-sided quote variants. Finish as Vol Seller, unlock straddles. Meta progression isn't stat-bloat — it's actual new strategies the real desk uses.</p>
+      </div>
+      <div class="pitch-cell">
+        <div class="pc-num">06 · DIFFICULTY</div>
+        <h3>Ascension = <em>regime mix</em></h3>
+        <p>Ascension-1: add earnings vol to the boss pool. Ascension-5: bosses stack. Ascension-15: you're trading in 2008. No HP-inflation difficulty. Just more regimes that invalidate more of your deck.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHETYPES -->
+<section id="archetypes" class="pad">
+  <div class="wrap">
+    <div class="section-label"><span class="num">02</span> · THE DESKS</div>
+    <h2 class="section-big">Four desks. Four philosophies of <em>how to stay in business</em>.</h2>
+
+    <div class="archetypes">
+      <div class="arch">
+        <div class="arch-name">Market Maker</div>
+        <div class="arch-tag">Two-sided quotes · Spread capture · Adverse selection</div>
+        <p>You earn the bid-ask spread, every card, every turn. Until someone knows more than you do — then adverse selection bleeds you dry. Starter deck. Teaches inventory management, spread tuning, when to step back.</p>
+        <div class="mech"><strong>Win condition:</strong> survive the week without widening past your threshold.</div>
+      </div>
+      <div class="arch">
+        <div class="arch-name">Arbitrageur</div>
+        <div class="arch-tag">Mispricing legs · Venue risk · Size scaling</div>
+        <p>Two cards play simultaneously on paired venues — if the pricing diverges, you capture the spread. If it converges against you, both legs bleed. Teaches execution risk, venue liquidity, when to close vs. press.</p>
+        <div class="mech"><strong>Win condition:</strong> find three pairs per day; close before the spread normalizes.</div>
+      </div>
+      <div class="arch">
+        <div class="arch-name">Trend Follower</div>
+        <div class="arch-tag">Momentum · Stop-loss · Drawdown patience</div>
+        <p>You need two green bars in a row before you enter. Then you hold through chop — and hold through a stop-hunt — until the trend breaks. 70% of your trades are losers. The 30% pay for everything.</p>
+        <div class="mech"><strong>Win condition:</strong> catch one major move per week; survive the other 12 losers.</div>
+      </div>
+      <div class="arch">
+        <div class="arch-name">Vol Seller</div>
+        <div class="arch-tag">Premium income · Tail risk · Gamma clock</div>
+        <p>Sell premium, collect. The gamma clock ticks every turn — ignore it long enough and a single CPI boss turn wipes you. Steady income until it isn't. Teaches when the music stops.</p>
+        <div class="mech"><strong>Win condition:</strong> collect premium for four days; close all positions before Friday's regime flip.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BOSSES -->
+<section class="pad">
+  <div class="wrap">
+    <div class="section-label"><span class="num">03</span> · THE REGIMES</div>
+    <h2 class="section-big">Your deck has to survive what <em>the tape</em> throws at it.</h2>
+    <div class="bosses">
+      <div class="boss"><div class="boss-name">Fed Surprise</div><div class="boss-desc">Rates card flips sign. All carry trades reverse. Duration bets blow up. If your deck relies on "policy stays boring," this is the wipe.</div></div>
+      <div class="boss"><div class="boss-name">Flash Crash</div><div class="boss-desc">Liquidity halves for three turns. Spreads widen 4×. Stop-loss cards fire at the wrong price. Kills trend followers. Market makers eat.</div></div>
+      <div class="boss"><div class="boss-name">CPI Print</div><div class="boss-desc">A single high-variance turn where every position is marked-to-market against a random draw. Vol sellers panic. Everything else, discipline test.</div></div>
+      <div class="boss"><div class="boss-name">Earnings Vol</div><div class="boss-desc">One sector moves 15%, other sectors frozen. If you're concentrated, you either win hard or lose everything. Teaches diversification the painful way.</div></div>
+      <div class="boss"><div class="boss-name">Liquidity Drought</div><div class="boss-desc">All closing prices become gaps. You can't exit small. The reason the boring desks beat the clever ones in 2008.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- MOAT -->
+<section class="pad">
+  <div class="wrap">
+    <div class="moat-inner">
+      <div class="section-label"><span class="num">04</span> · THE UNFAIR ADVANTAGE</div>
+      <h2 class="section-big">Balanced by <em>100,000</em> overnight simulations.</h2>
+      <p style="color: rgba(var(--c-text-rgb), 0.75); font-size: 1.05rem; line-height: 1.65; max-width: 620px;">
+        Every indie deckbuilder has the same problem: one card breaks the meta, and you don't find out until playtesters are already furious. We built a Python simulation harness that plays the game against itself 100,000 times per night. Any card that plays in &lt;2% or &gt;25% of winning decks gets flagged before a human sees it.
+      </p>
+      <div class="moat-cell">
+        <h3>The sim is the <em>moat</em>.</h3>
+        <p>Studios balance by feel, by Discord complaints, by the one streamer whose take gets amplified. We balance by 500,000 simulated runs a week, filtered through a statistical lens the designer can read in five minutes. A card change takes minutes to validate, not weeks. When we ship a patch, we know which archetypes got better, which got worse, and by how much, before anyone downloads it.</p>
+        <p style="margin-top: 1rem;">The designer is a CS senior who shipped ML systems in production. The game is the portfolio piece. The sim is the reason it balances better than its neighbors.</p>
+        <p style="margin-top: 1rem; font-family: var(--f-mono); font-size: 0.85rem; color: var(--c-lime);">Proof: <code>sim/runner.py</code> v0 runs 500 games in &lt;1s on a laptop. Flags cards. Ready to scale. Already in the repo.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ROADMAP -->
+<section class="pad">
+  <div class="wrap">
+    <div class="section-label"><span class="num">05</span> · ROADMAP</div>
+    <h2 class="section-big">Built in <em>public</em>. No empty promises.</h2>
+    <div class="roadmap">
+      <div class="road-cell">
+        <div class="road-date">Apr 2026</div>
+        <div class="road-title">Concept + v0 scaffold</div>
+        <div class="road-status done">✓ Godot 4 project, sim harness, 4 archetypes designed</div>
+      </div>
+      <div class="road-cell">
+        <div class="road-date">May 2026</div>
+        <div class="road-title">Prototype playtest gate</div>
+        <div class="road-status now">⏵ 5 playtesters, "one more run" test, kill-or-continue</div>
+      </div>
+      <div class="road-cell">
+        <div class="road-date">Jun–Sep 2026</div>
+        <div class="road-title">Vertical slice</div>
+        <div class="road-status soon">One desk, playable start-to-boss, art placeholder</div>
+      </div>
+      <div class="road-cell">
+        <div class="road-date">Oct 2026</div>
+        <div class="road-title">Steam Next Fest demo</div>
+        <div class="road-status soon">Target: 1,000+ wishlists from demo push</div>
+      </div>
+      <div class="road-cell">
+        <div class="road-date">Nov 2026 – Apr 2027</div>
+        <div class="road-title">Full content + polish</div>
+        <div class="road-status soon">All 4 desks, 20-hour campaign, music, final art</div>
+      </div>
+      <div class="road-cell">
+        <div class="road-date">Q2 2027</div>
+        <div class="road-title">Launch</div>
+        <div class="road-status soon">Steam · $19.99 · target 10k wishlists day-of</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WISHLIST CTA -->
+<section id="wishlist" class="pad">
+  <div class="wrap">
+    <div class="cta-box">
+      <h2>Get the devlog. Wishlist when it <em>hits Steam</em>.</h2>
+      <p>One email per month. Build updates, sim-balance deltas, playtest findings, screenshots. When the Steam page goes up in Oct 2026, you'll be the first to wishlist. When the demo drops at Next Fest, you'll have early access. No spam, unsubscribe one-click, I read every reply.</p>
+      <form action="https://formsubmit.co/games@biskin.studio" method="POST">
+        <input type="hidden" name="_subject" value="New Market Maker devlog signup">
+        <input type="hidden" name="_template" value="table">
+        <input type="hidden" name="_captcha" value="false">
+        <input type="hidden" name="_next" value="https://biskin.studio/games#wishlist">
+        <input type="text" name="_honey" style="display:none;">
+        <input type="email" name="email" placeholder="you@example.com" required>
+        <button type="submit" class="btn primary">Get the devlog →</button>
+      </form>
+      <div class="hint">~ Monthly. First email = the prototype gameplay loop video.</div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-mark">BISKIN<em>studio</em></div>
+        <p class="footer-tag">Products built in public, shipped alone. A solo studio out of California making things for people who ship.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Products</h5>
+        <ul>
+          <li><a href="https://agents.biskin.studio">Biskin Agents</a></li>
+          <li><a href="/creative">Biskin Creative</a></li>
+          <li><a href="/#brain">Biskin Brain</a></li>
+          <li><a href="/#quant">Biskin Quant</a></li>
+          <li><a href="/games">Biskin Games</a></li>
+          <li><a href="/#research">Biskin Research</a></li>
+          <li><a href="/lab.html">Biskin Lab</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Market Maker</h5>
+        <ul>
+          <li><a href="#archetypes">The 4 desks</a></li>
+          <li><a href="#wishlist">Get the devlog</a></li>
+          <li><a href="https://x.com/efebiskin">Dev Twitter</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Social</h5>
+        <ul>
+          <li><a href="https://x.com/efebiskin">Twitter / X</a></li>
+          <li><a href="https://github.com/efebiskin">GitHub</a></li>
+          <li><a href="mailto:games@biskin.studio">Email</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-sig">
+      <span>BISKIN GAMES · MADE IN CALIFORNIA</span>
+      <span>© EFE BISKIN · ALL RIGHTS RESERVED</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

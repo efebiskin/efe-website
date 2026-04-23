@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Biskin Research — field reports from inside the AI agent economy</title>
+<meta name="description" content="Deep reports on the AI agent economy — who's winning, who's hiring, where the margin goes in 2026. Written by someone shipping in it, not someone writing about it.">
+<meta name="theme-color" content="#0A0A0A">
+<meta property="og:title" content="Biskin Research">
+<meta property="og:description" content="Field reports on the AI agent economy. Written from inside the work, not from the sidelines.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{ --c-bg:#0A0A0A; --c-bg-rgb:10,10,10; --c-surface:#141414; --c-text:#F5F1E8; --c-text-rgb:245,241,232; --c-lime:#C8FF00; --c-lime-rgb:200,255,0; --c-red:#FF4F36; --c-dim:#777; --c-line:rgba(var(--c-text-rgb),0.08); --c-line-strong:rgba(var(--c-text-rgb),0.16); --f-display:'Archivo',system-ui,sans-serif; --f-serif:'Instrument Serif',Georgia,serif; --f-mono:'JetBrains Mono',ui-monospace,monospace; --f-body:'Inter',system-ui,sans-serif; --pad:clamp(4rem,9vh,6.5rem); --gut:clamp(1.5rem,5vw,4rem); }
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--f-body);background:var(--c-bg);color:var(--c-text);line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+a{color:inherit;text-decoration:none;}
+button{cursor:pointer;background:none;border:0;color:inherit;font:inherit;}
+.wrap{max-width:1200px;margin:0 auto;padding:0 var(--gut);}
+.pad{padding:var(--pad) 0;}
+nav.top{position:sticky;top:0;z-index:50;background:rgba(var(--c-bg-rgb),0.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--c-line);}
+nav.top .wrap{display:flex;align-items:center;justify-content:space-between;padding:1rem var(--gut);}
+.brand{font-family:var(--f-display);font-weight:800;letter-spacing:-0.02em;font-size:1.05rem;}
+.brand em{font-family:var(--f-serif);font-style:italic;font-weight:400;color:var(--c-lime);}
+.brand-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--c-lime);margin:0 0.4rem;vertical-align:middle;}
+nav ul{display:flex;gap:2rem;list-style:none;font-size:0.85rem;letter-spacing:0.04em;text-transform:uppercase;}
+nav ul a{color:var(--c-dim);transition:color .2s;}
+nav ul a:hover{color:var(--c-text);}
+nav ul a.active{color:var(--c-lime);}
+.nav-cta{padding:0.6rem 1rem;border:1px solid var(--c-lime);color:var(--c-lime);font-size:0.8rem;letter-spacing:0.05em;text-transform:uppercase;font-weight:600;}
+.nav-cta:hover{background:var(--c-lime);color:var(--c-bg);}
+.hero{padding:5rem 0 3rem;}
+.hero-inner{max-width:960px;}
+.kicker{display:inline-block;font-family:var(--f-mono);font-size:0.72rem;letter-spacing:0.1em;color:var(--c-lime);padding:0.35rem 0.75rem;border:1px solid rgba(var(--c-lime-rgb),0.3);border-radius:3px;margin-bottom:2rem;text-transform:uppercase;}
+h1.hero-title{font-family:var(--f-display);font-weight:900;font-size:clamp(2.8rem,6vw,5.2rem);line-height:0.95;letter-spacing:-0.03em;margin-bottom:1.8rem;}
+h1.hero-title em{font-family:var(--f-serif);font-style:italic;font-weight:400;color:var(--c-lime);}
+.hero-sub{font-size:clamp(1.05rem,1.7vw,1.3rem);color:rgba(var(--c-text-rgb),0.75);max-width:640px;line-height:1.55;margin-bottom:2.5rem;}
+.hero-ctas{display:flex;gap:1rem;flex-wrap:wrap;}
+.btn{display:inline-flex;align-items:center;gap:0.5rem;padding:0.9rem 1.4rem;border:1px solid var(--c-line-strong);font-weight:600;font-size:0.9rem;transition:all .2s;}
+.btn:hover{border-color:var(--c-text);}
+.btn.primary{background:var(--c-lime);color:var(--c-bg);border-color:var(--c-lime);}
+.btn.primary:hover{background:transparent;color:var(--c-lime);}
+.hero-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:2rem;padding-top:3.5rem;margin-top:3.5rem;border-top:1px solid var(--c-line);}
+.stat-num{font-family:var(--f-display);font-weight:800;font-size:1.7rem;letter-spacing:-0.02em;}
+.stat-num em{font-family:var(--f-serif);font-style:italic;font-weight:400;color:var(--c-lime);}
+.stat-lbl{font-family:var(--f-mono);font-size:0.7rem;color:var(--c-dim);text-transform:uppercase;letter-spacing:0.08em;margin-top:0.3rem;}
+section{border-top:1px solid var(--c-line);}
+.section-label{font-family:var(--f-mono);font-size:0.72rem;color:var(--c-dim);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:2.5rem;}
+.section-label .num{color:var(--c-lime);}
+h2.section-big{font-family:var(--f-display);font-weight:800;font-size:clamp(2rem,4vw,3.4rem);line-height:1;letter-spacing:-0.02em;margin-bottom:2.5rem;}
+h2.section-big em{font-family:var(--f-serif);font-style:italic;font-weight:400;color:var(--c-lime);}
+.report{display:grid;grid-template-columns:1fr 1.5fr;gap:0;border:1px solid var(--c-line-strong);margin-bottom:1.25rem;background:rgba(var(--c-surface),0.5);}
+.report > div{padding:2.25rem 2rem;}
+.report .cover{background:var(--c-bg);border-right:1px solid var(--c-line-strong);display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;}
+.report .cover::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 20% 10%,rgba(var(--c-lime-rgb),0.08),transparent 50%);pointer-events:none;}
+.report .issue-num{font-family:var(--f-mono);font-size:0.72rem;letter-spacing:0.1em;color:var(--c-lime);}
+.report .issue-title{font-family:var(--f-display);font-weight:900;font-size:clamp(1.8rem,2.5vw,2.4rem);line-height:1;letter-spacing:-0.02em;margin-top:2rem;}
+.report .issue-title em{font-family:var(--f-serif);font-style:italic;font-weight:400;color:var(--c-lime);}
+.report .issue-date{font-family:var(--f-mono);font-size:0.75rem;color:var(--c-dim);margin-top:1.5rem;letter-spacing:0.06em;text-transform:uppercase;}
+.report h3{font-family:var(--f-display);font-weight:700;font-size:1.2rem;letter-spacing:-0.02em;margin-bottom:1rem;}
+.report h3 em{font-family:var(--f-serif);font-style:italic;font-weight:400;color:var(--c-lime);}
+.report p{font-size:0.93rem;line-height:1.65;color:rgba(var(--c-text-rgb),0.75);margin-bottom:1rem;}
+.report ul{list-style:none;margin:1rem 0;}
+.report li{font-size:0.88rem;padding-left:1.3rem;position:relative;color:rgba(var(--c-text-rgb),0.8);margin-bottom:0.45rem;line-height:1.5;}
+.report li::before{content:'→';position:absolute;left:0;color:var(--c-lime);font-weight:700;}
+.report .rprice{display:flex;justify-content:space-between;align-items:center;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--c-line);}
+.report .rprice-num{font-family:var(--f-display);font-weight:800;font-size:1.4rem;letter-spacing:-0.02em;}
+.report .rprice-num em{font-family:var(--f-serif);font-style:italic;font-weight:400;color:var(--c-dim);font-size:0.7em;}
+.cta-box{padding:clamp(2.5rem,5vw,4rem);border:1px solid var(--c-lime);background:rgba(var(--c-lime-rgb),0.04);}
+.cta-box h2{font-family:var(--f-display);font-weight:800;font-size:clamp(1.6rem,3vw,2.4rem);line-height:1.1;letter-spacing:-0.02em;margin-bottom:1.25rem;max-width:640px;}
+.cta-box h2 em{font-family:var(--f-serif);font-style:italic;font-weight:400;color:var(--c-lime);}
+.cta-box p{color:rgba(var(--c-text-rgb),0.75);line-height:1.55;margin-bottom:2rem;max-width:580px;}
+.cta-box form{display:flex;gap:0.5rem;flex-wrap:wrap;max-width:520px;}
+.cta-box input[type="email"]{flex:1 1 260px;padding:0.9rem 1rem;background:rgba(var(--c-bg-rgb),0.5);border:1px solid var(--c-line-strong);color:var(--c-text);font:inherit;}
+.cta-box input[type="email"]:focus{outline:none;border-color:var(--c-lime);}
+.cta-box .hint{margin-top:1rem;font-family:var(--f-mono);font-size:0.75rem;color:var(--c-dim);}
+footer{border-top:1px solid var(--c-line);padding:3rem 0 2.5rem;}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:3rem;margin-bottom:2.5rem;}
+.footer-mark{font-family:var(--f-display);font-weight:800;font-size:1.2rem;margin-bottom:0.5rem;letter-spacing:-0.02em;}
+.footer-mark em{font-family:var(--f-serif);font-style:italic;font-weight:400;color:var(--c-lime);}
+.footer-tag{font-size:0.85rem;color:rgba(var(--c-text-rgb),0.55);line-height:1.55;max-width:280px;}
+.footer-col h5{font-family:var(--f-mono);font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--c-dim);margin-bottom:0.9rem;font-weight:500;}
+.footer-col ul{list-style:none;}
+.footer-col li{margin-bottom:0.5rem;font-size:0.88rem;}
+.footer-col a{color:rgba(var(--c-text-rgb),0.7);transition:color .2s;}
+.footer-col a:hover{color:var(--c-lime);}
+.footer-sig{padding-top:2rem;border-top:1px solid var(--c-line);display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:0.7rem;color:var(--c-dim);letter-spacing:0.08em;text-transform:uppercase;flex-wrap:wrap;gap:1rem;}
+@media (max-width:900px){ nav ul{display:none;} .report{grid-template-columns:1fr;} .report .cover{border-right:0;border-bottom:1px solid var(--c-line-strong);} .footer-grid{grid-template-columns:1fr 1fr;gap:2rem;} }
+</style>
+</head>
+<body>
+
+<nav class="top">
+  <div class="wrap">
+    <div class="brand">BISKIN<span class="brand-dot"></span><em>studio</em></div>
+    <ul>
+      <li><a href="/#agents">Agents</a></li>
+      <li><a href="/creative">Creative</a></li>
+      <li><a href="/brain">Brain</a></li>
+      <li><a href="/quant">Quant</a></li>
+      <li><a href="/games">Games</a></li>
+      <li><a href="/research" class="active">Research</a></li>
+    </ul>
+    <a href="#subscribe" class="nav-cta">Read free →</a>
+  </div>
+</nav>
+
+<header class="hero pad">
+  <div class="wrap">
+    <div class="hero-inner">
+      <div class="kicker">BISKIN RESEARCH · FIELD REPORTS FROM INSIDE THE WORK</div>
+      <h1 class="hero-title">Reports on the <em>AI agent economy</em>, written by someone shipping in it.</h1>
+      <p class="hero-sub">
+        Most "AI research" today is written by people who've never shipped an agent. Biskin Research is the opposite: field reports from inside the work. Who's winning, who's hiring, where the margin actually goes, which tools survive the next 12 months. Free top-of-funnel issue per report. Paid full report for operators who need depth.
+      </p>
+      <div class="hero-ctas">
+        <a href="#subscribe" class="btn primary">Get Report 01 free → <span>↗</span></a>
+        <a href="#reports" class="btn">See the reports ↓</a>
+      </div>
+      <div class="hero-stats">
+        <div><div class="stat-num">Quarterly</div><div class="stat-lbl">Cadence</div></div>
+        <div><div class="stat-num">FREE</div><div class="stat-lbl">Preview issue</div></div>
+        <div><div class="stat-num">$299</div><div class="stat-lbl">Full report</div></div>
+        <div><div class="stat-num">50+ <em>pp</em></div><div class="stat-lbl">Per report</div></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- PHILOSOPHY -->
+<section class="pad">
+  <div class="wrap">
+    <div class="section-label"><span class="num">01</span> · WHY THIS EXISTS</div>
+    <h2 class="section-big">Analyst reports are written by people who don't <em>build</em>.</h2>
+    <div style="max-width: 760px;">
+      <p style="color:rgba(var(--c-text-rgb),0.75); font-size:1.05rem; line-height:1.7;">Look at any "AI agents market map 2026" PDF. It's a logo salad made by someone who's never shipped a retry loop, never debugged a hallucinating tool call, never watched a demo fail on stage. The insights are vibes. The numbers are scraped from press releases. The predictions are safe enough to be useless.</p>
+      <p style="color:rgba(var(--c-text-rgb),0.75); font-size:1.05rem; line-height:1.7; margin-top:1.5rem;">Biskin Research is the opposite. Every report is written while I'm building in the same space. I'm an operator, not an analyst. When I say "this stack won't hold past 50 agents," it's because I tried to run 50 agents. When I say "the margin in this category goes to the orchestration layer," it's because I've watched it happen in my own P&L.</p>
+      <p style="color:rgba(var(--c-text-rgb),0.75); font-size:1.05rem; line-height:1.7; margin-top:1.5rem;">The free preview is the first 12 pages — the thesis, the methodology, the top-3 takeaways. Enough to decide if the full 50+ page report is worth $299 to you. If it's not, don't buy it. Simple.</p>
+    </div>
+  </div>
+</section>
+
+<!-- REPORTS -->
+<section id="reports" class="pad">
+  <div class="wrap">
+    <div class="section-label"><span class="num">02</span> · THE REPORTS</div>
+    <h2 class="section-big">One thesis. Fifty+ pages of <em>evidence</em>.</h2>
+
+    <div class="report">
+      <div class="cover">
+        <div class="issue-num">REPORT 01 · LIVE Q2 2026</div>
+        <div>
+          <div class="issue-title">Who actually <em>wins</em> the AI agent economy in 2026?</div>
+        </div>
+        <div class="issue-date">Draft · Q2 2026 · 50+ pp</div>
+      </div>
+      <div>
+        <h3>The <em>thesis</em>.</h3>
+        <p>The AI agent market splits into three layers in 2026: model, orchestration, and interface. Most value accrues to orchestration — the layer retail analysts underweight because it has no flashy models and no consumer brand. Here's who's positioned for it, who's burning cash in the wrong layer, and where the next $10B-hiring-year will land.</p>
+        <ul>
+          <li>Layer-by-layer margin analysis (with real numbers, not TAM fiction)</li>
+          <li>15 companies I'm watching — 5 I'd bet on, 5 I'd avoid, 5 I can't call</li>
+          <li>The two hiring signals that predict winners six months out</li>
+          <li>Where the tool builders vs. tool users actually make money</li>
+          <li>Three bets that look obvious but aren't</li>
+        </ul>
+        <div class="rprice">
+          <div class="rprice-num">$299 <em>· full report</em></div>
+          <a href="#subscribe" class="btn primary">Get the preview →</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="report">
+      <div class="cover">
+        <div class="issue-num">REPORT 02 · Q3 2026</div>
+        <div>
+          <div class="issue-title">The <em>retention</em> cliff for AI-native SaaS.</div>
+        </div>
+        <div class="issue-date">Upcoming · Q3 2026</div>
+      </div>
+      <div>
+        <h3>The <em>question</em>.</h3>
+        <p>2025 AI SaaS pitches all showed hockey-stick ARR. 2026 is when month-6 retention numbers start coming in. The preliminary data: a lot worse than the founders claim. This report breaks down where it holds, where it falls off a cliff, and what the survivors are doing differently at the product level.</p>
+        <ul>
+          <li>Retention curves by category (vertical SaaS, horizontal, infra)</li>
+          <li>The wedge features that anchor retention past month 6</li>
+          <li>The wrapper companies that are actually building moats</li>
+          <li>A founder's playbook for fixing a leaky bucket</li>
+        </ul>
+        <div class="rprice">
+          <div class="rprice-num">TBD <em>· subscribe for preview</em></div>
+          <a href="#subscribe" class="btn">Get notified →</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="report">
+      <div class="cover">
+        <div class="issue-num">REPORT 03 · Q4 2026</div>
+        <div>
+          <div class="issue-title">The <em>solo-operator</em> stack.</div>
+        </div>
+        <div class="issue-date">Upcoming · Q4 2026</div>
+      </div>
+      <div>
+        <h3>The <em>field report</em>.</h3>
+        <p>What a one-person company actually looks like in 2026 when you've got agents, MCPs, cheap inference, and a sub-$5k tooling budget. I'm running this experiment live — seven product lines, solo, public. The report is the receipts: what worked, what burned money, what compounded.</p>
+        <ul>
+          <li>The tool stack (with actual monthly costs, no sponsors)</li>
+          <li>Which agents saved the most time, ranked by hours saved</li>
+          <li>Where AI fails and you still have to do it yourself</li>
+          <li>The "100-hour weeks are a lie" ground truth</li>
+        </ul>
+        <div class="rprice">
+          <div class="rprice-num">TBD <em>· subscribe for preview</em></div>
+          <a href="#subscribe" class="btn">Get notified →</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- SUBSCRIBE -->
+<section id="subscribe" class="pad">
+  <div class="wrap">
+    <div class="cta-box">
+      <h2>Get Report 01's <em>free preview</em> when it drops.</h2>
+      <p>Twelve pages — full thesis, methodology, top-3 takeaways. Enough to decide if the 50-page version is worth $299. Plus a heads-up on every future report, priority-of-access to the operator Discord where I share signal I don't post publicly, and the occasional long email when something in the space changes faster than the quarterly report can capture.</p>
+      <form action="https://formsubmit.co/research@biskin.studio" method="POST">
+        <input type="hidden" name="_subject" value="New Biskin Research subscriber">
+        <input type="hidden" name="_template" value="table">
+        <input type="hidden" name="_captcha" value="false">
+        <input type="hidden" name="_next" value="https://biskin.studio/research#subscribe">
+        <input type="text" name="_honey" style="display:none;">
+        <input type="email" name="email" placeholder="you@company.com" required>
+        <button type="submit" class="btn primary">Send me the preview →</button>
+      </form>
+      <div class="hint">~ Quarterly cadence. Free preview + operator Discord. Unsubscribe one-click.</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-mark">BISKIN<em>studio</em></div>
+        <p class="footer-tag">Products built in public, shipped alone. A solo studio out of California making things for people who ship.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Products</h5>
+        <ul>
+          <li><a href="https://agents.biskin.studio">Biskin Agents</a></li>
+          <li><a href="/creative">Biskin Creative</a></li>
+          <li><a href="/brain">Biskin Brain</a></li>
+          <li><a href="/quant">Biskin Quant</a></li>
+          <li><a href="/games">Biskin Games</a></li>
+          <li><a href="/research">Biskin Research</a></li>
+          <li><a href="/lab.html">Biskin Lab</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Research</h5>
+        <ul>
+          <li><a href="#reports">Reports</a></li>
+          <li><a href="#subscribe">Subscribe free</a></li>
+          <li><a href="mailto:research@biskin.studio">Questions</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Social</h5>
+        <ul>
+          <li><a href="https://x.com/efebiskin">Twitter / X</a></li>
+          <li><a href="https://github.com/efebiskin">GitHub</a></li>
+          <li><a href="mailto:research@biskin.studio">Email</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-sig">
+      <span>BISKIN RESEARCH · MADE IN CALIFORNIA</span>
+      <span>© EFE BISKIN · ALL RIGHTS RESERVED</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

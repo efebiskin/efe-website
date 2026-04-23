@@ -1154,10 +1154,10 @@
   <ul class="nav-links">
     <li><a href="#agents">Agents</a></li>
     <li><a href="/creative.html">Creative</a></li>
-    <li><a href="#brain">Brain</a></li>
-    <li><a href="#quant">Quant</a></li>
-    <li><a href="#games">Games</a></li>
-    <li><a href="#research">Research</a></li>
+    <li><a href="/brain">Brain</a></li>
+    <li><a href="/quant">Quant</a></li>
+    <li><a href="/games">Games</a></li>
+    <li><a href="/research">Research</a></li>
   </ul>
   <a href="#contact" class="nav-cta magnet">Start a project →</a>
 </nav>
@@ -1235,7 +1235,7 @@
         <div class="r-foot"><span>Biskin Creative</span><span>→</span></div>
       </a>
 
-      <a href="#brain" class="router-card reveal-up">
+      <a href="/brain" class="router-card reveal-up">
         <div>
           <div class="r-kicker">If you use Claude daily</div>
           <div class="r-title">Permanent <em>memory</em></div>
@@ -1243,7 +1243,7 @@
         <div class="r-foot"><span>Biskin Brain</span><span>→</span></div>
       </a>
 
-      <a href="#quant" class="router-card reveal-up">
+      <a href="/quant" class="router-card reveal-up">
         <div>
           <div class="r-kicker">If you trade or invest</div>
           <div class="r-title">Signals, not <em>hype</em></div>
@@ -1251,7 +1251,7 @@
         <div class="r-foot"><span>Biskin Quant</span><span>→</span></div>
       </a>
 
-      <a href="#games" class="router-card reveal-up">
+      <a href="/games" class="router-card reveal-up">
         <div>
           <div class="r-kicker">If you love deckbuilders</div>
           <div class="r-title">A <em>real</em> finance roguelike</div>
@@ -1259,7 +1259,7 @@
         <div class="r-foot"><span>Biskin Games</span><span>→</span></div>
       </a>
 
-      <a href="#research" class="router-card reveal-up">
+      <a href="/research" class="router-card reveal-up">
         <div>
           <div class="r-kicker">If you need deep context</div>
           <div class="r-title">Field <em>research</em> on AI</div>
@@ -1342,7 +1342,7 @@
         <p class="card-desc">Your AI's long-term memory. Local-first, Claude-native, permanent. Obsidian vault template + MCP setup + nightly "Sentience" agent that reads new notes, writes typed links, flags contradictions, drafts a state-of-the-brain each morning.</p>
         <div class="card-foot">
           <span class="price">$79 / $149 / $299</span>
-          <a href="#contact" class="go">Get the bundle →</a>
+          <a href="/brain" class="go">Get the bundle →</a>
         </div>
       </article>
 
@@ -1360,7 +1360,7 @@
         <p class="card-desc">A Substack + signal packs built by someone who's been wrong enough times to be honest. 15 years of insider-buy data, real backtests, real drawdowns. No promises of riches. Just sharper decisions and the math to back them.</p>
         <div class="card-foot">
           <span class="price">FREE / $149</span>
-          <a href="#contact" class="go">Read the first issue →</a>
+          <a href="/quant" class="go">Read the first issue →</a>
         </div>
       </article>
 
@@ -1380,7 +1380,7 @@
         <p class="card-desc"><strong>Market Maker</strong> — a roguelike deckbuilder where cards are real trading strategies and bosses are Fed surprises, flash crashes, CPI prints. Built by an ex-quant on Godot. Steam page soon. Wishlist the thing nobody else is making.</p>
         <div class="card-foot">
           <span class="price">STEAM · Q2 2027</span>
-          <a href="#contact" class="go">Devlog →</a>
+          <a href="/games" class="go">Devlog →</a>
         </div>
       </article>
 
@@ -1400,7 +1400,7 @@
         <p class="card-desc">Deep reports on the AI agent economy — who's winning, who's hiring, where the margin goes in 2026. Written by someone shipping in it, not someone writing about it. Free top-of-funnel, paid full report.</p>
         <div class="card-foot">
           <span class="price">FREE / $299</span>
-          <a href="#contact" class="go">Read Report 01 →</a>
+          <a href="/research" class="go">Read Report 01 →</a>
         </div>
       </article>
 
@@ -1527,18 +1527,23 @@
     <div class="contact-inner">
       <h2 class="contact-big reveal-up">Got a project?<br>Want to <em>ship it</em> loud?</h2>
 
-      <form class="contact-form reveal-up" onsubmit="handleContact(event)">
+      <form class="contact-form reveal-up" action="https://formsubmit.co/team@biskin.studio" method="POST">
+        <input type="hidden" name="_subject" value="New inquiry · biskin.studio">
+        <input type="hidden" name="_template" value="table">
+        <input type="hidden" name="_captcha" value="false">
+        <input type="hidden" name="_next" value="https://biskin.studio/#contact-thanks">
+        <input type="text" name="_honey" style="display:none;">
         <div>
           <label>Your name</label>
-          <input type="text" placeholder="Efe Biskin" required>
+          <input type="text" name="name" placeholder="Efe Biskin" required>
         </div>
         <div>
           <label>Email</label>
-          <input type="email" placeholder="you@company.com" required>
+          <input type="email" name="email" placeholder="you@company.com" required>
         </div>
         <div>
           <label>What are you building?</label>
-          <textarea placeholder="Tell me about the project — timeline, budget range, what's keeping you up at night…" required></textarea>
+          <textarea name="message" placeholder="Tell me about the project — timeline, budget range, what's keeping you up at night…" required></textarea>
         </div>
         <button type="submit" class="btn primary magnet" style="align-self: start; margin-top: 0.5rem;">
           Send it → <span class="arr">↗</span>
@@ -1566,10 +1571,10 @@
         <ul>
           <li><a href="https://agents.biskin.studio">Biskin Agents</a></li>
           <li><a href="/creative.html">Biskin Creative</a></li>
-          <li><a href="#brain">Biskin Brain</a></li>
-          <li><a href="#quant">Biskin Quant</a></li>
-          <li><a href="#games">Biskin Games</a></li>
-          <li><a href="#research">Biskin Research</a></li>
+          <li><a href="/brain">Biskin Brain</a></li>
+          <li><a href="/quant">Biskin Quant</a></li>
+          <li><a href="/games">Biskin Games</a></li>
+          <li><a href="/research">Biskin Research</a></li>
           <li><a href="/lab.html">Biskin Lab</a></li>
         </ul>
       </div>
@@ -1981,17 +1986,8 @@ document.querySelectorAll('.reveal-up').forEach(el => io.observe(el));
 /* ============================================
    CONTACT FORM (placeholder)
    ============================================ */
-window.handleContact = function(e){
-  e.preventDefault();
-  const btn = e.target.querySelector('button[type="submit"]');
-  const original = btn.innerHTML;
-  btn.innerHTML = 'Sending...';
-  setTimeout(() => {
-    btn.innerHTML = '✓ Received — expect a reply in 24h';
-    setTimeout(() => { btn.innerHTML = original; e.target.reset(); }, 3500);
-  }, 800);
-  // real impl: POST to formspree / convertkit / your API
-};
+// form submits natively to formsubmit.co → team@biskin.studio.
+// First submission on a new address triggers a one-time confirmation email from formsubmit — click to activate.
 
 /* ============================================
    KONAMI EASTER EGG

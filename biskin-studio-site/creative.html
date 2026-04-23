@@ -1037,7 +1037,12 @@
         </div>
       </div>
 
-      <form onsubmit="handleContact(event)">
+      <form action="https://formsubmit.co/creative@biskin.studio" method="POST">
+        <input type="hidden" name="_subject" value="Creative audit request · biskin.studio">
+        <input type="hidden" name="_template" value="table">
+        <input type="hidden" name="_captcha" value="false">
+        <input type="hidden" name="_next" value="https://biskin.studio/creative#contact-thanks">
+        <input type="text" name="_honey" style="display:none;">
         <div>
           <label>Your name</label>
           <input type="text" name="name" placeholder="Jane Owner" required>
@@ -1131,22 +1136,8 @@
     });
   });
 
-  function handleContact(e){
-    e.preventDefault();
-    const f = e.target;
-    const body = `New Biskin Creative lead
-
-Name: ${f.name.value}
-Business: ${f.business.value}
-Type: ${f.type.value}
-Current site: ${f.site.value || '(none)'}
-Email: ${f.email.value}
-
-Notes:
-${f.notes.value}`;
-    const mailto = `mailto:creative@biskin.studio?subject=${encodeURIComponent('Creative audit: ' + f.business.value)}&body=${encodeURIComponent(body)}`;
-    window.location.href = mailto;
-  }
+  // form submits natively to formsubmit.co → creative@biskin.studio.
+  // First submission triggers a one-time confirmation email from formsubmit — click the link to activate routing.
 </script>
 
 </body>
